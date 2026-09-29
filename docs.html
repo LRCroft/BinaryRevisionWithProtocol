@@ -69,7 +69,18 @@
           <li><a href="#doc-status"><span class="mono">20</span> Implementation Status</a></li>
           <li><a href="#doc-libraries"><span class="mono">21</span> Multi-Language Libraries</a></li>
           <li><a href="#doc-capabilities"><span class="mono">22</span> Library Capabilities</a></li>
-          <li><a href="#doc-glossary"><span class="mono">23</span> Glossary</a></li>
+          <li><a href="#doc-container"><span class="mono">23</span> .vsn Container Format</a></li>
+          <li><a href="#doc-reconstruct"><span class="mono">24</span> Content Reconstruction</a></li>
+          <li><a href="#doc-vsatomic"><span class="mono">25</span> .vsn Atomicity</a></li>
+          <li><a href="#doc-concurrency"><span class="mono">26</span> Concurrency</a></li>
+          <li><a href="#doc-errors"><span class="mono">27</span> Library Error Contract</a></li>
+          <li><a href="#doc-streaming"><span class="mono">28</span> Streaming &amp; Text/Binary</a></li>
+          <li><a href="#doc-paths"><span class="mono">29</span> Paths &amp; Rename</a></li>
+          <li><a href="#doc-restoretable"><span class="mono">30</span> Restore Scopes</a></li>
+          <li><a href="#doc-interop"><span class="mono">31</span> Interop &amp; Versions</a></li>
+          <li><a href="#doc-retention"><span class="mono">32</span> Retention &amp; Compaction</a></li>
+          <li><a href="#doc-freeze"><span class="mono">33</span> Freeze Checklist</a></li>
+          <li><a href="#doc-glossary"><span class="mono">34</span> Glossary</a></li>
         </ol>
       </div>
     </nav>
@@ -120,6 +131,7 @@
         <p class="eyebrow">03 &middot; .vsn Sidecar</p>
         <h2 id="doc-vsn-title">.vsn Sidecar <span class="spec-tag">Specification</span></h2>
         <p><strong>.vsn is a companion sidecar file that travels with its logical file and carries its revision state/history and the information required to reconstruct or locate those revisions.</strong></p>
+        <p>Normative terms in this page follow RFC 2119: MUST / MUST NOT are absolute requirements, SHOULD / SHOULD NOT are strong recommendations with documented exceptions, and MAY marks truly optional behavior.</p>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">file-local sidecars</span></div>
 <pre class="mono tree"><code>project/
 `-- src/
@@ -130,7 +142,7 @@
         <ul class="check-list">
           <li>One logical file maps to one sidecar: <code class="inline-code">Program.cs</code> + <code class="inline-code">Program.cs.vsn</code>.</li>
           <li>The sidecar carries FileId, revision history, revision metadata, accepted/head information, revision references, and references to content/revision data.</li>
-          <li>The sidecar carries revision information and references; content bytes may be embedded or held by another storage backend. The repository does not yet freeze one layout.</li>
+          <li>A valid sidecar MUST embed every byte required to reconstruct each retained Revision. External storage MAY exist for sync, cache, backup, or collaboration, but it MUST NOT be required for retained-revision reconstruction.</li>
           <li><code class="inline-code">FileId</code> is authoritative identity. Filename is not identity.</li>
           <li>Rename preserves FileId; move preserves FileId.</li>
           <li>The <code class="inline-code">.vsn</code> file is not the protocol itself. It is one representation/storage mechanism for the protocol; other backends can exist.</li>
@@ -388,7 +400,7 @@ SHA-256 -&gt; sha256:&lt;64 lowercase hex&gt;</code></pre></div>
       <div class="container doc">
         <p class="eyebrow">20 &middot; Implementation Status</p>
         <h2 id="doc-status-title">Implementation Status</h2>
-        <p>Evidence base: repository root contains only <code class="inline-code">index.html</code>, <code class="inline-code">style.css</code>, <code class="inline-code">script.js</code>, an empty <code class="inline-code">README.md</code>, an empty <code class="inline-code">Libraries/</code> directory, and a working-copy <code class="inline-code">Website/</code> mirror. No protocol source, schemas, tests, or vectors found.</p>
+        <p>Evidence base: repository root contains the static site (<code class="inline-code">index.html</code>, <code class="inline-code">docs.html</code>, <code class="inline-code">style.css</code>, <code class="inline-code">script.js</code>), an empty <code class="inline-code">README.md</code>, and an empty <code class="inline-code">Libraries/</code> directory. No protocol source, schemas, tests, or vectors found.</p>
         <table>
           <thead><tr><th>Component</th><th>Status</th><th>Notes</th></tr></thead>
           <tbody>
@@ -530,9 +542,174 @@ Application -- uses the library</code></pre></div>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
+    <section class="section" id="doc-container" aria-labelledby="doc-container-title">
+      <div class="container doc">
+        <p class="eyebrow">23 &middot; .vsn Container Format</p>
+        <h2 id="doc-container-title">.vsn Container Format <span class="spec-tag">To be frozen</span></h2>
+        <p>No physical <code class="inline-code">.vsn</code> binary layout was found in this repository. The required container architecture below is normative as structure; exact byte order, offsets, and record tags are <strong>not yet frozen</strong> and MUST NOT be invented by independent implementations.</p>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">required container areas</span></div>
+<pre class="mono tree"><code>.vsn
+|-- Header
+|-- Protocol / Format information
+|-- File identity
+|-- Revision metadata
+|-- Revision index / lookup information
+|-- Embedded content records
+|-- Integrity information
+`-- Extension / future compatibility area</code></pre></div>
+        <ul class="check-list">
+          <li>A reader MUST reject a sidecar whose protocol/format version it does not support.</li>
+          <li>ContentRef carries content identity (SHA-256 of raw bytes plus exact size). Container location of the embedded bytes is a representation concern and MUST NOT be conflated with identity unless a frozen format says otherwise.</li>
+          <li>Same content MUST yield the same content identity. Whether identical bytes share one physical record is implementation-defined, but every retained Revision MUST stay independently reconstructable.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-reconstruct" aria-labelledby="doc-reconstruct-title">
+      <div class="container doc">
+        <p class="eyebrow">24 &middot; Content Reconstruction</p>
+        <h2 id="doc-reconstruct-title">Content Reconstruction <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">reconstruction path</span></div>
+<pre class="mono tree"><code>RevisionId -&gt; Revision -&gt; ContentRef
+  -&gt; Embedded Content -&gt; Raw bytes</code></pre></div>
+        <p><strong>A valid retained Revision MUST be reconstructable byte-for-byte from its logical file's <code class="inline-code">.vsn</code> without Git, a database, a server, or an external content store.</strong> Raw bytes are authoritative: no newline, encoding, BOM, or Unicode normalization; no text conversion; binary content is first-class; zero-length files are valid; invalid UTF-8 is valid binary content; LF and CRLF are distinct sequences. The content hash MUST be computed over the exact raw bytes.</p>
+        <p>Lifecycle: create content, associate it with a Revision, retain it while any retained or addressable revision or active protocol root needs it, then purge only after reachability analysis. A Revision record MUST NOT remain addressable after its required content is permanently deleted, and content MUST NOT be physically deleted while still required.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-vsatomic" aria-labelledby="doc-vsatomic-title">
+      <div class="container doc">
+        <p class="eyebrow">25 &middot; .vsn Atomicity</p>
+        <h2 id="doc-vsatomic-title">.vsn Write Atomicity and Crash Recovery <span class="spec-tag">To be frozen</span></h2>
+        <p>No physical commit mechanism (append-only log, atomic rewrite, journal, generation counter, or commit marker) was found in this repository. The observable guarantee is normative: a library MUST NOT expose a partially committed <code class="inline-code">.vsn</code> state as valid, and <code class="inline-code">OpenVsn</code> after an interrupted write MUST surface either the old valid state or a detected-incomplete error — never silent corruption. Whether the frozen format is append-only, atomically rewritten, journaled, or generation-numbered is not yet frozen. This is separate from ApplyTransaction recovery, which protects workspace projection rather than the container itself.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-concurrency" aria-labelledby="doc-concurrency-title">
+      <div class="container doc">
+        <p class="eyebrow">26 &middot; Concurrency</p>
+        <h2 id="doc-concurrency-title">Concurrency <span class="spec-tag">To be frozen</span></h2>
+        <p>Semantic guarantees required: multiple readers MUST be safe; a writer MUST NOT silently overwrite another writer's committed revision state. A commit based on a stale head MUST fail with a conflict or stale-state error rather than silently winning. Expected-head or version checking MUST back Stage and Accept paths once frozen. Locking mechanics, stale-lock handling, crash-while-holding-a-lock behavior, and whether locking is mandatory or optimistic concurrency is allowed are not yet frozen; implementations MUST document their mechanism without changing these guarantees.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-errors" aria-labelledby="doc-errors-title">
+      <div class="container doc">
+        <p class="eyebrow">27 &middot; Library Error Contract</p>
+        <h2 id="doc-errors-title">Library Error Contract <span class="spec-tag">Specification</span></h2>
+        <p>No <code class="inline-code">ProtocolError</code> type or error catalog was found in this repository, so the categories below are the required semantic contract for libraries to map onto once the protocol error set freezes. Semantic identity MUST stay interoperable even though surface syntax varies per language (exceptions, results, error values).</p>
+        <table>
+          <thead><tr><th>Error</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">INVALID_PROTOCOL_VERSION</td><td>Sidecar or record version not supported.</td></tr>
+            <tr><td class="mono">INVALID_RECORD</td><td>Malformed record or structure.</td></tr>
+            <tr><td class="mono">CORRUPT_VSN</td><td>Container fails integrity checks.</td></tr>
+            <tr><td class="mono">REVISION_NOT_FOUND</td><td>Requested revision is not retained.</td></tr>
+            <tr><td class="mono">REVISION_SET_NOT_FOUND</td><td>Requested set does not exist.</td></tr>
+            <tr><td class="mono">FILE_ID_MISMATCH</td><td>Sidecar identity does not match the logical file.</td></tr>
+            <tr><td class="mono">INVALID_REVISION_SET_STATE</td><td>Operation illegal in the current set state.</td></tr>
+            <tr><td class="mono">CONFLICT</td><td>Stale head or competing accept.</td></tr>
+            <tr><td class="mono">INVALID_RESTORE_SCOPE</td><td>Scope cannot be fulfilled from the source.</td></tr>
+            <tr><td class="mono">EXTERNAL_MODIFICATION_DETECTED</td><td>Workspace file changed outside the protocol.</td></tr>
+            <tr><td class="mono">SECURITY_VIOLATION</td><td>Path or filesystem rule rejected the operation.</td></tr>
+            <tr><td class="mono">UNSUPPORTED_CAPABILITY</td><td>Includes unknown required extensions.</td></tr>
+            <tr><td class="mono">NON_CANONICAL_ENCODING</td><td>Valid semantics but wrong canonical bytes.</td></tr>
+            <tr><td class="mono">IDEMPOTENCY_CONFLICT</td><td>Same idempotency key, incompatible request.</td></tr>
+          </tbody>
+        </table>
+        <p>Stage retry with the same RevisionSetId plus StageOperationId MUST NOT create duplicate logical revisions; Accept retry MUST NOT create a second logical commit or duplicate FileHeads and MUST return the same logical outcome.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-streaming" aria-labelledby="doc-streaming-title">
+      <div class="container doc">
+        <p class="eyebrow">28 &middot; Streaming &amp; Text/Binary</p>
+        <h2 id="doc-streaming-title">Streaming and Text/Binary Content <span class="spec-tag">Specification</span></h2>
+        <p>Protocol requirement: content is raw bytes, period. Content-touching operations SHOULD support streaming so correctness never depends on loading an entire file into memory; exact streaming APIs stay language-idiomatic and unfrozen. UTF-8 validity alone never classifies content as text, invalid UTF-8 is valid binary, binary data MUST NOT be modified, text diff is optional, hashes run on raw bytes, and byte identity outranks textual interpretation. Newline normalization MUST NOT be part of the protocol.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-paths" aria-labelledby="doc-paths-title">
+      <div class="container doc">
+        <p class="eyebrow">29 &middot; Paths &amp; Rename</p>
+        <h2 id="doc-paths-title">Filesystem Paths and Rename Semantics <span class="spec-tag">Specification</span></h2>
+        <p>Libraries MUST separate the logical protocol path in the sidecar from the host filesystem path. The sidecar MUST use protocol path rules on every OS. Rename and move mean: same FileId, new PathSnapshot, new Revision. Delete-A plus Create-B with identical bytes MUST NOT imply rename; rename needs authoritative identity, never hash, name, diff, timestamp, or timing similarity. OS separators, reserved names, case, Unicode, symlinks, junctions, mounts, and hard links MUST NOT change FileId semantics; absolute paths, <code class="inline-code">..</code>, and NUL stay rejected.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-restoretable" aria-labelledby="doc-restoretable-title">
+      <div class="container doc">
+        <p class="eyebrow">30 &middot; Restore Scopes</p>
+        <h2 id="doc-restoretable-title">Restore Scope Matrix <span class="spec-tag">Specification</span></h2>
+        <table>
+          <thead><tr><th>Scope</th><th>Content</th><th>Presence</th><th>Path</th><th>Metadata</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">CONTENT_ONLY</td><td>source</td><td>source</td><td>current</td><td>current</td></tr>
+            <tr><td class="mono">CONTENT_AND_PATH</td><td>source</td><td>source</td><td>source</td><td>current</td></tr>
+            <tr><td class="mono">FULL_STATE</td><td>source</td><td>source</td><td>source</td><td>source</td></tr>
+          </tbody>
+        </table>
+        <p>Restore reads the source revision directly and MUST NOT modify it or depend on DiffArtifact.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-interop" aria-labelledby="doc-interop-title">
+      <div class="container doc">
+        <p class="eyebrow">31 &middot; Interop &amp; Versions</p>
+        <h2 id="doc-interop-title">Cross-Language Interoperability and Versioning <span class="spec-tag">Specification</span></h2>
+        <p><strong>A <code class="inline-code">.vsn</code> from one conforming implementation MUST be readable by another supporting the same protocol version and required capabilities.</strong> This is a conformance requirement; no cross-language implementations exist in this repository yet.</p>
+        <p>Versions MUST NOT be conflated: ProtocolVersion, RecordVersion, format families, and library version are distinct, and a library release alone MUST NOT imply a format change. Same semantic object MUST yield same canonical RCMP-1 bytes and SHA-256 in every language; unknown optional extensions are skipped while unknown required ones surface UNSUPPORTED_CAPABILITY.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-retention" aria-labelledby="doc-retention-title">
+      <div class="container doc">
+        <p class="eyebrow">32 &middot; Retention &amp; Compaction</p>
+        <h2 id="doc-retention-title">Retention and Compaction <span class="spec-tag">Specification</span></h2>
+        <p>Retained and addressable revisions include FileHead targets, RevisionSet members, ApplyTransaction roots, staging leases, restore sources, retained DiffArtifacts, legal or audit holds, and active transactions. Compaction strategy is implementation-defined, but any compaction MUST preserve reconstructability and MUST replace the container atomically.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-freeze" aria-labelledby="doc-freeze-title">
+      <div class="container doc">
+        <p class="eyebrow">33 &middot; Freeze Checklist</p>
+        <h2 id="doc-freeze-title">Specification Freeze Checklist</h2>
+        <table>
+          <thead><tr><th>Area</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Protocol semantics</td><td>Frozen</td></tr>
+            <tr><td>Revision model</td><td>Frozen</td></tr>
+            <tr><td>RevisionSet model</td><td>Frozen</td></tr>
+            <tr><td>ApplyTransaction</td><td>Frozen</td></tr>
+            <tr><td>Recovery semantics</td><td>Frozen</td></tr>
+            <tr><td>Restore scopes</td><td>Frozen</td></tr>
+            <tr><td>Diff semantics</td><td>Frozen</td></tr>
+            <tr><td>RCMP-1</td><td>Frozen</td></tr>
+            <tr><td>MembersDigest</td><td>Frozen</td></tr>
+            <tr><td>Idempotency</td><td>Frozen</td></tr>
+            <tr><td>.vsn physical format</td><td>Review</td></tr>
+            <tr><td>Embedded content model</td><td>Review</td></tr>
+            <tr><td>.vsn atomicity</td><td>Review</td></tr>
+            <tr><td>Concurrency</td><td>Review</td></tr>
+            <tr><td>Error contract</td><td>Review</td></tr>
+            <tr><td>Streaming</td><td>Review</td></tr>
+            <tr><td>Filesystem semantics</td><td>Review</td></tr>
+            <tr><td>Capability negotiation</td><td>Review</td></tr>
+            <tr><td>Cross-language conformance</td><td>Review</td></tr>
+          </tbody>
+        </table>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">architectural boundary</span></div>
+<pre class="mono tree"><code>BinaryRevisionWithProtocol: semantics, identity,
+  revision, sets, diff, restore, tx, recovery
+  -&gt; .vsn: self-contained representation
+  -&gt; Libraries: C# / Python / Rust / TS / Java / Go / C++
+  -&gt; Applications use libraries</code></pre></div>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
     <section class="section" id="doc-glossary" aria-labelledby="doc-glossary-title">
       <div class="container doc">
-        <p class="eyebrow">23 &middot; Glossary</p>
+        <p class="eyebrow">34 &middot; Glossary</p>
         <h2 id="doc-glossary-title">Glossary</h2>
         <dl class="grid concepts-grid">
           <div><dt>File</dt><dd>Physical bytes in a workspace.</dd></div>
