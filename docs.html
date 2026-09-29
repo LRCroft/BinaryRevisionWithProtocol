@@ -68,7 +68,8 @@
           <li><a href="#doc-vectors"><span class="mono">19</span> Test Vectors</a></li>
           <li><a href="#doc-status"><span class="mono">20</span> Implementation Status</a></li>
           <li><a href="#doc-libraries"><span class="mono">21</span> Multi-Language Libraries</a></li>
-          <li><a href="#doc-glossary"><span class="mono">22</span> Glossary</a></li>
+          <li><a href="#doc-capabilities"><span class="mono">22</span> Library Capabilities</a></li>
+          <li><a href="#doc-glossary"><span class="mono">23</span> Glossary</a></li>
         </ol>
       </div>
     </nav>
@@ -437,9 +438,101 @@ SHA-256 -&gt; sha256:&lt;64 lowercase hex&gt;</code></pre></div>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
+    <section class="section" id="doc-capabilities" aria-labelledby="doc-capabilities-title">
+      <div class="container doc">
+        <p class="eyebrow">22 &middot; Library Capabilities</p>
+        <h2 id="doc-capabilities-title">Library Capabilities <span class="spec-tag">Specification</span></h2>
+        <p><strong>Every BinaryRevisionWithProtocol library operates on the same protocol semantics and the same <code class="inline-code">.vsn</code> representation. Different language implementations may expose idiomatic APIs, but they must produce equivalent protocol behavior.</strong></p>
+        <p><strong>A conforming library must be able to operate on a self-contained <code class="inline-code">.vsn</code> file without requiring Git, a database, a server, or an external revision/content store for retained revisions.</strong></p>
+        <h3 class="subhead">Self-contained .vsn</h3>
+        <p>The fundamental local model is <code class="inline-code">Program.cs</code> + <code class="inline-code">Program.cs.vsn</code>. The sidecar must contain all information and content required to reconstruct every retained Revision of its logical file.</p>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">self-contained sidecar</span></div>
+<pre class="mono tree"><code>              Program.cs.vsn
+                    |
+      +-------------+-------------+
+      |             |             |
+  File Identity  Revisions     Content
+      |             |             |
+      +-------------+-------------+
+                    |
+               Library API
+                    |
+      +-------------+--------------+
+      |             |              |
+   History        Diff          Restore</code></pre></div>
+        <p>A valid <code class="inline-code">.vsn</code> must not depend on Git, an external database, a remote revision server, or an external blob store for reconstruction of retained revisions.</p>
+        <h3 class="subhead">Capability categories</h3>
+        <h4>1. Open / Create / Verify</h4>
+        <p>Protocol-level capabilities equivalent to <code class="inline-code">CreateVsn</code>, <code class="inline-code">OpenVsn</code>, <code class="inline-code">VerifyVsn</code>: create a new sidecar, open an existing one, detect unsupported protocol versions, validate structure and required metadata, validate integrity, detect corruption, and safely reject malformed data.</p>
+        <h4>2. File Identity</h4>
+        <p>Capabilities equivalent to <code class="inline-code">GetFileIdentity</code>, <code class="inline-code">GetFileId</code>, <code class="inline-code">GetCurrentPath</code>: expose FileId and the current logical path. Identity is independent of filename and content hash, and preserved across rename (<code class="inline-code">src/A.cs</code> to <code class="inline-code">src/B.cs</code> keeps the same FileId) and move.</p>
+        <h4>3. Revision Management</h4>
+        <p>Capabilities equivalent to <code class="inline-code">CreateRevision</code>, <code class="inline-code">GetRevision</code>, <code class="inline-code">GetRevisionContent</code>, <code class="inline-code">GetRevisionMetadata</code>, <code class="inline-code">VerifyRevision</code>: create revisions, read content and metadata, verify integrity, and inspect parent revision, RevisionSet, actor, path, presence, change flags, and restore lineage. A committed Revision is immutable.</p>
+        <h4>4. Revision History</h4>
+        <p>Capabilities equivalent to <code class="inline-code">GetRevisionHistory</code>, <code class="inline-code">GetRevisionById</code>, <code class="inline-code">GetLatestRevision</code>, <code class="inline-code">GetHead</code>: navigate <code class="inline-code">R1 -&gt; R2 -&gt; R3 -&gt; R4</code> and inspect any retained revision without an external service.</p>
+        <h4>5. RevisionSet Management</h4>
+        <p>Capabilities equivalent to <code class="inline-code">BeginRevisionSet</code>, <code class="inline-code">StageRevision</code>, <code class="inline-code">SealRevisionSet</code>, <code class="inline-code">GetRevisionSet</code>, <code class="inline-code">AcceptRevisionSet</code>, <code class="inline-code">RejectRevisionSet</code>. A RevisionSet groups multiple file revisions into one logical change set; each member identifies a FileId with BaseRevisionId (expected prior state) and TargetRevisionId (proposed state); MembersDigest gives deterministic membership integrity; acceptance is all-or-nothing. Public states: DRAFT, PENDING_REVIEW, ACCEPTING, ACCEPTED, REJECTED, CONFLICTED, ABORTED. No SEALED state; no RECOVERY_REQUIRED here.</p>
+        <h4>6. Diff</h4>
+        <p>Capabilities equivalent to <code class="inline-code">CompareRevisions</code>, <code class="inline-code">CreateDiff</code>, <code class="inline-code">GetDiff</code>: compare two revisions for content equality, presence, path, metadata, binary and text content. DiffArtifact is derived, not canonical; restore must never require a pre-generated DiffArtifact.</p>
+        <h4>7. Restore</h4>
+        <p>Capability equivalent to <code class="inline-code">RestoreRevision</code> with scopes <code class="inline-code">CONTENT_ONLY</code> (bytes only), <code class="inline-code">CONTENT_AND_PATH</code> (bytes plus logical path), and <code class="inline-code">FULL_STATE</code> (bytes, path, and metadata). The library reads the source revision directly from the sidecar, never rewrites it, creates new state where the protocol requires it, fails when a scope cannot be fulfilled, and never depends on DiffArtifact.</p>
+        <h4>8. File Operations</h4>
+        <p>Create (first revision for a FileId), Modify (new revision parented on the previous one), Rename (path change, FileId preserved), Move (parent change, FileId preserved), Delete (ABSENT tombstone revision, history kept), Restore (new state from an existing revision). Never infer rename from matching content.</p>
+        <h4>9. Integrity</h4>
+        <p>Capabilities equivalent to <code class="inline-code">VerifyContent</code>, <code class="inline-code">VerifyRevision</code>, <code class="inline-code">VerifyVsn</code>, <code class="inline-code">VerifyMembersDigest</code>, <code class="inline-code">VerifySerialization</code>. SHA-256 content identity is <code class="inline-code">sha256:&lt;64 lowercase hexadecimal characters&gt;</code>. Invariant: every retained or addressable Revision must remain fully reconstructable byte-for-byte.</p>
+        <h4>10. Transaction / Accept</h4>
+        <p>Capabilities equivalent to <code class="inline-code">AcceptRevisionSet</code> and <code class="inline-code">RejectRevisionSet</code>. The library separates Logical Commit from Workspace Projection. Invariant: RevisionSet = ACCEPTED if and only if a Logical Commit exists. Acceptance updates canonical accepted state atomically and never reports success without a logical commit.</p>
+        <h4>11. Crash Recovery</h4>
+        <p>Capabilities equivalent to <code class="inline-code">Recover</code>, <code class="inline-code">GetRecoveryState</code>, <code class="inline-code">VerifyProjection</code>, <code class="inline-code">Rollback</code>, <code class="inline-code">RollForward</code>. ApplyTransaction owns physical recovery: LogicalCommitMarker absent means old accepted state plus projection rollback; present means new accepted state plus roll-forward. RECOVERY_REQUIRED belongs only to ApplyTransaction. Recovery never guesses from timestamps or current file contents.</p>
+        <h4>12. Garbage Collection</h4>
+        <p>Capabilities equivalent to <code class="inline-code">GarbageCollect</code> and <code class="inline-code">Purge</code>. Before deleting content, the library must establish it is no longer required by any retained or addressable revision or active protocol root, preserving: Retained Revision implies Reconstructable Content.</p>
+        <h4>13. Serialization</h4>
+        <p>Capabilities equivalent to <code class="inline-code">Encode</code>, <code class="inline-code">Decode</code>, <code class="inline-code">CanonicalEncode</code>, <code class="inline-code">VerifyCanonicalEncoding</code>: decode valid records, reject malformed ones, emit deterministic canonical bytes, validate UUIDs, timestamps, hashes, and extension maps, reject duplicate extension keys, and separate unknown optional from required extensions.</p>
+        <h4>14. Conformance</h4>
+        <p>Capabilities equivalent to <code class="inline-code">RunConformanceTests</code> and <code class="inline-code">VerifyTestVector</code> against shared semantic vectors: RCMP-1 bytes, content hashes, MembersDigest, revision and RevisionSet behavior, restore, recovery, idempotency, and path security. No library defines its own protocol interpretation.</p>
+        <h3 class="subhead">Language-neutral capability matrix</h3>
+        <table>
+          <thead><tr><th>Capability</th><th>Protocol Requirement</th></tr></thead>
+          <tbody>
+            <tr><td>Create .vsn</td><td>Required</td></tr>
+            <tr><td>Open .vsn</td><td>Required</td></tr>
+            <tr><td>Verify .vsn</td><td>Required</td></tr>
+            <tr><td>FileId</td><td>Required</td></tr>
+            <tr><td>Revision creation</td><td>Required</td></tr>
+            <tr><td>Revision history</td><td>Required</td></tr>
+            <tr><td>Revision content reconstruction</td><td>Required</td></tr>
+            <tr><td>RevisionSet</td><td>Required</td></tr>
+            <tr><td>Diff</td><td>Required</td></tr>
+            <tr><td>Restore</td><td>Required</td></tr>
+            <tr><td>Rename / Move</td><td>Required</td></tr>
+            <tr><td>Delete / Tombstone</td><td>Required</td></tr>
+            <tr><td>Integrity verification</td><td>Required</td></tr>
+            <tr><td>Accept / Reject</td><td>Required</td></tr>
+            <tr><td>Crash recovery</td><td>Required</td></tr>
+            <tr><td>RCMP-1</td><td>Required where applicable</td></tr>
+            <tr><td>Garbage collection</td><td>Required for implementations owning storage</td></tr>
+            <tr><td>Conformance vectors</td><td>Required</td></tr>
+          </tbody>
+        </table>
+        <p>Exact API surface may vary by language.</p>
+        <h3 class="subhead">Language API principle</h3>
+        <p><strong>The protocol defines semantics, not programming-language method names.</strong> For example, <code class="inline-code">GetRevisionContent</code> may surface as streams, byte iterators, readers, promises, or spans depending on the language. Those idiomatic mappings are not frozen here; language libraries will be designed after this contract is frozen.</p>
+        <h3 class="subhead">Self-contained library requirement</h3>
+        <p><strong>A library MUST be able to open a valid <code class="inline-code">.vsn</code> and reconstruct every retained Revision using the <code class="inline-code">.vsn</code> itself, without requiring Git, a database, a server, or an external content store.</strong> The sidecar carries metadata, revision history, content, integrity, and protocol information sufficient for that file. External services may support sync, indexing, collaboration, or backup, but never reconstruction of retained revisions.</p>
+        <h3 class="subhead">Future language libraries</h3>
+        <p>Intended native implementations: C#, Python, Rust, JavaScript / TypeScript, Java, Go, C++. Each is Planned based on actual repository status — no library source exists yet, and no language API is frozen by this page.</p>
+        <h3 class="subhead">Protocol, representation, library, application</h3>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">layering</span></div>
+<pre class="mono tree"><code>Protocol -- defines semantics
+.vsn -- self-contained file representation
+Library -- implements protocol and .vsn
+Application -- uses the library</code></pre></div>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
     <section class="section" id="doc-glossary" aria-labelledby="doc-glossary-title">
       <div class="container doc">
-        <p class="eyebrow">22 &middot; Glossary</p>
+        <p class="eyebrow">23 &middot; Glossary</p>
         <h2 id="doc-glossary-title">Glossary</h2>
         <dl class="grid concepts-grid">
           <div><dt>File</dt><dd>Physical bytes in a workspace.</dd></div>
@@ -456,7 +549,7 @@ SHA-256 -&gt; sha256:&lt;64 lowercase hex&gt;</code></pre></div>
           <div><dt>ApplyTransaction</dt><dd>Physical projection and recovery transaction.</dd></div>
           <div><dt>Logical Commit</dt><dd>Acceptance of a reviewed RevisionSet.</dd></div>
           <div><dt>Workspace Projection</dt><dd>Materialized files rendered from accepted state.</dd></div>
-          <div><dt>.vsn</dt><dd>File-local companion sidecar carrying revision information and references.</dd></div>
+          <div><dt>.vsn</dt><dd>Self-contained file-local companion sidecar carrying the revision information, content, and references needed to reconstruct retained revisions.</dd></div>
           <div><dt>RCMP-1</dt><dd>Planned canonical serialization format.</dd></div>
           <div><dt>MembersDigest</dt><dd>Planned hash over canonically encoded RevisionSet members.</dd></div>
         </dl>

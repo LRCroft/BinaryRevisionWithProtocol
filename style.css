@@ -141,6 +141,7 @@ h2 { font-size: clamp(1.55rem, 3vw, 2rem); letter-spacing: -.022em; margin: 0 0 
 .doc { max-width: 78ch; }
 .doc p { color: var(--muted); }
 .doc p strong { color: var(--ink); }
+.doc h4 { margin: var(--space-2) 0 .4rem; font-size: .95rem; color: var(--ink); }
 .doc a { color: var(--ink); }
 .spec-tag { display: inline-block; font-size: .68rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; border: 1px solid var(--border-strong); border-radius: 999px; padding: .12rem .65rem; color: var(--faint); vertical-align: middle; margin-left: .5rem; }
 .doc table { width: 100%; border-collapse: collapse; margin: var(--space-2) 0; font-size: .88rem; display: block; overflow-x: auto; }
