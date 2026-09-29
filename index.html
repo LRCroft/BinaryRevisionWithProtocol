@@ -27,6 +27,7 @@
           <li><a href="#overview">Overview</a></li>
           <li><a href="#protocol">Protocol</a></li>
           <li><a href="#vsn" class="mono">.vsn</a></li>
+          <li><a href="#libraries">Libraries</a></li>
           <li><a href="./docs.html">Docs</a></li>
           <li><a href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">GitHub<span aria-hidden="true" class="ext">&nearr;</span></a></li>
         </ul>
@@ -165,6 +166,45 @@ RevisionSet
         </dl>
       </div>
     </section>
+    <section class="section" id="libraries" aria-labelledby="libraries-title">
+      <div class="container">
+        <p class="eyebrow">Ecosystem</p>
+        <h2 id="libraries-title">Libraries</h2>
+        <p class="section-lede">BinaryRevisionWithProtocol is language-independent. Native libraries in different programming languages share one protocol, one <code class="inline-code">.vsn</code> format, one serialization, and one conformance suite.</p>
+        <div class="code-card" role="img" aria-label="Protocol-centered architecture diagram">
+          <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">one protocol, many libraries</span></div>
+<pre class="mono tree"><code>      BinaryRevisionWithProtocol
+                 Protocol
+                    |
+      +-------------+-------------+
+      |             |             |
+ .vsn Format     RCMP-1     Conformance
+      |             |             |
+      +-------------+-------------+
+                    |
+   +--------+-------+-------+--------+
+   |        |       |       |        |
+  C#     Python   Rust     JS     Java ...</code></pre>
+        </div>
+        <div class="grid libraries-grid">
+          <article><h3>C#</h3><p>BinaryRevisionWithProtocol — C# Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+          <article><h3>Python</h3><p>BinaryRevisionWithProtocol — Python Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+          <article><h3>Rust</h3><p>BinaryRevisionWithProtocol — Rust Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+          <article><h3>JavaScript / TypeScript</h3><p>BinaryRevisionWithProtocol — JavaScript / TypeScript Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+          <article><h3>Java</h3><p>BinaryRevisionWithProtocol — Java Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+          <article><h3>Go</h3><p>BinaryRevisionWithProtocol — Go Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+          <article><h3>C++</h3><p>BinaryRevisionWithProtocol — C++ Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+        </div>
+        <h3 class="subhead">One Format. Multiple Languages.</h3>
+        <div class="code-card" role="img" aria-label="Cross-language read write diagram">
+          <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">interoperability</span></div>
+<pre class="mono tree"><code>Python -- write --&gt; file.txt.vsn -- read --&gt; Rust
+                                     -- read --&gt; C#
+                                   -- restore --&gt; file.txt</code></pre>
+        </div>
+        <p class="muted">Interoperability depends on protocol conformance: same <code class="inline-code">.vsn</code> format, revision model, FileId rules, content representation, RCMP-1 encoding, MembersDigest, logical commit, and recovery semantics. No library needs Git or an external content store to open a <code class="inline-code">.vsn</code> and reconstruct retained revisions. <a href="./docs.html">Full documentation</a></p>
+      </div>
+    </section>
     <section class="section" id="git" aria-labelledby="git-title">
       <div class="container split">
         <div>
@@ -204,6 +244,7 @@ RevisionSet
         <a href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">&nearr;</span></a>
         <a href="#overview">Overview</a>
         <a href="#protocol">Protocol</a>
+        <a href="#libraries">Libraries</a>
       </div>
       <p class="muted small">&copy; <span id="year">2026</span> BinaryRevisionWithProtocol. Specification in development.</p>
     </div>

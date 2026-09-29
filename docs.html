@@ -26,6 +26,7 @@
           <li><a href="./index.html#overview">Overview</a></li>
           <li><a href="./index.html#protocol">Protocol</a></li>
           <li><a href="./index.html#vsn" class="mono">.vsn</a></li>
+          <li><a href="./index.html#libraries">Libraries</a></li>
           <li><a href="./docs.html" aria-current="page">Docs</a></li>
           <li><a href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">GitHub<span aria-hidden="true" class="ext">&nearr;</span></a></li>
         </ul>
@@ -66,7 +67,8 @@
           <li><a href="#doc-conformance"><span class="mono">18</span> Conformance</a></li>
           <li><a href="#doc-vectors"><span class="mono">19</span> Test Vectors</a></li>
           <li><a href="#doc-status"><span class="mono">20</span> Implementation Status</a></li>
-          <li><a href="#doc-glossary"><span class="mono">21</span> Glossary</a></li>
+          <li><a href="#doc-libraries"><span class="mono">21</span> Multi-Language Libraries</a></li>
+          <li><a href="#doc-glossary"><span class="mono">22</span> Glossary</a></li>
         </ol>
       </div>
     </nav>
@@ -402,14 +404,42 @@ SHA-256 -&gt; sha256:&lt;64 lowercase hex&gt;</code></pre></div>
             <tr><td>Idempotency</td><td>Planned</td><td>Key shape intended; no code found.</td></tr>
             <tr><td>GC</td><td>Planned</td><td>Invariant stated; no collector found.</td></tr>
             <tr><td>Conformance</td><td>Planned</td><td>Levels named; no harness found.</td></tr>
+            <tr><td class="mono">C# Library</td><td>Planned</td><td>No C# source found in this repository.</td></tr>
+            <tr><td class="mono">Python Library</td><td>Planned</td><td>No Python source found in this repository.</td></tr>
+            <tr><td class="mono">Rust Library</td><td>Planned</td><td>No Rust source found in this repository.</td></tr>
+            <tr><td>JS / TS Library</td><td>Planned</td><td>No JS/TS source found in this repository.</td></tr>
+            <tr><td class="mono">Java Library</td><td>Planned</td><td>No Java source found in this repository.</td></tr>
+            <tr><td class="mono">Go Library</td><td>Planned</td><td>No Go source found in this repository.</td></tr>
+            <tr><td class="mono">C++ Library</td><td>Planned</td><td>No C++ source found in this repository.</td></tr>
           </tbody>
         </table>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
+    <section class="section" id="doc-libraries" aria-labelledby="doc-libraries-title">
+      <div class="container doc">
+        <p class="eyebrow">21 &middot; Multi-Language Libraries</p>
+        <h2 id="doc-libraries-title">Multi-Language Libraries <span class="spec-tag">Planned</span></h2>
+        <p>The protocol is intentionally language-independent. Each library below is the same protocol, <code class="inline-code">.vsn</code> format, revision model, FileId rules, content representation, RCMP-1 encoding, MembersDigest, logical commit, and recovery semantics — implemented natively per language.</p>
+        <table>
+          <thead><tr><th>Library</th><th>Status</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>BinaryRevisionWithProtocol — C# Library</td><td>Planned</td><td>No source found.</td></tr>
+            <tr><td>BinaryRevisionWithProtocol — Python Library</td><td>Planned</td><td>No source found.</td></tr>
+            <tr><td>BinaryRevisionWithProtocol — Rust Library</td><td>Planned</td><td>No source found.</td></tr>
+            <tr><td>BinaryRevisionWithProtocol — JavaScript / TypeScript Library</td><td>Planned</td><td>No source found.</td></tr>
+            <tr><td>BinaryRevisionWithProtocol — Java Library</td><td>Planned</td><td>No source found.</td></tr>
+            <tr><td>BinaryRevisionWithProtocol — Go Library</td><td>Planned</td><td>No source found.</td></tr>
+            <tr><td>BinaryRevisionWithProtocol — C++ Library</td><td>Planned</td><td>No source found.</td></tr>
+          </tbody>
+        </table>
+        <p>Actual package names will be added only when libraries are published. Interoperability requires passing the same byte-level conformance vectors. No library may require Git or an external content store to open a <code class="inline-code">.vsn</code> and reconstruct retained revisions.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
     <section class="section" id="doc-glossary" aria-labelledby="doc-glossary-title">
       <div class="container doc">
-        <p class="eyebrow">21 &middot; Glossary</p>
+        <p class="eyebrow">22 &middot; Glossary</p>
         <h2 id="doc-glossary-title">Glossary</h2>
         <dl class="grid concepts-grid">
           <div><dt>File</dt><dd>Physical bytes in a workspace.</dd></div>
