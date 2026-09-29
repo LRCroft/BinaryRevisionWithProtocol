@@ -187,13 +187,13 @@ RevisionSet
   C#     Python   Rust     JS     Java ...</code></pre>
         </div>
         <div class="grid libraries-grid">
-          <article><h3>C#</h3><p>BinaryRevisionWithProtocol — C# Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
-          <article><h3>Python</h3><p>BinaryRevisionWithProtocol — Python Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
-          <article><h3>Rust</h3><p>BinaryRevisionWithProtocol — Rust Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
-          <article><h3>JavaScript / TypeScript</h3><p>BinaryRevisionWithProtocol — JavaScript / TypeScript Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
-          <article><h3>Java</h3><p>BinaryRevisionWithProtocol — Java Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
-          <article><h3>Go</h3><p>BinaryRevisionWithProtocol — Go Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
-          <article><h3>C++</h3><p>BinaryRevisionWithProtocol — C++ Library</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+          <article><h3>C#</h3><p>BinaryRevisionWithProtocol</p><p class="muted">Native library for .NET</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+          <article><h3>Python</h3><p>BinaryRevisionWithProtocol</p><p class="muted">Native library for Python</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+          <article><h3>Rust</h3><p>BinaryRevisionWithProtocol</p><p class="muted">Native library for Rust</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+          <article><h3>JavaScript / TypeScript</h3><p>BinaryRevisionWithProtocol</p><p class="muted">Native library for JavaScript / TypeScript</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+          <article><h3>Java</h3><p>BinaryRevisionWithProtocol</p><p class="muted">Native library for Java</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+          <article><h3>Go</h3><p>BinaryRevisionWithProtocol</p><p class="muted">Native library for Go</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
+          <article><h3>C++</h3><p>BinaryRevisionWithProtocol</p><p class="muted">Native library for C++</p><p class="mono small muted">Protocol &middot; .vsn &middot; RCMP-1 &middot; Conformance</p><p><span class="spec-tag">Planned</span></p></article>
         </div>
         <h3 class="subhead">One Format. Multiple Languages.</h3>
         <div class="code-card" role="img" aria-label="Cross-language read write diagram">
@@ -202,7 +202,17 @@ RevisionSet
                                      -- read --&gt; C#
                                    -- restore --&gt; file.txt</code></pre>
         </div>
-        <p class="muted">Interoperability depends on protocol conformance: same <code class="inline-code">.vsn</code> format, revision model, FileId rules, content representation, RCMP-1 encoding, MembersDigest, logical commit, and recovery semantics. No library needs Git or an external content store to open a <code class="inline-code">.vsn</code> and reconstruct retained revisions. <a href="./docs.html">Full documentation</a></p>
+        <p class="muted">Interoperability depends on protocol conformance. Libraries share the same:</p>
+        <ul class="check-list conformance-list">
+          <li><code class="inline-code">.vsn</code> format and revision model</li>
+          <li>RevisionSet semantics and File identity rules</li>
+          <li>Content representation and RCMP-1 encoding</li>
+          <li>MembersDigest and logical commit semantics</li>
+          <li>ApplyTransaction recovery semantics</li>
+          <li>Diff / restore behavior and GC invariants</li>
+          <li>Byte-level conformance vectors</li>
+        </ul>
+        <p class="muted">No library needs Git or an external content store to open a <code class="inline-code">.vsn</code> and reconstruct retained revisions. <a href="./docs.html">Full documentation</a></p>
       </div>
     </section>
     <section class="section" id="git" aria-labelledby="git-title">
