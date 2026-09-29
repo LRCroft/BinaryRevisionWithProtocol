@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentation — BinaryRevisionWithProtocol</title>
+  <meta name="description" content="Technical specification and implementation reference for BinaryRevisionWithProtocol: revision model, .vsn sidecar, transactions, recovery, serialization, and implementation status." />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a class="brand" href="./index.html" aria-label="BinaryRevisionWithProtocol home">
+        <span class="brand-mark" aria-hidden="true">&#9672;</span>
+        <span class="brand-text">BinaryRevisionWithProtocol</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="Primary">
+        <ul>
+          <li><a href="./index.html#overview">Overview</a></li>
+          <li><a href="./index.html#protocol">Protocol</a></li>
+          <li><a href="./index.html#vsn" class="mono">.vsn</a></li>
+          <li><a href="./docs.html" aria-current="page">Docs</a></li>
+          <li><a href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">GitHub<span aria-hidden="true" class="ext">&nearr;</span></a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+    <section class="hero docs-hero" aria-labelledby="docs-title">
+      <div class="container">
+        <p class="eyebrow">BinaryRevisionWithProtocol &middot; Documentation</p>
+        <h1 id="docs-title">Documentation</h1>
+        <p class="subtitle">Technical specification and implementation reference.</p>
+        <p class="lede">Open protocol &middot; Git-independent &middot; In development. This page describes the intended protocol and the current repository state as inspected. Nothing here replaces a frozen specification.</p>
+        <p class="doc-notice"><strong>Repository status:</strong> no protocol implementation code, schemas, or test vectors were found in the repository at the time of writing. All protocol behavior below is <strong>specification / planned</strong> unless explicitly marked otherwise.</p>
+      </div>
+    </section>
+    <nav class="section docs-toc" aria-label="Documentation contents">
+      <div class="container">
+        <h2>Contents</h2>
+        <ol>
+          <li><a href="#doc-overview"><span class="mono">01</span> Overview</a></li>
+          <li><a href="#doc-architecture"><span class="mono">02</span> Architecture</a></li>
+          <li><a href="#doc-vsn"><span class="mono">03</span> .vsn Sidecar</a></li>
+          <li><a href="#doc-revision"><span class="mono">04</span> Revision Model</a></li>
+          <li><a href="#doc-identity"><span class="mono">05</span> File Identity</a></li>
+          <li><a href="#doc-revisionset"><span class="mono">06</span> RevisionSet</a></li>
+          <li><a href="#doc-content"><span class="mono">07</span> Content Model</a></li>
+          <li><a href="#doc-diff"><span class="mono">08</span> Diff</a></li>
+          <li><a href="#doc-restore"><span class="mono">09</span> Restore</a></li>
+          <li><a href="#doc-apply"><span class="mono">10</span> ApplyTransaction</a></li>
+          <li><a href="#doc-recovery"><span class="mono">11</span> Crash Recovery</a></li>
+          <li><a href="#doc-commit"><span class="mono">12</span> Logical Commit</a></li>
+          <li><a href="#doc-rcmp"><span class="mono">13</span> Serialization / RCMP-1</a></li>
+          <li><a href="#doc-digest"><span class="mono">14</span> MembersDigest</a></li>
+          <li><a href="#doc-idempotency"><span class="mono">15</span> Idempotency</a></li>
+          <li><a href="#doc-gc"><span class="mono">16</span> Garbage Collection</a></li>
+          <li><a href="#doc-security"><span class="mono">17</span> Security</a></li>
+          <li><a href="#doc-conformance"><span class="mono">18</span> Conformance</a></li>
+          <li><a href="#doc-vectors"><span class="mono">19</span> Test Vectors</a></li>
+          <li><a href="#doc-status"><span class="mono">20</span> Implementation Status</a></li>
+          <li><a href="#doc-glossary"><span class="mono">21</span> Glossary</a></li>
+        </ol>
+      </div>
+    </nav>
+    <section class="section" id="doc-overview" aria-labelledby="doc-overview-title">
+      <div class="container doc">
+        <p class="eyebrow">01 &middot; Overview</p>
+        <h2 id="doc-overview-title">Overview <span class="spec-tag">Specification</span></h2>
+        <p><strong>BinaryRevisionWithProtocol is an open protocol for immutable file revisions, transactional multi-file changes, diff, restore, and crash-safe workspace projection — without requiring Git.</strong></p>
+        <p>A Revision is one immutable state of one logical file. A RevisionSet groups revisions across one or more files into a reviewable logical transaction. FileHead points at the currently accepted revision. Workspace Projection materializes accepted state as ordinary files.</p>
+        <p>Git is not required and not replaced. Implementations can run standalone or coexist with Git or other source-control systems. <a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-architecture" aria-labelledby="doc-architecture-title">
+      <div class="container doc">
+        <p class="eyebrow">02 &middot; Architecture</p>
+        <h2 id="doc-architecture-title">Architecture <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">component flow</span></div>
+<pre class="mono tree"><code>Physical File
+     |
+     `-- .vsn Sidecar
+             |
+             v
+         Revision
+             |
+             v
+       RevisionSet
+             |
+             v
+          FileHead
+             |
+             v
+   Workspace Projection</code></pre></div>
+        <table>
+          <thead><tr><th>Entity</th><th>Responsibility</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Revision</td><td>Immutable state of one file.</td></tr>
+            <tr><td class="mono">RevisionSet</td><td>Logical transaction / change set.</td></tr>
+            <tr><td class="mono">ApplyTransaction</td><td>Physical projection and recovery transaction.</td></tr>
+            <tr><td class="mono">FileHead</td><td>Canonical accepted state pointer.</td></tr>
+            <tr><td>Workspace files</td><td>Materialized projection of accepted state.</td></tr>
+            <tr><td class="mono">DiffArtifact</td><td>Derived, disposable comparison.</td></tr>
+          </tbody>
+        </table>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    <section class="section" id="doc-vsn" aria-labelledby="doc-vsn-title">
+      <div class="container doc">
+        <p class="eyebrow">03 &middot; .vsn Sidecar</p>
+        <h2 id="doc-vsn-title">.vsn Sidecar <span class="spec-tag">Specification</span></h2>
+        <p><strong>.vsn is a companion sidecar file that travels with its logical file and carries its revision state/history and the information required to reconstruct or locate those revisions.</strong></p>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">file-local sidecars</span></div>
+<pre class="mono tree"><code>project/
+`-- src/
+    |-- Program.cs
+    |-- Program.cs.vsn
+    |-- UserService.cs
+    `-- UserService.cs.vsn</code></pre></div>
+        <ul class="check-list">
+          <li>One logical file maps to one sidecar: <code class="inline-code">Program.cs</code> + <code class="inline-code">Program.cs.vsn</code>.</li>
+          <li>The sidecar carries FileId, revision history, revision metadata, accepted/head information, revision references, and references to content/revision data.</li>
+          <li>The sidecar carries revision information and references; content bytes may be embedded or held by another storage backend. The repository does not yet freeze one layout.</li>
+          <li><code class="inline-code">FileId</code> is authoritative identity. Filename is not identity.</li>
+          <li>Rename preserves FileId; move preserves FileId.</li>
+          <li>The <code class="inline-code">.vsn</code> file is not the protocol itself. It is one representation/storage mechanism for the protocol; other backends can exist.</li>
+          <li>Design goal: copy both files to another workspace and the revision history travels with them.</li>
+        </ul>
+        <table>
+          <thead><tr><th>Situation</th><th>Intended behavior</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Rename file</td><td>Same FileId, sidecar follows the logical file.</td><td>Specification</td></tr>
+            <tr><td>Move file</td><td>Same FileId, sidecar follows the logical file.</td><td>Specification</td></tr>
+            <tr><td>Copy both files</td><td>History travels with the pair.</td><td>Specification</td></tr>
+            <tr><td>Sidecar missing</td><td>Behavior not yet frozen; do not assume recovery.</td><td>Planned</td></tr>
+            <tr><td>Sidecar corrupted</td><td>Behavior not yet frozen; do not assume recovery.</td><td>Planned</td></tr>
+            <tr><td>Physical file deleted</td><td>Behavior not yet frozen.</td><td>Planned</td></tr>
+          </tbody>
+        </table>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-revision" aria-labelledby="doc-revision-title">
+      <div class="container doc">
+        <p class="eyebrow">04 &middot; Revision Model</p>
+        <h2 id="doc-revision-title">Revision Model <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">immutability</span></div>
+<pre class="mono tree"><code>Revision A
+    |
+    v
+Revision B
+    |
+    v
+Revision C</code></pre></div>
+        <ul class="check-list">
+          <li>A Revision is one immutable state of one logical file.</li>
+          <li>A committed Revision is never rewritten.</li>
+          <li>Revisions remain addressable according to retention policy; old revisions may be purged only under documented GC rules.</li>
+          <li>Restore creates new revision state based on an old revision; it never mutates the source revision.</li>
+          <li>Workspace files are projections; FileHead represents accepted state.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    <section class="section" id="doc-identity" aria-labelledby="doc-identity-title">
+      <div class="container doc">
+        <p class="eyebrow">05 &middot; File Identity</p>
+        <h2 id="doc-identity-title">File Identity <span class="spec-tag">Specification</span></h2>
+        <p><strong>FileId is the authoritative identity of a logical file.</strong> Identity is not inferred from path, filename, content hash, size, timestamp, similarity, or delete/create proximity.</p>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">rename preserves identity</span></div>
+<pre class="mono tree"><code>src/A.cs
+    |
+    v rename
+src/B.cs
+    FileId unchanged</code></pre></div>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">move preserves identity</span></div>
+<pre class="mono tree"><code>src/A.cs
+    |
+    v move
+tests/A.cs
+    FileId unchanged</code></pre></div>
+        <p>Deleting one file and creating another with identical bytes does not automatically make them the same logical file.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-revisionset" aria-labelledby="doc-revisionset-title">
+      <div class="container doc">
+        <p class="eyebrow">06 &middot; RevisionSet</p>
+        <h2 id="doc-revisionset-title">RevisionSet <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">public lifecycle</span></div>
+<pre class="mono tree"><code>DRAFT
+  |
+  v
+PENDING_REVIEW
+  |
+  v
+ACCEPTING
+  |
+  v
+ACCEPTED
+
+PENDING_REVIEW --&gt; REJECTED
+ACCEPTING -----&gt; CONFLICTED
+DRAFT ---------&gt; ABORTED</code></pre></div>
+        <p><code class="inline-code">SEALED</code> is not a public RevisionSet state. <code class="inline-code">RECOVERY_REQUIRED</code> is not a RevisionSet state; recovery belongs to ApplyTransaction. Sealing is an operation, not a state.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-content" aria-labelledby="doc-content-title">
+      <div class="container doc">
+        <p class="eyebrow">07 &middot; Content Model</p>
+        <h2 id="doc-content-title">Content Model <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">references</span></div>
+<pre class="mono tree"><code>Revision
+   |
+   `-- ContentRef
+          |
+          `-- Content Object / Storage</code></pre></div>
+        <ul class="check-list">
+          <li>ContentRef identifies raw logical bytes by SHA-256 and exact byte size.</li>
+          <li>Canonical form: <code class="inline-code">sha256:&lt;64 lowercase hexadecimal characters&gt;</code>.</li>
+          <li>Hash is computed over raw file bytes before compression, encryption, or storage transformations.</li>
+          <li>Binary-safe: arbitrary bytes are first-class. No newline or encoding normalization.</li>
+          <li>LF and CRLF remain distinct byte sequences; BOM remains content; invalid UTF-8 is not silently replaced.</li>
+          <li>ContentRef is authoritative for identity; DiffArtifact is derived.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    <section class="section" id="doc-diff" aria-labelledby="doc-diff-title">
+      <div class="container doc">
+        <p class="eyebrow">08 &middot; Diff</p>
+        <h2 id="doc-diff-title">Diff <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">derived comparison</span></div>
+<pre class="mono tree"><code>Revision A
+    |
+    +-- Compare --+
+    |             |
+    v             v
+Revision B --&gt; DiffArtifact</code></pre></div>
+        <ul class="check-list">
+          <li>DiffArtifact is derived, reproducible, and disposable. It is never canonical revision state.</li>
+          <li>Restore does not depend on DiffArtifact for reconstructing the source revision.</li>
+          <li>Exact diff modes are not frozen in this repository yet; document them only when implemented.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-restore" aria-labelledby="doc-restore-title">
+      <div class="container doc">
+        <p class="eyebrow">09 &middot; Restore</p>
+        <h2 id="doc-restore-title">Restore <span class="spec-tag">Specification</span></h2>
+        <ul class="check-list">
+          <li>Intended scopes: <code class="inline-code">CONTENT_ONLY</code>, <code class="inline-code">CONTENT_AND_PATH</code>, <code class="inline-code">FULL_STATE</code>.</li>
+          <li>Restore points at a source revision and creates new state; it never rewrites the source.</li>
+          <li>Restore reconstructs from revision content, not from DiffArtifact.</li>
+          <li>Scope/source matrix, ABSENT behavior, and failure rules are not frozen yet; no implementation found in this repository.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-apply" aria-labelledby="doc-apply-title">
+      <div class="container doc">
+        <p class="eyebrow">10 &middot; ApplyTransaction</p>
+        <h2 id="doc-apply-title">ApplyTransaction <span class="spec-tag">Specification</span></h2>
+        <p><strong>RevisionSet is the logical change transaction. ApplyTransaction is the physical workspace projection and recovery transaction.</strong></p>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">intended states</span></div>
+<pre class="mono tree"><code>PREPARING -&gt; PREPARED -&gt; PROJECTION_APPLYING -&gt; PROJECTION_APPLIED
+  -&gt; LOGICAL_COMMITTING -&gt; LOGICALLY_COMMITTED -&gt; FINALIZED
+ROLLING_BACK -&gt; ROLLED_BACK
+* -&gt; RECOVERY_REQUIRED (physical recovery only)</code></pre></div>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-recovery" aria-labelledby="doc-recovery-title">
+      <div class="container doc">
+        <p class="eyebrow">11 &middot; Crash Recovery</p>
+        <h2 id="doc-recovery-title">Crash Recovery <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">commit marker rule</span></div>
+<pre class="mono tree"><code>LogicalCommitMarker absent
+    -&gt; accepted state remains old
+    -&gt; rollback projection
+
+LogicalCommitMarker present
+    -&gt; accepted state is new
+    -&gt; roll forward projection
+    -&gt; finalize</code></pre></div>
+        <p><code class="inline-code">RECOVERY_REQUIRED</code> is a physical ApplyTransaction recovery state, not a RevisionSet state. It is not evidence that a RevisionSet was accepted or rejected.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-commit" aria-labelledby="doc-commit-title">
+      <div class="container doc">
+        <p class="eyebrow">12 &middot; Logical Commit</p>
+        <h2 id="doc-commit-title">Logical Commit <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">acceptance invariant</span></div>
+<pre class="mono tree"><code>RevisionSet = ACCEPTED
+        &lt;=&gt;
+Logical Commit exists</code></pre></div>
+        <p>Logical commit updates canonical accepted state (FileHeads, path index, WorkspaceVersion, LogicalCommitMarker, accept idempotency result). Physical projection finalization is separate cleanup.</p>
+        <p>Conflict path: <code class="inline-code">ACCEPTING -&gt; conflict -&gt; CONFLICTED</code>. No logical commit, FileHeads unchanged, partial projection rolled back.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-rcmp" aria-labelledby="doc-rcmp-title">
+      <div class="container doc">
+        <p class="eyebrow">13 &middot; Serialization / RCMP-1</p>
+        <h2 id="doc-rcmp-title">Serialization / RCMP-1 <span class="spec-tag">Planned</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">intended pipeline</span></div>
+<pre class="mono tree"><code>Semantic Record
+      |
+      v
+RCMP-1 Canonical Bytes
+      |
+      v
+Deterministic bytes
+      |
+      v
+SHA-256</code></pre></div>
+        <p>No RCMP-1 encoder, schema, or byte-level test vector was found in this repository. The intended rules (MessagePack arrays, deterministic ordering, UUID/hash/timestamp/UTF-8 encoding, no floating point in core records, extension maps with numeric keys) remain planned. No hexadecimal examples are included because none exist in the implementation.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    <section class="section" id="doc-digest" aria-labelledby="doc-digest-title">
+      <div class="container doc">
+        <p class="eyebrow">14 &middot; MembersDigest</p>
+        <h2 id="doc-digest-title">MembersDigest <span class="spec-tag">Planned</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">intended algorithm</span></div>
+<pre class="mono tree"><code>Members
+  |
+  v sort by Ordinal
+Require contiguous ordinals
+  |
+  v canonical RCMP-1 array
+SHA-256 -&gt; sha256:&lt;64 lowercase hex&gt;</code></pre></div>
+        <p>No implementation or test vector found; do not treat this as verified behavior yet.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-idempotency" aria-labelledby="doc-idempotency-title">
+      <div class="container doc">
+        <p class="eyebrow">15 &middot; Idempotency</p>
+        <h2 id="doc-idempotency-title">Idempotency <span class="spec-tag">Planned</span></h2>
+        <p>Intended key: <code class="inline-code">RevisionSetId + StageOperationId</code>. Retry, concurrent retry, reservation, request digest, result reuse, and orphaned-content handling are not verified against code in this repository.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-gc" aria-labelledby="doc-gc-title">
+      <div class="container doc">
+        <p class="eyebrow">16 &middot; Garbage Collection</p>
+        <h2 id="doc-gc-title">Garbage Collection <span class="spec-tag">Planned</span></h2>
+        <p><strong>Invariant:</strong> every retained or addressable Revision must remain fully reconstructable byte-for-byte.</p>
+        <p>No GC implementation, roots, leases, holds, grace periods, or purge ordering were found in this repository. Revision metadata reachability vs. content reachability is specified but not verified.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-security" aria-labelledby="doc-security-title">
+      <div class="container doc">
+        <p class="eyebrow">17 &middot; Security</p>
+        <h2 id="doc-security-title">Security <span class="spec-tag">Planned</span></h2>
+        <p>No path/filesystem enforcement code was found in this repository. Intended rules (workspace-relative paths, absolute-path and <code class="inline-code">..</code> rejection, NUL rejection, symlink/junction handling, TOCTOU protection) remain specification only.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    <section class="section" id="doc-conformance" aria-labelledby="doc-conformance-title">
+      <div class="container doc">
+        <p class="eyebrow">18 &middot; Conformance</p>
+        <h2 id="doc-conformance-title">Conformance <span class="spec-tag">Planned</span></h2>
+        <p>Intended levels (<code class="inline-code">CORE_V1</code>, <code class="inline-code">LOCAL_PROJECTION_V1</code>, <code class="inline-code">REMOTE_STORE_V1</code>, <code class="inline-code">ATOMIC_BATCH_VISIBILITY_V1</code>, <code class="inline-code">SPECIALIZED_DIFF_V1</code>) have no test harness in this repository. CORE_V1 cannot be claimed without mandatory test vectors.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-vectors" aria-labelledby="doc-vectors-title">
+      <div class="container doc">
+        <p class="eyebrow">19 &middot; Test Vectors</p>
+        <h2 id="doc-vectors-title">Test Vectors <span class="spec-tag">Not found</span></h2>
+        <p>No <code class="inline-code">TV-001</code>–<code class="inline-code">TV-030</code> vectors, canonical bytes, or hashes were found in this repository. This section will list purpose, input, expected output, bytes, hashes, and errors only after vectors land in code or tests. No values are invented here.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-status" aria-labelledby="doc-status-title">
+      <div class="container doc">
+        <p class="eyebrow">20 &middot; Implementation Status</p>
+        <h2 id="doc-status-title">Implementation Status</h2>
+        <p>Evidence base: repository root contains only <code class="inline-code">index.html</code>, <code class="inline-code">style.css</code>, <code class="inline-code">script.js</code>, an empty <code class="inline-code">README.md</code>, an empty <code class="inline-code">Libraries/</code> directory, and a working-copy <code class="inline-code">Website/</code> mirror. No protocol source, schemas, tests, or vectors found.</p>
+        <table>
+          <thead><tr><th>Component</th><th>Status</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">.vsn</td><td>Specification</td><td>Companion model defined; no storage code found.</td></tr>
+            <tr><td class="mono">Revision</td><td>Specification</td><td>Immutability defined; no code found.</td></tr>
+            <tr><td class="mono">RevisionSet</td><td>Specification</td><td>Lifecycle defined; no state machine found.</td></tr>
+            <tr><td class="mono">FileHead</td><td>Specification</td><td>Pointer model defined; no code found.</td></tr>
+            <tr><td class="mono">ContentRef</td><td>Specification</td><td>Hash form defined; no storage found.</td></tr>
+            <tr><td class="mono">DiffArtifact</td><td>Specification</td><td>Derived role defined; no diff code found.</td></tr>
+            <tr><td>Restore</td><td>Planned</td><td>Scopes intended; behavior not frozen.</td></tr>
+            <tr><td class="mono">ApplyTransaction</td><td>Specification</td><td>Physical transaction defined; no code found.</td></tr>
+            <tr><td>Recovery</td><td>Specification</td><td>Marker rule defined; no recovery code found.</td></tr>
+            <tr><td class="mono">RCMP-1</td><td>Planned</td><td>No encoder, schema, or vectors found.</td></tr>
+            <tr><td>Idempotency</td><td>Planned</td><td>Key shape intended; no code found.</td></tr>
+            <tr><td>GC</td><td>Planned</td><td>Invariant stated; no collector found.</td></tr>
+            <tr><td>Conformance</td><td>Planned</td><td>Levels named; no harness found.</td></tr>
+          </tbody>
+        </table>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-glossary" aria-labelledby="doc-glossary-title">
+      <div class="container doc">
+        <p class="eyebrow">21 &middot; Glossary</p>
+        <h2 id="doc-glossary-title">Glossary</h2>
+        <dl class="grid concepts-grid">
+          <div><dt>File</dt><dd>Physical bytes in a workspace.</dd></div>
+          <div><dt>Logical File</dt><dd>Identity tracked by FileId across renames and moves.</dd></div>
+          <div><dt>FileId</dt><dd>Authoritative identity of a logical file.</dd></div>
+          <div><dt>Revision</dt><dd>One immutable state of one logical file.</dd></div>
+          <div><dt>RevisionId</dt><dd>Stable identifier of a Revision.</dd></div>
+          <div><dt>RevisionSet</dt><dd>Logical transaction grouping revisions for review and acceptance.</dd></div>
+          <div><dt>RevisionSetId</dt><dd>Stable identifier of a RevisionSet.</dd></div>
+          <div><dt>FileHead</dt><dd>Pointer to the currently accepted revision.</dd></div>
+          <div><dt>ContentRef</dt><dd>Stable reference to content bytes by hash and size.</dd></div>
+          <div><dt>ObjectRef</dt><dd>Reference to a stored content object.</dd></div>
+          <div><dt>DiffArtifact</dt><dd>Derived comparison between revisions.</dd></div>
+          <div><dt>ApplyTransaction</dt><dd>Physical projection and recovery transaction.</dd></div>
+          <div><dt>Logical Commit</dt><dd>Acceptance of a reviewed RevisionSet.</dd></div>
+          <div><dt>Workspace Projection</dt><dd>Materialized files rendered from accepted state.</dd></div>
+          <div><dt>.vsn</dt><dd>File-local companion sidecar carrying revision information and references.</dd></div>
+          <div><dt>RCMP-1</dt><dd>Planned canonical serialization format.</dd></div>
+          <div><dt>MembersDigest</dt><dd>Planned hash over canonically encoded RevisionSet members.</dd></div>
+        </dl>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <p class="footer-brand">BinaryRevisionWithProtocol</p>
+        <p class="muted">Open protocol for binary-safe file revisions.</p>
+      </div>
+      <div class="footer-links">
+        <a href="./index.html">Home</a>
+        <a href="./docs.html">Docs</a>
+        <a href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">&nearr;</span></a>
+      </div>
+      <p class="muted small">&copy; <span id="year">2026</span> BinaryRevisionWithProtocol. Specification in development.</p>
+    </div>
+  </footer>
+  <script src="./script.js" defer></script>
+</body>
+</html>
