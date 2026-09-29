@@ -1,12 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Binary Revision With Protocol</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BinaryRevisionWithProtocol — Open protocol for binary-safe file revisions</title>
+  <meta name="description" content="BinaryRevisionWithProtocol is an open, Git-independent protocol for immutable file revisions, diff, restore, transactional multi-file changes, and crash-safe workspace projection." />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-    <h1>Binary Revision With Protocol</h1>
-    <p>An open protocol for immutable file revisions.</p>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a class="brand" href="#overview" aria-label="BinaryRevisionWithProtocol home">
+        <span class="brand-mark" aria-hidden="true">&#9672;</span>
+        <span class="brand-text">BinaryRevisionWithProtocol</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="Primary">
+        <ul>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#protocol">Protocol</a></li>
+          <li><a href="#vsn" class="mono">.vsn</a></li>
+          <li><a href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">GitHub<span aria-hidden="true" class="ext">&nearr;</span></a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+    <section class="hero" id="overview" aria-labelledby="hero-title">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> Open protocol &middot; Git-independent &middot; In development</p>
+          <h1 id="hero-title">Binary Revision With Protocol</h1>
+          <p class="subtitle">An open protocol for immutable, binary-safe file revisions.</p>
+          <p class="lede">BinaryRevisionWithProtocol is an open, Git-independent protocol for immutable file revisions, diff, restore, transactional multi-file changes, and crash-safe workspace projection.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#protocol">Explore Protocol</a>
+            <a class="btn btn-secondary" href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">View on GitHub <span aria-hidden="true">&nearr;</span></a>
+          </div>
+          <dl class="hero-meta">
+            <div><dt>Model</dt><dd>File &rarr; Revision &rarr; RevisionSet &rarr; FileHead</dd></div>
+            <div><dt>Sidecar</dt><dd class="mono">text.txt + text.txt.vsn</dd></div>
+            <div><dt>Requires Git</dt><dd>No</dd></div>
+          </dl>
+        </div>
+        <div class="hero-panel" aria-label="Example file and sidecar relationship">
+          <p class="panel-label">Revision sidecar</p>
+          <div class="file-row"><span class="file-icon" aria-hidden="true">&#9673;</span><code>text.txt</code><span class="tag">logical file</span></div>
+          <div class="connector" aria-hidden="true"><span></span></div>
+          <div class="file-row accent"><span class="file-icon" aria-hidden="true">&#9673;</span><code>text.txt.vsn</code><span class="tag tag-accent">sidecar</span></div>
+          <ul class="rev-list">
+            <li><span class="mono">Revision 1</span><span>immutable snapshot</span></li>
+            <li><span class="mono">Revision 2</span><span>immutable snapshot</span></li>
+            <li><span class="mono">Revision 3</span><span>immutable snapshot</span></li>
+          </ul>
+          <div class="head-pointer" aria-label="FileHead points to the accepted revision">
+            <span aria-hidden="true">|</span>
+            <span aria-hidden="true">v</span>
+            <code>FileHead</code>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="vsn" aria-labelledby="vsn-title">
+      <div class="container split">
+        <div>
+          <p class="eyebrow">File representation</p>
+          <h2 id="vsn-title">The <code class="inline-code">.vsn</code> sidecar</h2>
+          <p>A <code class="inline-code">.vsn</code> file is the revision sidecar associated with a logical file. For example, <code class="inline-code">text.txt.vsn</code> sits next to <code class="inline-code">text.txt</code> and carries its revision-related information.</p>
+          <p class="muted">The <code class="inline-code">.vsn</code> file is not the protocol itself. It is a file representation / sidecar used by the BinaryRevisionWithProtocol ecosystem.</p>
+          <ul class="check-list">
+            <li>One logical file maps to one sidecar.</li>
+            <li>Revisions are immutable and remain addressable according to retention policy.</li>
+            <li>Restore points at a revision, never rewrites it.</li>
+          </ul>
+        </div>
+        <div class="code-card" role="img" aria-label="Diagram: text.txt points to text.txt.vsn which contains revision 1, 2 and 3">
+          <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">sidecar concept</span></div>
+<pre class="mono tree"><code>text.txt
+  |
+  v
+text.txt.vsn
+  |
+  |-- Revision 1
+  |-- Revision 2
+  `-- Revision 3</code></pre>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="principles" aria-labelledby="principles-title">
+      <div class="container">
+        <p class="eyebrow">Design principles</p>
+        <h2 id="principles-title">Core principles</h2>
+        <p class="section-lede">Small set of rules the protocol follows. No hidden behavior.</p>
+        <div class="grid principles-grid">
+          <article><h3>Immutable Revisions</h3><p>Once written, a revision never changes.</p></article>
+          <article><h3>Binary Safe</h3><p>Text and binary content follow the same path.</p></article>
+          <article><h3>Git Independent</h3><p>No repository, index, or refs required.</p></article>
+          <article><h3>Diff &amp; Restore</h3><p>Compare revisions and restore a prior state.</p></article>
+          <article><h3>Transactional Changes</h3><p>Multi-file changes apply together or not at all.</p></article>
+          <article><h3>Crash Recovery</h3><p>Interrupted work resolves to a known state.</p></article>
+          <article><h3>Explicit File Identity</h3><p>Each logical file carries a stable FileId.</p></article>
+          <article><h3>Deterministic Encoding</h3><p>Same input produces the same representation.</p></article>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="protocol" aria-labelledby="protocol-title">
+      <div class="container split">
+        <div>
+          <p class="eyebrow">How it fits together</p>
+          <h2 id="protocol-title">Architecture</h2>
+          <p>Files on disk are a materialized projection. The canonical accepted state lives in the protocol&apos;s revision metadata and FileHead model.</p>
+          <ul class="check-list">
+            <li>Review a RevisionSet with diff before accepting.</li>
+            <li>Accepting advances the FileHead pointer.</li>
+            <li>Workspace projection renders the accepted state.</li>
+          </ul>
+        </div>
+        <div class="code-card" role="img" aria-label="Architecture flow from File to Workspace Projection">
+          <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">revision flow</span></div>
+<pre class="mono tree"><code>File
+  |
+  |-- FileId
+  |
+  v
+Revision
+  |
+  v
+RevisionSet
+  |
+  |-- Diff
+  |-- Review
+  `-- Accept
+          |
+          v
+       FileHead
+          |
+          v
+  Workspace Projection</code></pre>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="concepts" aria-labelledby="concepts-title">
+      <div class="container">
+        <p class="eyebrow">Vocabulary</p>
+        <h2 id="concepts-title">Protocol concepts</h2>
+        <p class="section-lede">The core terms used across the specification.</p>
+        <dl class="grid concepts-grid">
+          <div><dt>Revision</dt><dd>A single immutable snapshot of a logical file.</dd></div>
+          <div><dt>RevisionSet</dt><dd>A proposed group of revisions reviewed together.</dd></div>
+          <div><dt>FileHead</dt><dd>The pointer to the currently accepted revision.</dd></div>
+          <div><dt>ContentRef</dt><dd>A stable reference to stored content bytes.</dd></div>
+          <div><dt>DiffArtifact</dt><dd>The recorded difference between two revisions.</dd></div>
+          <div><dt>ApplyTransaction</dt><dd>The atomic step that applies accepted changes.</dd></div>
+          <div><dt>Logical Commit</dt><dd>The acceptance of a reviewed RevisionSet.</dd></div>
+          <div><dt>Workspace Projection</dt><dd>The materialized files rendered from accepted state.</dd></div>
+        </dl>
+      </div>
+    </section>
+    <section class="section" id="git" aria-labelledby="git-title">
+      <div class="container split">
+        <div>
+          <p class="eyebrow">Coexistence</p>
+          <h2 id="git-title">Git independence</h2>
+          <p><strong>BinaryRevisionWithProtocol does not require a Git repository.</strong></p>
+          <p class="muted">It addresses file revision and transactional workspace changes at the file level. It does not replace Git and can coexist with Git or other source-control systems.</p>
+        </div>
+        <ul class="compare">
+          <li><h3>With Git</h3><p>Sidecars version alongside sources; both histories remain separate.</p></li>
+          <li><h3>Without Git</h3><p>Revisions, diff, and restore still work standalone.</p></li>
+          <li><h3>Scope</h3><p>File revisions and workspace projection, not branching or remotes.</p></li>
+        </ul>
+      </div>
+    </section>
+    <section class="section cta" id="cta" aria-labelledby="cta-title">
+      <div class="container cta-card">
+        <div>
+          <p class="eyebrow">Get started</p>
+          <h2 id="cta-title">Read the protocol. Follow the spec.</h2>
+          <p class="muted">The specification is still being developed in the public repository. Start with the overview, then dig into revisions, FileHead, and workspace projection.</p>
+        </div>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#protocol">Read the Protocol</a>
+          <a class="btn btn-secondary" href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">View on GitHub <span aria-hidden="true">&nearr;</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <p class="footer-brand">BinaryRevisionWithProtocol</p>
+        <p class="muted">Open protocol for binary-safe file revisions.</p>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">&nearr;</span></a>
+        <a href="#overview">Overview</a>
+        <a href="#protocol">Protocol</a>
+      </div>
+      <p class="muted small">&copy; <span id="year">2026</span> BinaryRevisionWithProtocol. Specification in development.</p>
+    </div>
+  </footer>
+  <script src="./script.js" defer></script>
 </body>
 </html>
