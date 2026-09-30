@@ -34,69 +34,115 @@
     </div>
   </header>
   <main id="main">
-    <section class="hero docs-hero" aria-labelledby="docs-title">
+    <section class="hero docs-hero" aria-labelledby="spec-title">
       <div class="container">
-        <p class="eyebrow">BinaryRevisionWithProtocol &middot; Documentation</p>
-        <h1 id="docs-title">Documentation</h1>
-        <p class="subtitle">Technical specification and implementation reference.</p>
-        <p class="lede">Open protocol &middot; Git-independent &middot; In development. This page describes the intended protocol and the current repository state as inspected. Nothing here replaces a frozen specification.</p>
-        <p class="doc-notice"><strong>Repository status:</strong> no protocol implementation code, schemas, or test vectors were found in the repository at the time of writing. All protocol behavior below is <strong>specification / planned</strong> unless explicitly marked otherwise.</p>
+        <p class="eyebrow">BinaryRevisionWithProtocol &middot; BRP-1</p>
+        <h1 id="spec-title">Protocol Specification</h1>
+        <p class="subtitle">Version 1.0 — Normative</p>
+        <p class="lede"><strong>Protocol Identifier:</strong> BRP &nbsp;|&nbsp; <strong>Container Format:</strong> VSN-1 &nbsp;|&nbsp; <strong>Canonical Encoding:</strong> RCMP-1</p>
+        <div class="code-card" role="img" aria-label="BRP naming hierarchy">
+          <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">naming hierarchy</span></div>
+<pre class="mono tree"><code>BRP
+ |-- BRP Protocol
+ |-- BRP Canonical Model
+ |-- RCMP-1 Canonical Encoding
+ |-- VSN-1 Container Format
+ `-- BRP Conformance</code></pre>
+        </div>
+        <p><strong>Core principle.</strong> BRP defines protocol semantics, canonical data representation, binary encoding rules, revision semantics, transactional semantics, integrity rules, compatibility rules, and conformance requirements. <code class="inline-code">.vsn</code> is a standardized self-contained container representation of BRP revision data — it is not the protocol itself. Libraries are implementations of BRP; applications consume BRP libraries. <strong>No implementation is authoritative over the specification.</strong></p>
+        <p class="muted">Status labels: <span class="spec-tag">Normative — Frozen</span> <span class="spec-tag">Normative — Review</span> <span class="spec-tag">Planned</span> <span class="spec-tag">Implementation Pending</span> <span class="spec-tag">Experimental</span>. Repository state: <code class="inline-code">index.html</code>, <code class="inline-code">docs.html</code>, <code class="inline-code">style.css</code>, <code class="inline-code">script.js</code> only — <strong>Implementation: Pending.</strong></p>
       </div>
     </section>
-    <nav class="section docs-toc" aria-label="Documentation contents">
+    <nav class="section docs-toc" aria-label="Specification contents">
       <div class="container">
         <h2>Contents</h2>
         <ol>
-          <li><a href="#doc-overview"><span class="mono">01</span> Overview</a></li>
-          <li><a href="#doc-architecture"><span class="mono">02</span> Architecture</a></li>
-          <li><a href="#doc-vsn"><span class="mono">03</span> .vsn Sidecar</a></li>
-          <li><a href="#doc-revision"><span class="mono">04</span> Revision Model</a></li>
-          <li><a href="#doc-identity"><span class="mono">05</span> File Identity</a></li>
-          <li><a href="#doc-revisionset"><span class="mono">06</span> RevisionSet</a></li>
-          <li><a href="#doc-content"><span class="mono">07</span> Content Model</a></li>
-          <li><a href="#doc-diff"><span class="mono">08</span> Diff</a></li>
-          <li><a href="#doc-restore"><span class="mono">09</span> Restore</a></li>
-          <li><a href="#doc-apply"><span class="mono">10</span> ApplyTransaction</a></li>
-          <li><a href="#doc-recovery"><span class="mono">11</span> Crash Recovery</a></li>
-          <li><a href="#doc-commit"><span class="mono">12</span> Logical Commit</a></li>
-          <li><a href="#doc-rcmp"><span class="mono">13</span> Serialization / RCMP-1</a></li>
-          <li><a href="#doc-digest"><span class="mono">14</span> MembersDigest</a></li>
-          <li><a href="#doc-idempotency"><span class="mono">15</span> Idempotency</a></li>
-          <li><a href="#doc-gc"><span class="mono">16</span> Garbage Collection</a></li>
-          <li><a href="#doc-security"><span class="mono">17</span> Security</a></li>
-          <li><a href="#doc-conformance"><span class="mono">18</span> Conformance</a></li>
-          <li><a href="#doc-vectors"><span class="mono">19</span> Test Vectors</a></li>
-          <li><a href="#doc-status"><span class="mono">20</span> Implementation Status</a></li>
-          <li><a href="#doc-libraries"><span class="mono">21</span> Multi-Language Libraries</a></li>
-          <li><a href="#doc-capabilities"><span class="mono">22</span> Library Capabilities</a></li>
-          <li><a href="#doc-container"><span class="mono">23</span> .vsn Container Format</a></li>
-          <li><a href="#doc-reconstruct"><span class="mono">24</span> Content Reconstruction</a></li>
-          <li><a href="#doc-vsatomic"><span class="mono">25</span> .vsn Atomicity</a></li>
-          <li><a href="#doc-concurrency"><span class="mono">26</span> Concurrency</a></li>
-          <li><a href="#doc-errors"><span class="mono">27</span> Library Error Contract</a></li>
-          <li><a href="#doc-streaming"><span class="mono">28</span> Streaming &amp; Text/Binary</a></li>
-          <li><a href="#doc-paths"><span class="mono">29</span> Paths &amp; Rename</a></li>
-          <li><a href="#doc-restoretable"><span class="mono">30</span> Restore Scopes</a></li>
-          <li><a href="#doc-interop"><span class="mono">31</span> Interop &amp; Versions</a></li>
-          <li><a href="#doc-retention"><span class="mono">32</span> Retention &amp; Compaction</a></li>
-          <li><a href="#doc-freeze"><span class="mono">33</span> Freeze Checklist</a></li>
-          <li><a href="#doc-glossary"><span class="mono">34</span> Glossary</a></li>
+          <li><a href="#brp-01"><span class="mono">01</span> Scope</a></li>
+          <li><a href="#brp-02"><span class="mono">02</span> Normative Language</a></li>
+          <li><a href="#brp-03"><span class="mono">03</span> Terminology</a></li>
+          <li><a href="#brp-04"><span class="mono">04</span> Protocol Architecture</a></li>
+          <li><a href="#brp-05"><span class="mono">05</span> Protocol Identity</a></li>
+          <li><a href="#brp-06"><span class="mono">06</span> Versioning</a></li>
+          <li><a href="#brp-07"><span class="mono">07</span> Compatibility Model</a></li>
+          <li><a href="#brp-08"><span class="mono">08</span> Data Model</a></li>
+          <li><a href="#brp-09"><span class="mono">09</span> File Identity</a></li>
+          <li><a href="#brp-10"><span class="mono">10</span> Revision Model</a></li>
+          <li><a href="#brp-11"><span class="mono">11</span> RevisionSet Model</a></li>
+          <li><a href="#brp-12"><span class="mono">12</span> FileHead</a></li>
+          <li><a href="#brp-13"><span class="mono">13</span> Content Model</a></li>
+          <li><a href="#brp-14"><span class="mono">14</span> Canonical Serialization</a></li>
+          <li><a href="#brp-15"><span class="mono">15</span> RCMP-1</a></li>
+          <li><a href="#brp-16"><span class="mono">16</span> VSN-1 Container Format</a></li>
+          <li><a href="#brp-17"><span class="mono">17</span> Binary Record Format</a></li>
+          <li><a href="#brp-18"><span class="mono">18</span> Framing</a></li>
+          <li><a href="#brp-19"><span class="mono">19</span> Integrity</a></li>
+          <li><a href="#brp-20"><span class="mono">20</span> Hashing</a></li>
+          <li><a href="#brp-21"><span class="mono">21</span> Diff</a></li>
+          <li><a href="#brp-22"><span class="mono">22</span> Restore</a></li>
+          <li><a href="#brp-23"><span class="mono">23</span> Transactions</a></li>
+          <li><a href="#brp-24"><span class="mono">24</span> Logical Commit</a></li>
+          <li><a href="#brp-25"><span class="mono">25</span> Workspace Projection</a></li>
+          <li><a href="#brp-26"><span class="mono">26</span> Crash Recovery</a></li>
+          <li><a href="#brp-27"><span class="mono">27</span> Atomicity</a></li>
+          <li><a href="#brp-28"><span class="mono">28</span> Concurrency</a></li>
+          <li><a href="#brp-29"><span class="mono">29</span> Idempotency</a></li>
+          <li><a href="#brp-30"><span class="mono">30</span> Paths</a></li>
+          <li><a href="#brp-31"><span class="mono">31</span> Rename / Move / Delete</a></li>
+          <li><a href="#brp-32"><span class="mono">32</span> Streaming</a></li>
+          <li><a href="#brp-33"><span class="mono">33</span> Compression</a></li>
+          <li><a href="#brp-34"><span class="mono">34</span> Encryption and Security Profiles</a></li>
+          <li><a href="#brp-35"><span class="mono">35</span> Extensions</a></li>
+          <li><a href="#brp-36"><span class="mono">36</span> Capability Negotiation</a></li>
+          <li><a href="#brp-37"><span class="mono">37</span> Error Model</a></li>
+          <li><a href="#brp-38"><span class="mono">38</span> Garbage Collection</a></li>
+          <li><a href="#brp-39"><span class="mono">39</span> Retention and Compaction</a></li>
+          <li><a href="#brp-40"><span class="mono">40</span> Multi-file Atomic Visibility</a></li>
+          <li><a href="#brp-41"><span class="mono">41</span> Conformance</a></li>
+          <li><a href="#brp-42"><span class="mono">42</span> Test Vectors</a></li>
+          <li><a href="#brp-43"><span class="mono">43</span> Interoperability</a></li>
+          <li><a href="#brp-44"><span class="mono">44</span> Protocol Profiles</a></li>
+          <li><a href="#brp-45"><span class="mono">45</span> Registries</a></li>
+          <li><a href="#brp-46"><span class="mono">46</span> Security Considerations</a></li>
+          <li><a href="#brp-47"><span class="mono">47</span> Implementation Guidance</a></li>
+          <li><a href="#brp-48"><span class="mono">48</span> Governance and Version Policy</a></li>
+          <li><a href="#brp-49"><span class="mono">49</span> Reference Algorithms</a></li>
+          <li><a href="#brp-50"><span class="mono">50</span> Examples</a></li>
+          <li><a href="#brp-51"><span class="mono">51</span> Glossary</a></li>
+          <li><a href="#brp-52"><span class="mono">52</span> Specification Freeze Checklist</a></li>
         </ol>
       </div>
     </nav>
-    <section class="section" id="doc-overview" aria-labelledby="doc-overview-title">
+    <section class="section" id="brp-01" aria-labelledby="brp-01-title">
       <div class="container doc">
-        <p class="eyebrow">01 &middot; Overview</p>
-        <h2 id="doc-overview-title">Overview <span class="spec-tag">Specification</span></h2>
-        <p><strong>BinaryRevisionWithProtocol is an open protocol for immutable file revisions, transactional multi-file changes, diff, restore, and crash-safe workspace projection — without requiring Git.</strong></p>
-        <p>A Revision is one immutable state of one logical file. A RevisionSet groups revisions across one or more files into a reviewable logical transaction. FileHead points at the currently accepted revision. Workspace Projection materializes accepted state as ordinary files.</p>
-        <p>Git is not required and not replaced. Implementations can run standalone or coexist with Git or other source-control systems. <a href="#top">Back to top</a></p>
+        <p class="eyebrow">01 &middot; Scope</p>
+        <h2 id="brp-01-title">Scope <span class="spec-tag">Normative — Frozen</span></h2>
+        <p><strong>BinaryRevisionWithProtocol (BRP) is an open, language-independent, platform-independent, implementation-independent protocol for immutable file revisions, transactional multi-file changes, diff, restore, and crash-safe workspace projection — without requiring Git.</strong></p>
+        <p>BRP covers the same ground as the previous Documentation page (revision model, FileId identity, RevisionSet lifecycle, content addressing, restore scopes, recovery) and adds the normative wire format: BRP Canonical Model, RCMP-1 canonical encoding, VSN-1 self-contained container, and BRP Conformance.</p>
+        <p>The protocol MUST NOT depend on Git, Git object format, a particular database, filesystem, operating system, programming language, serialization library, server, or cloud provider. The specification itself is the authority.</p>
+        <p><a href="#top">Back to top</a></p>
       </div>
     </section>
-    <section class="section" id="doc-architecture" aria-labelledby="doc-architecture-title">
+    <section class="section" id="brp-02" aria-labelledby="brp-02-title">
       <div class="container doc">
-        <p class="eyebrow">02 &middot; Architecture</p>
-        <h2 id="doc-architecture-title">Architecture <span class="spec-tag">Specification</span></h2>
+        <p class="eyebrow">02 &middot; Normative Language</p>
+        <h2 id="brp-02-title">Normative Language <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Normative requirements use RFC-style interpretation. <strong>MUST</strong>, <strong>MUST NOT</strong>, <strong>REQUIRED</strong>, <strong>SHALL</strong>, and <strong>SHALL NOT</strong> state absolute conformance rules. <strong>SHOULD</strong> and <strong>SHOULD NOT</strong> state strong recommendations with documented exceptions. <strong>MAY</strong> and <strong>OPTIONAL</strong> mark truly optional behavior.</p>
+        <p>Separate <strong>Normative</strong> (conformance rules) from <strong>Informative</strong> (explanation and examples), <strong>Implementation-defined</strong> (documented local choices), <strong>Implementation-specific</strong> (non-interoperable internals), and <strong>Experimental</strong> (not for production claims). An implementation-defined behavior MUST NOT change protocol interoperability.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-03" aria-labelledby="brp-03-title">
+      <div class="container doc">
+        <p class="eyebrow">03 &middot; Terminology</p>
+        <h2 id="brp-03-title">Terminology <span class="spec-tag">Normative — Frozen</span></h2>
+        <p><strong>BRP</strong> is the protocol identifier. <strong>BRP Protocol</strong> is the semantic ruleset. <strong>BRP Canonical Model</strong> is the shared data model. <strong>RCMP-1</strong> is the canonical encoding. <strong>VSN-1</strong> is the self-contained container format. <strong>BRP Conformance</strong> is the measurable test suite. A <strong>Revision</strong> is one immutable state of one logical file. A <strong>RevisionSet</strong> is a reviewable multi-file transaction. <strong>FileHead</strong> points at the accepted revision. <strong>ContentRef</strong> carries content identity and size. <strong>DiffArtifact</strong> is derived and disposable. <strong>ApplyTransaction</strong> is the physical projection and recovery transaction. <strong>Logical Commit</strong> is acceptance of a reviewed RevisionSet. <strong>Workspace Projection</strong> materializes accepted state as ordinary files.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-04" aria-labelledby="brp-04-title">
+      <div class="container doc">
+        <p class="eyebrow">04 &middot; Protocol Architecture</p>
+        <h2 id="brp-04-title">Protocol Architecture <span class="spec-tag">Normative — Frozen</span></h2>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">component flow</span></div>
 <pre class="mono tree"><code>Physical File
      |
@@ -124,12 +170,65 @@
             <tr><td class="mono">DiffArtifact</td><td>Derived, disposable comparison.</td></tr>
           </tbody>
         </table>
+        <p>Authority hierarchy. <strong>BRP normative specification</strong> outranks <strong>canonical schemas / registries</strong>, which outrank <strong>official conformance vectors</strong>, which outrank <strong>reference implementations</strong>, which outrank <strong>language libraries</strong>, which outrank <strong>applications</strong>. No C#, Rust, Java, or other implementation is the protocol authority.</p>
+        <div class="code-card" role="img" aria-label="Final BRP architecture">
+          <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">brp layers</span></div>
+<pre class="mono tree"><code>                    BRP
+                     |
+        +------------+------------+
+        |                         |
+  Protocol Semantics        Canonical Encoding
+        |                       RCMP-1
+        |                         |
+        +------------+------------+
+                     |
+                   VSN-1
+                     |
+          Self-contained .vsn
+                     |
+        +------------+------------+
+        |            |            |
+       C#           Rust          Go
+        |            |            |
+      Python       Java       TypeScript
+        |            |            |
+        +------------+------------+
+                     |
+               Applications</code></pre>
+        </div>
         <p><a href="#top">Back to top</a></p>
       </div>
-    <section class="section" id="doc-vsn" aria-labelledby="doc-vsn-title">
+    </section>
+    <section class="section" id="brp-05" aria-labelledby="brp-05-title">
       <div class="container doc">
-        <p class="eyebrow">03 &middot; .vsn Sidecar</p>
-        <h2 id="doc-vsn-title">.vsn Sidecar <span class="spec-tag">Specification</span></h2>
+        <p class="eyebrow">05 &middot; Protocol Identity</p>
+        <h2 id="brp-05-title">Protocol Identity <span class="spec-tag">Normative — Frozen</span></h2>
+        <table>
+          <thead><tr><th>Property</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Protocol Name</td><td>BinaryRevisionWithProtocol</td></tr>
+            <tr><td class="mono">Protocol Identifier</td><td>BRP</td></tr>
+            <tr><td class="mono">Current Major Version</td><td>1</td></tr>
+            <tr><td class="mono">Container Format</td><td>VSN-1</td></tr>
+            <tr><td class="mono">Canonical Encoding</td><td>RCMP-1</td></tr>
+          </tbody>
+        </table>
+        <p>Version identifiers are distinct. <code class="inline-code">ProtocolVersion</code> tracks BRP semantics. <code class="inline-code">ContainerFormatVersion</code> tracks VSN-1. <code class="inline-code">RecordVersion</code> tracks per-record schema. <code class="inline-code">EncodingVersion</code> tracks RCMP-1. <code class="inline-code">ExtensionVersion</code> tracks each extension. <code class="inline-code">LibraryVersion</code> and <code class="inline-code">ApplicationVersion</code> track implementations only. <strong>A library version MUST NOT imply a protocol version change.</strong></p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-06" aria-labelledby="brp-06-title">
+      <div class="container doc">
+        <p class="eyebrow">06 &middot; Versioning</p>
+        <h2 id="brp-06-title">Versioning <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>BRP uses <strong>Major</strong> for breaking protocol changes, <strong>Minor</strong> for backward-compatible additions, <strong>Patch/documentation</strong> for editorial or clarification corrections, and per-extension <strong>Extension version</strong>. A documentation change MUST NOT silently change wire semantics; any semantic change requires a version bump.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-07" aria-labelledby="brp-07-title">
+      <div class="container doc">
+        <p class="eyebrow">07 &middot; Compatibility Model</p>
+        <h2 id="brp-07-title">Compatibility Model <span class="spec-tag">Normative — Frozen</span></h2>
         <p><strong>.vsn is a companion sidecar file that travels with its logical file and carries its revision state/history and the information required to reconstruct or locate those revisions.</strong></p>
         <p>Normative terms in this page follow RFC 2119: MUST / MUST NOT are absolute requirements, SHOULD / SHOULD NOT are strong recommendations with documented exceptions, and MAY marks truly optional behavior.</p>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">file-local sidecars</span></div>
@@ -162,31 +261,171 @@
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
-    <section class="section" id="doc-revision" aria-labelledby="doc-revision-title">
+    <section class="section" id="brp-14" aria-labelledby="brp-14-title">
       <div class="container doc">
-        <p class="eyebrow">04 &middot; Revision Model</p>
-        <h2 id="doc-revision-title">Revision Model <span class="spec-tag">Specification</span></h2>
-        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">immutability</span></div>
-<pre class="mono tree"><code>Revision A
-    |
-    v
-Revision B
-    |
-    v
-Revision C</code></pre></div>
+        <p class="eyebrow">14 &middot; Canonical Serialization</p>
+        <h2 id="brp-14-title">Canonical Serialization <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Every semantic object in BRP MUST have a single canonical RCMP-1 byte representation. The same semantic object MUST produce identical RCMP-1 bytes and identical SHA-256 digests across all conforming implementations. Canonicalization rules: deterministic field ordering, minimal integer width, map key ordering (numeric keys by value, string keys by UTF-8 byte order), no optional fields with default values in canonical form, no padding. Non-canonical encodings MUST be rejected or normalized on decode; they MUST NOT produce different semantic interpretations.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-15" aria-labelledby="brp-15-title">
+      <div class="container doc">
+        <p class="eyebrow">15 &middot; RCMP-1</p>
+        <h2 id="brp-15-title">RCMP-1 <span class="spec-tag">Normative — Review</span></h2>
+        <p>RCMP-1 is the canonical binary encoding for BRP. It defines deterministic encoding for all core types. No RCMP-1 encoder, schema, or byte-level test vector exists in this repository; this section remains <span class="spec-tag">Normative — Review</span> and wire patterns below are <span class="spec-tag">UNFROZEN / NOT PART OF V1</span> until conformance vectors are published.</p>
+        <table>
+          <thead><tr><th>Type</th><th>Encoding Rule (summary)</th></tr></thead>
+          <tbody>
+            <tr><td>Unsigned Integer</td><td>Minimal-width varint (LEB128-style), canonical width only</td></tr>
+            <tr><td>Signed Integer</td><td>ZigZag + varint, canonical width only</td></tr>
+            <tr><td>Boolean</td><td>Single byte: 0x00 = false, 0x01 = true</td></tr>
+            <tr><td>Null</td><td>Single byte: 0xC0</td></tr>
+            <tr><td>UTF-8 String</td><td>Length-prefixed (varint) + raw UTF-8 bytes</td></tr>
+            <tr><td>Byte String</td><td>Length-prefixed (varint) + raw bytes</td></tr>
+            <tr><td>UUID</td><td>Exactly 16 bytes, big-endian (RFC 4122 network order)</td></tr>
+            <tr><td>SHA-256</td><td>Exactly 32 raw bytes</td></tr>
+            <tr><td>Timestamp</td><td>Signed 64-bit LE, Unix epoch nanoseconds UTC</td></tr>
+            <tr><td>Array</td><td>Length-prefixed (varint) + concatenated elements</td></tr>
+            <tr><td>Map</td><td>Length-prefixed (varint) + key/value pairs sorted by key (numeric keys by value, string keys by UTF-8 byte order); duplicate keys rejected</td></tr>
+            <tr><td>Record</td><td>Tag byte + length + fields in schema order</td></tr>
+            <tr><td>Extension</td><td>Tag 0xF0-0xFF reserved; ExtensionId (varint) + Version (varint) + Flags (varint) + Length (varint) + Payload</td></tr>
+          </tbody>
+        </table>
+        <p>Byte order for multi-byte integers: little-endian unless explicitly noted (UUID, SHA-256 are big-endian). Canonical integer width: minimal varint encoding only; no padding bytes permitted. Maps MUST use deterministic key ordering as specified. Duplicate map keys MUST cause decode failure. Floating-point values are excluded from core records; if needed, use integer scaled representation or extension.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-16" aria-labelledby="brp-16-title">
+      <div class="container doc">
+        <p class="eyebrow">16 &middot; VSN-1 Container Format</p>
+        <h2 id="brp-16-title">VSN-1 Container Format <span class="spec-tag">Normative — Review</span></h2>
+        <p>VSN-1 is the self-contained container format for BRP revision data. A valid VSN-1 container MUST allow full reconstruction of all retained revisions without external dependencies.</p>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">container structure</span></div>
+<pre class="mono tree"><code>VSN-1
+|-- Magic: 0x56 0x53 0x4E 0x31 ("VSN1")
+|-- Format Version: uint8 (1)
+|-- Flags: uint8
+|-- Protocol Identity: ProtocolVersion, ContainerFormatVersion, RecordVersion, EncodingVersion
+|-- File Identity: FileId (UUID), CurrentPath
+|-- Revision Records: array of Revision records (RCMP-1 encoded)
+|-- Content Records: array of Content records (raw bytes + ContentRef)
+|-- Index: RevisionId -> offset, ContentRef -> offset
+|-- Integrity Records: ContainerIntegrityHash (SHA-256 of all preceding data)
+|-- Extension Area: optional extensions
+|-- Commit Marker: Generation (uint64), CommitTimestamp, IntegrityHash</code></pre></div>
         <ul class="check-list">
-          <li>A Revision is one immutable state of one logical file.</li>
-          <li>A committed Revision is never rewritten.</li>
-          <li>Revisions remain addressable according to retention policy; old revisions may be purged only under documented GC rules.</li>
-          <li>Restore creates new revision state based on an old revision; it never mutates the source revision.</li>
-          <li>Workspace files are projections; FileHead represents accepted state.</li>
+          <li>Magic bytes: <code class="inline-code">0x56 0x53 0x4E 0x31</code> ("VSN1" in ASCII)</li>
+          <li>Format version: single byte, current value <code class="inline-code">0x01</code></li>
+          <li>A reader MUST reject a container whose format version it does not support</li>
+          <li>All multi-byte integers in container header: little-endian</li>
+          <li>ContentRef carries content identity (SHA-256 of raw bytes plus exact size)</li>
+          <li>Same content MUST yield the same content identity; every retained Revision MUST stay independently reconstructable</li>
+          <li>Commit marker with generation counter enables atomic write detection</li>
         </ul>
         <p><a href="#top">Back to top</a></p>
       </div>
-    <section class="section" id="doc-identity" aria-labelledby="doc-identity-title">
+    </section>
+    <section class="section" id="brp-17" aria-labelledby="brp-17-title">
       <div class="container doc">
-        <p class="eyebrow">05 &middot; File Identity</p>
-        <h2 id="doc-identity-title">File Identity <span class="spec-tag">Specification</span></h2>
+        <p class="eyebrow">17 &middot; Binary Record Format</p>
+        <h2 id="brp-17-title">Binary Record Format <span class="spec-tag">Normative — Review</span></h2>
+        <p>Each record in the VSN-1 container follows a common binary framing:</p>
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>Tag</td><td>uint8</td><td>Record type identifier (0x01-0xEF for core, 0xF0-0xFF for extensions)</td></tr>
+            <tr><td>Length</td><td>varint</td><td>Payload length in bytes</td></tr>
+            <tr><td>Payload</td><td>bytes</td><td>RCMP-1 encoded record data</td></tr>
+          </tbody>
+        </table>
+        <p>Core record tags (normative):</p>
+        <table>
+          <thead><tr><th>Tag</th><th>Record</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>0x01</td><td>ProtocolIdentity</td><td>Protocol version, container format version, encoding version</td></tr>
+            <tr><td>0x02</td><td>FileIdentity</td><td>FileId (UUID), current path snapshot</td></tr>
+            <tr><td>0x03</td><td>Revision</td><td>RevisionId, FileId, ParentRevisionId, RevisionSetId, ContentRef, PathSnapshot, Presence, Metadata, CreatedAt, Actor</td></tr>
+            <tr><td>0x04</td><td>Content</td><td>ContentRef, raw bytes (or reference to external storage)</td></tr>
+            <tr><td>0x05</td><td>RevisionSet</td><td>RevisionSetId, state, members, MembersDigest, CreatedAt, Actor</td></tr>
+            <tr><td>0x06</td><td>FileHead</td><td>FileId -> HeadRevisionId mapping</td></tr>
+            <tr><td>0x07</td><td>Index</td><td>RevisionId/ContentRef -> offset mappings</td></tr>
+            <tr><td>0x08</td><td>Integrity</td><td>ContainerIntegrityHash, per-record checksums</td></tr>
+            <tr><td>0x09</td><td>CommitMarker</td><td>Generation, timestamp, integrity hash</td></tr>
+            <tr><td>0xF0-0xFF</td><td>Extension</td><td>ExtensionId + Version + Flags + Length + Payload</td></tr>
+          </tbody>
+        </table>
+        <p>Records MUST appear in dependency order. Unknown core tags (0x01-0xEF) MUST cause decode failure. Unknown extension tags (0xF0-0xFF) follow extension rules (section 35).</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-18" aria-labelledby="brp-18-title">
+      <div class="container doc">
+        <p class="eyebrow">18 &middot; Framing</p>
+        <h2 id="brp-18-title">Framing <span class="spec-tag">Normative — Review</span></h2>
+        <p>VSN-1 uses length-prefixed framing for all records. There is no delimiter-based framing.</p>
+        <ul class="check-list">
+          <li>Each record: Tag (1 byte) + Length (varint) + Payload (Length bytes)</li>
+          <li>Varint encoding: LEB128-style, minimal width, little-endian byte order</li>
+          <li>Maximum record payload size: 2 GiB (2^31 - 1 bytes)</li>
+          <li>Streaming readers MUST process records incrementally without loading entire container</li>
+          <li>No padding bytes between records. Records are tightly packed.</li>
+          <li>Container ends at CommitMarker record. Trailing bytes after CommitMarker MUST cause integrity failure.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-19" aria-labelledby="brp-19-title">
+      <div class="container doc">
+        <p class="eyebrow">19 &middot; Integrity</p>
+        <h2 id="brp-19-title">Integrity <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Integrity verification is mandatory at multiple levels:</p>
+        <ul class="check-list">
+          <li><strong>ContainerIntegrityHash:</strong> SHA-256 of all bytes from start through last record before Integrity record. Verified on every container open.</li>
+          <li><strong>Per-record checksums:</strong> CRC32C (Castagnoli) of payload in Index record for fast corruption detection.</li>
+          <li><strong>Content integrity:</strong> Each Content record's raw bytes MUST match its ContentRef (SHA-256 + size). Verified on read.</li>
+          <li><strong>CommitMarker integrity:</strong> Generation counter prevents rollback.</li>
+          <li>On integrity failure: reader MUST fail with <code class="inline-code">CORRUPT_VSN</code> or <code class="inline-code">INTEGRITY_FAILURE</code>. MUST NOT attempt silent repair.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-20" aria-labelledby="brp-20-title">
+      <div class="container doc">
+        <p class="eyebrow">20 &middot; Hashing</p>
+        <h2 id="brp-20-title">Hashing <span class="spec-tag">Normative — Frozen</span></h2>
+        <p><strong>SHA-256</strong> is the mandatory core hash algorithm for BRP.</p>
+        <table>
+          <thead><tr><th>Context</th><th>Binary Form</th><th>Text Form</th></tr></thead>
+          <tbody>
+            <tr><td>ContentHash</td><td>32 raw bytes</td><td><code class="inline-code">sha256:<64 lowercase hex></code></td></tr>
+            <tr><td>RecordHash</td><td>32 raw bytes</td><td><code class="inline-code">sha256:<64 lowercase hex></code></td></tr>
+            <tr><td>MembersDigest</td><td>32 raw bytes</td><td><code class="inline-code">sha256:<64 lowercase hex></code></td></tr>
+            <tr><td>ContainerIntegrityHash</td><td>32 raw bytes</td><td><code class="inline-code">sha256:<64 lowercase hex></code></td></tr>
+          </tbody>
+        </table>
+        <ul class="check-list">
+          <li>ContentHash = SHA-256(raw content bytes) - computed BEFORE compression, encryption, or container storage</li>
+          <li>RecordHash = SHA-256(canonical RCMP-1 encoding of record)</li>
+          <li>MembersDigest = SHA-256(canonical RCMP-1 array of RevisionSet members sorted by Ordinal)</li>
+          <li>ContainerIntegrityHash = SHA-256(all container bytes up to Integrity record)</li>
+          <li>These four hash contexts MUST NOT be conflated. Each has distinct semantic meaning.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-08" aria-labelledby="brp-08-title">
+      <div class="container doc">
+        <p class="eyebrow">08 &middot; Data Model</p>
+        <h2 id="brp-08-title">Data Model <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>A Revision is one immutable state of one logical file. A committed Revision is never rewritten. Revisions remain addressable according to retention policy; old revisions may be purged only under documented GC rules. Restore creates new revision state based on an old revision; it never mutates the source revision. Workspace files are projections; FileHead represents accepted state.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-09" aria-labelledby="brp-09-title">
+      <div class="container doc">
+        <p class="eyebrow">09 &middot; File Identity</p>
+        <h2 id="brp-09-title">File Identity <span class="spec-tag">Normative — Frozen</span></h2>
         <p><strong>FileId is the authoritative identity of a logical file.</strong> Identity is not inferred from path, filename, content hash, size, timestamp, similarity, or delete/create proximity.</p>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">rename preserves identity</span></div>
 <pre class="mono tree"><code>src/A.cs
@@ -200,14 +439,14 @@ src/B.cs
     v move
 tests/A.cs
     FileId unchanged</code></pre></div>
-        <p>Deleting one file and creating another with identical bytes does not automatically make them the same logical file.</p>
+        <p>Deleting one file and creating another with identical bytes does not automatically make them the same logical file. Deleting and recreating a file MUST NOT automatically reuse the FileId.</p>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
-    <section class="section" id="doc-revisionset" aria-labelledby="doc-revisionset-title">
+    <section class="section" id="brp-10" aria-labelledby="brp-10-title">
       <div class="container doc">
-        <p class="eyebrow">06 &middot; RevisionSet</p>
-        <h2 id="doc-revisionset-title">RevisionSet <span class="spec-tag">Specification</span></h2>
+        <p class="eyebrow">10 &middot; Revision Model</p>
+        <h2 id="brp-10-title">Revision Model <span class="spec-tag">Normative — Frozen</span></h2>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">public lifecycle</span></div>
 <pre class="mono tree"><code>DRAFT
   |
@@ -223,14 +462,14 @@ ACCEPTED
 PENDING_REVIEW --&gt; REJECTED
 ACCEPTING -----&gt; CONFLICTED
 DRAFT ---------&gt; ABORTED</code></pre></div>
-        <p><code class="inline-code">SEALED</code> is not a public RevisionSet state. <code class="inline-code">RECOVERY_REQUIRED</code> is not a RevisionSet state; recovery belongs to ApplyTransaction. Sealing is an operation, not a state.</p>
+        <p>Formalized record: <code class="inline-code">RevisionId</code>, <code class="inline-code">FileId</code>, <code class="inline-code">ParentRevisionId</code>, <code class="inline-code">RevisionSetId</code>, <code class="inline-code">ContentRef</code>, <code class="inline-code">PathSnapshot</code>, <code class="inline-code">Presence</code>, <code class="inline-code">Metadata</code>, <code class="inline-code">CreatedAt</code>, <code class="inline-code">Actor</code>. <code class="inline-code">SEALED</code> is not a public RevisionSet state. <code class="inline-code">RECOVERY_REQUIRED</code> is not a RevisionSet state; recovery belongs to ApplyTransaction. Sealing is an operation, not a state.</p>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
-    <section class="section" id="doc-content" aria-labelledby="doc-content-title">
+    <section class="section" id="brp-11" aria-labelledby="brp-11-title">
       <div class="container doc">
-        <p class="eyebrow">07 &middot; Content Model</p>
-        <h2 id="doc-content-title">Content Model <span class="spec-tag">Specification</span></h2>
+        <p class="eyebrow">11 &middot; RevisionSet Model</p>
+        <h2 id="brp-11-title">RevisionSet Model <span class="spec-tag">Normative — Frozen</span></h2>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">references</span></div>
 <pre class="mono tree"><code>Revision
    |
@@ -240,17 +479,26 @@ DRAFT ---------&gt; ABORTED</code></pre></div>
         <ul class="check-list">
           <li>ContentRef identifies raw logical bytes by SHA-256 and exact byte size.</li>
           <li>Canonical form: <code class="inline-code">sha256:&lt;64 lowercase hexadecimal characters&gt;</code>.</li>
-          <li>Hash is computed over raw file bytes before compression, encryption, or storage transformations.</li>
+          <li><code class="inline-code">ContentHash = SHA-256(raw bytes)</code>, computed before compression, encryption, or container storage transformation. Content identity MUST be independent of storage representation; LF, CRLF, BOM, invalid UTF-8, binary data, and zero-length content MUST remain distinct with no implicit text normalization.</li>
           <li>Binary-safe: arbitrary bytes are first-class. No newline or encoding normalization.</li>
           <li>LF and CRLF remain distinct byte sequences; BOM remains content; invalid UTF-8 is not silently replaced.</li>
-          <li>ContentRef is authoritative for identity; DiffArtifact is derived.</li>
+          <li>ContentRef is authoritative for identity; DiffArtifact is derived. Legal transitions: <code class="inline-code">DRAFT → PENDING_REVIEW → ACCEPTING → ACCEPTED</code>, plus <code class="inline-code">PENDING_REVIEW → REJECTED</code>, <code class="inline-code">ACCEPTING → CONFLICTED</code>, <code class="inline-code">DRAFT → ABORTED</code>. Every other transition is illegal, including any transition out of the terminal states.</li>
         </ul>
         <p><a href="#top">Back to top</a></p>
       </div>
-    <section class="section" id="doc-diff" aria-labelledby="doc-diff-title">
+    </section>
+    <section class="section" id="brp-12" aria-labelledby="brp-12-title">
       <div class="container doc">
-        <p class="eyebrow">08 &middot; Diff</p>
-        <h2 id="doc-diff-title">Diff <span class="spec-tag">Specification</span></h2>
+        <p class="eyebrow">12 &middot; FileHead</p>
+        <h2 id="brp-12-title">FileHead <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>FileHead is the canonical accepted pointer: <code class="inline-code">FileId → HeadRevisionId</code>. It MUST update atomically with acceptance. A stale accept MUST fail with <code class="inline-code">CONFLICT</code>; it MUST NOT silently overwrite another accepted revision.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-13" aria-labelledby="brp-13-title">
+      <div class="container doc">
+        <p class="eyebrow">13 &middot; Content Model</p>
+        <h2 id="brp-13-title">Content Model <span class="spec-tag">Normative — Frozen</span></h2>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">derived comparison</span></div>
 <pre class="mono tree"><code>Revision A
     |
@@ -259,31 +507,19 @@ DRAFT ---------&gt; ABORTED</code></pre></div>
     v             v
 Revision B --&gt; DiffArtifact</code></pre></div>
         <ul class="check-list">
-          <li>DiffArtifact is derived, reproducible, and disposable. It is never canonical revision state.</li>
-          <li>Restore does not depend on DiffArtifact for reconstructing the source revision.</li>
-          <li>Exact diff modes are not frozen in this repository yet; document them only when implemented.</li>
+          <li>ContentRef identifies raw logical bytes by SHA-256 and exact byte size.</li>
+          <li>Canonical form: <code class="inline-code">sha256:<64 lowercase hexadecimal characters></code>.</li>
+          <li>Binary-safe: arbitrary bytes are first-class. No newline or encoding normalization.</li>
+          <li>ContentRef is authoritative for identity; DiffArtifact is derived.</li>
         </ul>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
-    <section class="section" id="doc-restore" aria-labelledby="doc-restore-title">
+    <section class="section" id="brp-21" aria-labelledby="brp-21-title">
       <div class="container doc">
-        <p class="eyebrow">09 &middot; Restore</p>
-        <h2 id="doc-restore-title">Restore <span class="spec-tag">Specification</span></h2>
-        <ul class="check-list">
-          <li>Intended scopes: <code class="inline-code">CONTENT_ONLY</code>, <code class="inline-code">CONTENT_AND_PATH</code>, <code class="inline-code">FULL_STATE</code>.</li>
-          <li>Restore points at a source revision and creates new state; it never rewrites the source.</li>
-          <li>Restore reconstructs from revision content, not from DiffArtifact.</li>
-          <li>Scope/source matrix, ABSENT behavior, and failure rules are not frozen yet; no implementation found in this repository.</li>
-        </ul>
-        <p><a href="#top">Back to top</a></p>
-      </div>
-    </section>
-    <section class="section" id="doc-apply" aria-labelledby="doc-apply-title">
-      <div class="container doc">
-        <p class="eyebrow">10 &middot; ApplyTransaction</p>
-        <h2 id="doc-apply-title">ApplyTransaction <span class="spec-tag">Specification</span></h2>
-        <p><strong>RevisionSet is the logical change transaction. ApplyTransaction is the physical workspace projection and recovery transaction.</strong></p>
+        <p class="eyebrow">21 &middot; Diff</p>
+        <h2 id="brp-21-title">Diff <span class="spec-tag">Normative — Frozen</span></h2>
+        <p><strong>DiffArtifact is derived data, not canonical state.</strong> Separate semantic equality, byte equality, text diff, binary diff, metadata diff, path diff, and presence diff. Core BRP MUST NOT require a particular diff algorithm; optional diff profiles MAY standardize one.</p>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">intended states</span></div>
 <pre class="mono tree"><code>PREPARING -&gt; PREPARED -&gt; PROJECTION_APPLYING -&gt; PROJECTION_APPLIED
   -&gt; LOGICAL_COMMITTING -&gt; LOGICALLY_COMMITTED -&gt; FINALIZED
@@ -292,10 +528,10 @@ ROLLING_BACK -&gt; ROLLED_BACK
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
-    <section class="section" id="doc-recovery" aria-labelledby="doc-recovery-title">
+    <section class="section" id="brp-22" aria-labelledby="brp-22-title">
       <div class="container doc">
-        <p class="eyebrow">11 &middot; Crash Recovery</p>
-        <h2 id="doc-recovery-title">Crash Recovery <span class="spec-tag">Specification</span></h2>
+        <p class="eyebrow">22 &middot; Restore</p>
+        <h2 id="brp-22-title">Restore <span class="spec-tag">Normative — Frozen</span></h2>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">commit marker rule</span></div>
 <pre class="mono tree"><code>LogicalCommitMarker absent
     -&gt; accepted state remains old
@@ -305,27 +541,27 @@ LogicalCommitMarker present
     -&gt; accepted state is new
     -&gt; roll forward projection
     -&gt; finalize</code></pre></div>
-        <p><code class="inline-code">RECOVERY_REQUIRED</code> is a physical ApplyTransaction recovery state, not a RevisionSet state. It is not evidence that a RevisionSet was accepted or rejected.</p>
+        <p>Restore scopes <code class="inline-code">CONTENT_ONLY</code>, <code class="inline-code">CONTENT_AND_PATH</code>, and <code class="inline-code">FULL_STATE</code> follow the matrix in section 30. Restore MUST never modify the source Revision and MUST never require a DiffArtifact. <code class="inline-code">RECOVERY_REQUIRED</code> is a physical ApplyTransaction recovery state, not a RevisionSet state. It is not evidence that a RevisionSet was accepted or rejected.</p>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
-    <section class="section" id="doc-commit" aria-labelledby="doc-commit-title">
+    <section class="section" id="brp-23" aria-labelledby="brp-23-title">
       <div class="container doc">
-        <p class="eyebrow">12 &middot; Logical Commit</p>
-        <h2 id="doc-commit-title">Logical Commit <span class="spec-tag">Specification</span></h2>
+        <p class="eyebrow">23 &middot; Transactions</p>
+        <h2 id="brp-23-title">Transactions <span class="spec-tag">Normative — Frozen</span></h2>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">acceptance invariant</span></div>
 <pre class="mono tree"><code>RevisionSet = ACCEPTED
         &lt;=&gt;
 Logical Commit exists</code></pre></div>
-        <p>Logical commit updates canonical accepted state (FileHeads, path index, WorkspaceVersion, LogicalCommitMarker, accept idempotency result). Physical projection finalization is separate cleanup.</p>
+        <p><strong>RevisionSet is the logical change transaction. ApplyTransaction is the physical workspace projection and recovery transaction.</strong> Logical commit updates canonical accepted state (FileHeads, path index, WorkspaceVersion, LogicalCommitMarker, accept idempotency result). Physical projection finalization is separate cleanup.</p>
         <p>Conflict path: <code class="inline-code">ACCEPTING -&gt; conflict -&gt; CONFLICTED</code>. No logical commit, FileHeads unchanged, partial projection rolled back.</p>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
-    <section class="section" id="doc-rcmp" aria-labelledby="doc-rcmp-title">
+    <section class="section" id="brp-24" aria-labelledby="brp-24-title">
       <div class="container doc">
-        <p class="eyebrow">13 &middot; Serialization / RCMP-1</p>
-        <h2 id="doc-rcmp-title">Serialization / RCMP-1 <span class="spec-tag">Planned</span></h2>
+        <p class="eyebrow">24 &middot; Logical Commit</p>
+        <h2 id="brp-24-title">Logical Commit <span class="spec-tag">Normative — Frozen</span></h2>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">intended pipeline</span></div>
 <pre class="mono tree"><code>Semantic Record
       |
@@ -337,7 +573,7 @@ Deterministic bytes
       |
       v
 SHA-256</code></pre></div>
-        <p>No RCMP-1 encoder, schema, or byte-level test vector was found in this repository. The intended rules (MessagePack arrays, deterministic ordering, UUID/hash/timestamp/UTF-8 encoding, no floating point in core records, extension maps with numeric keys) remain planned. No hexadecimal examples are included because none exist in the implementation.</p>
+        <p>Invariant: <code class="inline-code">RevisionSet = ACCEPTED ⇔ Logical Commit exists</code>. Timestamps are UTC signed 64-bit Unix epoch nanoseconds; local timezone semantics are forbidden. Valid range, negative values, zero, nanosecond precision, overflow, and invalid-timestamp handling follow section 15. UUIDs are exactly 16 bytes in network order, never canonical text inside binary records. SHA-256 is the mandatory core hash: 32 raw bytes in binary, <code class="inline-code">sha256:&lt;64 lowercase hex&gt;</code> in text. ContentHash, RecordHash, MembersDigest, and ContainerIntegrityHash MUST NOT be conflated.</p>
         <p><a href="#top">Back to top</a></p>
       </div>
     <section class="section" id="doc-digest" aria-labelledby="doc-digest-title">
@@ -565,63 +801,224 @@ Application -- uses the library</code></pre></div>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
-    <section class="section" id="doc-reconstruct" aria-labelledby="doc-reconstruct-title">
+    <section class="section" id="brp-25" aria-labelledby="brp-25-title">
       <div class="container doc">
-        <p class="eyebrow">24 &middot; Content Reconstruction</p>
-        <h2 id="doc-reconstruct-title">Content Reconstruction <span class="spec-tag">Specification</span></h2>
+        <p class="eyebrow">25 &middot; Workspace Projection</p>
+        <h2 id="brp-25-title">Workspace Projection <span class="spec-tag">Normative — Frozen</span></h2>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">reconstruction path</span></div>
 <pre class="mono tree"><code>RevisionId -&gt; Revision -&gt; ContentRef
   -&gt; Embedded Content -&gt; Raw bytes</code></pre></div>
-        <p><strong>A valid retained Revision MUST be reconstructable byte-for-byte from its logical file's <code class="inline-code">.vsn</code> without Git, a database, a server, or an external content store.</strong> Raw bytes are authoritative: no newline, encoding, BOM, or Unicode normalization; no text conversion; binary content is first-class; zero-length files are valid; invalid UTF-8 is valid binary content; LF and CRLF are distinct sequences. The content hash MUST be computed over the exact raw bytes.</p>
-        <p>Lifecycle: create content, associate it with a Revision, retain it while any retained or addressable revision or active protocol root needs it, then purge only after reachability analysis. A Revision record MUST NOT remain addressable after its required content is permanently deleted, and content MUST NOT be physically deleted while still required.</p>
+        <p>Workspace Projection materializes the accepted state (FileHeads) as ordinary files in the workspace. The projection is a derived, read-only view of the canonical accepted state.</p>
+        <ul class="check-list">
+          <li>Projection applies all accepted RevisionSets in order, materializing each FileHead's ContentRef as a file at its PathSnapshot.</li>
+          <li>Projection is deterministic: same accepted state + same projection rules = same workspace files.</li>
+          <li>Projection MAY be incremental (only changed files) or full. Result MUST be identical.</li>
+          <li>External modifications to projected files are detected via <code class="inline-code">EXTERNAL_MODIFICATION_DETECTED</code> error on next operation.</li>
+          <li>Projection does not modify the .vsn container. It is a one-way materialization.</li>
+        </ul>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
-    <section class="section" id="doc-vsatomic" aria-labelledby="doc-vsatomic-title">
+    <section class="section" id="brp-26" aria-labelledby="brp-26-title">
       <div class="container doc">
-        <p class="eyebrow">25 &middot; .vsn Atomicity</p>
-        <h2 id="doc-vsatomic-title">.vsn Write Atomicity and Crash Recovery <span class="spec-tag">To be frozen</span></h2>
-        <p>No physical commit mechanism (append-only log, atomic rewrite, journal, generation counter, or commit marker) was found in this repository. The observable guarantee is normative: a library MUST NOT expose a partially committed <code class="inline-code">.vsn</code> state as valid, and <code class="inline-code">OpenVsn</code> after an interrupted write MUST surface either the old valid state or a detected-incomplete error — never silent corruption. Whether the frozen format is append-only, atomically rewritten, journaled, or generation-numbered is not yet frozen. This is separate from ApplyTransaction recovery, which protects workspace projection rather than the container itself.</p>
+        <p class="eyebrow">26 &middot; Crash Recovery</p>
+        <h2 id="brp-26-title">Crash Recovery <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Crash recovery applies to two distinct layers: VSN-1 container recovery (section 16) and ApplyTransaction workspace recovery.</p>
+        <p><strong>ApplyTransaction Recovery:</strong> The logical commit marker determines the accepted state:</p>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">commit marker rule</span></div>
+<pre class="mono tree"><code>LogicalCommitMarker absent
+    -> accepted state remains old
+    -> rollback projection
+
+LogicalCommitMarker present
+    -> accepted state is new
+    -> roll forward projection
+    -> finalize</code></pre></div>
+        <p><code class="inline-code">RECOVERY_REQUIRED</code> is a physical ApplyTransaction recovery state, not a RevisionSet state. It is not evidence that a RevisionSet was accepted or rejected.</p>
+        <p><strong>VSN-1 Container Recovery:</strong> On open, reader checks CommitMarker generation. If generation matches previous valid generation, container is valid. If generation is incomplete (partial write detected), reader MUST surface <code class="inline-code">CORRUPT_VSN</code> or <code class="inline-code">INCOMPLETE_WRITE</code> — never silent corruption.</p>
+        <p>Recovery never guesses from timestamps, current file contents, or heuristics. Only the commit marker and generation counter are authoritative.</p>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
-    <section class="section" id="doc-concurrency" aria-labelledby="doc-concurrency-title">
+    <section class="section" id="brp-27" aria-labelledby="brp-27-title">
       <div class="container doc">
-        <p class="eyebrow">26 &middot; Concurrency</p>
-        <h2 id="doc-concurrency-title">Concurrency <span class="spec-tag">To be frozen</span></h2>
-        <p>Semantic guarantees required: multiple readers MUST be safe; a writer MUST NOT silently overwrite another writer's committed revision state. A commit based on a stale head MUST fail with a conflict or stale-state error rather than silently winning. Expected-head or version checking MUST back Stage and Accept paths once frozen. Locking mechanics, stale-lock handling, crash-while-holding-a-lock behavior, and whether locking is mandatory or optimistic concurrency is allowed are not yet frozen; implementations MUST document their mechanism without changing these guarantees.</p>
+        <p class="eyebrow">27 &middot; Atomicity</p>
+        <h2 id="brp-27-title">Atomicity <span class="spec-tag">Normative — Review</span></h2>
+        <p>The VSN-1 container MUST guarantee atomic writes. After an interrupted write, a reader MUST see either:</p>
+        <ul class="check-list">
+          <li>The previous valid committed generation, OR</li>
+          <li>A detected incomplete/corrupt state (surfacing <code class="inline-code">CORRUPT_VSN</code> or <code class="inline-code">INCOMPLETE_WRITE</code>)</li>
+        </ul>
+        <p>It MUST NEVER silently expose partially committed metadata.</p>
+        <p>Mechanism: generation counter + commit marker + integrity hash. On write, new generation is written to a temporary location, integrity hash computed, then commit marker atomically updated (or file renamed). On read, generation counter and integrity hash are verified. If mismatch, previous generation is used.</p>
+        <p>This is separate from ApplyTransaction recovery (section 26), which protects workspace projection rather than the container itself.</p>
+        <p><span class="spec-tag">UNFROZEN / NOT PART OF V1</span>: Exact atomic write mechanism (append-only log, atomic rename, journal, generation counter) is not yet frozen. Implementations MUST document their mechanism.</p>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
-    <section class="section" id="doc-errors" aria-labelledby="doc-errors-title">
+    <section class="section" id="brp-28" aria-labelledby="brp-28-title">
       <div class="container doc">
-        <p class="eyebrow">27 &middot; Library Error Contract</p>
-        <h2 id="doc-errors-title">Library Error Contract <span class="spec-tag">Specification</span></h2>
-        <p>No <code class="inline-code">ProtocolError</code> type or error catalog was found in this repository, so the categories below are the required semantic contract for libraries to map onto once the protocol error set freezes. Semantic identity MUST stay interoperable even though surface syntax varies per language (exceptions, results, error values).</p>
+        <p class="eyebrow">28 &middot; Concurrency</p>
+        <h2 id="brp-28-title">Concurrency <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Protocol-level concurrency semantics without prescribing implementation mechanism:</p>
+        <ul class="check-list">
+          <li>Multiple readers MUST be safe concurrently.</li>
+          <li>A writer MUST NOT silently overwrite another writer's committed revision state.</li>
+          <li>Every mutation requiring an expected state MUST support an expected-state check: <code class="inline-code">ExpectedHeadRevisionId</code>, <code class="inline-code">ExpectedWorkspaceVersion</code>, or <code class="inline-code">ExpectedGeneration</code>.</li>
+          <li>A stale operation MUST result in <code class="inline-code">CONFLICT</code> error (or equivalent normative protocol error).</li>
+          <li>Locking mechanics (mutexes, database locks, OS locks, distributed locks) are implementation-defined. Implementations MUST document their mechanism without changing these guarantees.</li>
+          <li>Optimistic concurrency with expected-state checks is the normative model. Pessimistic locking is permitted but not required.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-29" aria-labelledby="brp-29-title">
+      <div class="container doc">
+        <p class="eyebrow">29 &middot; Idempotency</p>
+        <h2 id="brp-29-title">Idempotency <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Idempotency key format: <code class="inline-code">RevisionSetId + StageOperationId</code>. Same key + same request = same result. Same key + different request = IDEMPOTENCY_CONFLICT. Retry MUST NOT create duplicates.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-30" aria-labelledby="brp-30-title">
+      <div class="container doc">
+        <p class="eyebrow">30 &middot; Paths</p>
+        <h2 id="brp-30-title">Paths <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Separator: / on all platforms. Relative, no .., no NUL. UTF-8, no normalization, case-sensitive. Host adapter translates but preserves identity.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-31" aria-labelledby="brp-31-title">
+      <div class="container doc">
+        <p class="eyebrow">31 &middot; Rename / Move / Delete</p>
+        <h2 id="brp-31-title">Rename / Move / Delete <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Rename/Move = same FileId + new PathSnapshot + new Revision. Delete = tombstone (Presence = ABSENT). Identity never inferred from hash/name/timing.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-32" aria-labelledby="brp-32-title">
+      <div class="container doc">
+        <p class="eyebrow">32 &middot; Streaming</p>
+        <h2 id="brp-32-title">Streaming <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Content is raw bytes. Streaming SHOULD be supported. No newline normalization. Binary not modified. Hashes on raw bytes.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-33" aria-labelledby="brp-33-title">
+      <div class="container doc">
+        <p class="eyebrow">33 &middot; Compression</p>
+        <h2 id="brp-33-title">Compression <span class="spec-tag">Normative — Review</span></h2>
+        <p>Storage/transport profile. Mandatory: NONE. Optional: Zstandard. Compression MUST NOT change ContentHash. <span class="spec-tag">UNFROZEN</span></p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-34" aria-labelledby="brp-34-title">
+      <div class="container doc">
+        <p class="eyebrow">34 &middot; Encryption and Security Profiles</p>
+        <h2 id="brp-34-title">Encryption and Security Profiles <span class="spec-tag">Normative — Review</span></h2>
+        <p>Optional profile. AEAD (AES-256-GCM/ChaCha20-Poly1305). Encryption after ContentHash. <span class="spec-tag">UNFROZEN</span></p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-35" aria-labelledby="brp-35-title">
+      <div class="container doc">
+        <p class="eyebrow">35 &middot; Extensions</p>
+        <h2 id="brp-35-title">Extensions <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>ExtensionId, Version, Flags, Length, Payload. Unknown optional -> skip. Unknown required -> UNSUPPORTED_CAPABILITY. Reserved ID ranges.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-36" aria-labelledby="brp-36-title">
+      <div class="container doc">
+        <p class="eyebrow">36 &middot; Capability Negotiation</p>
+        <h2 id="brp-36-title">Capability Negotiation <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Stable IDs: core.revision, core.restore, core.diff, core.atomic-batch, core.streaming, compression.zstd, security.encryption. Required MUST be supported. Optional negotiated to intersection. Never infer from version.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-37" aria-labelledby="brp-37-title">
+      <div class="container doc">
+        <p class="eyebrow">37 &middot; Error Model</p>
+        <h2 id="brp-37-title">Error Model <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Normative error registry. Semantic identity MUST stay interoperable across languages.</p>
         <table>
-          <thead><tr><th>Error</th><th>Meaning</th></tr></thead>
+          <thead><tr><th>Error Code</th><th>Meaning</th><th>Retryable</th></tr></thead>
           <tbody>
-            <tr><td class="mono">INVALID_PROTOCOL_VERSION</td><td>Sidecar or record version not supported.</td></tr>
-            <tr><td class="mono">INVALID_RECORD</td><td>Malformed record or structure.</td></tr>
-            <tr><td class="mono">CORRUPT_VSN</td><td>Container fails integrity checks.</td></tr>
-            <tr><td class="mono">REVISION_NOT_FOUND</td><td>Requested revision is not retained.</td></tr>
-            <tr><td class="mono">REVISION_SET_NOT_FOUND</td><td>Requested set does not exist.</td></tr>
-            <tr><td class="mono">FILE_ID_MISMATCH</td><td>Sidecar identity does not match the logical file.</td></tr>
-            <tr><td class="mono">INVALID_REVISION_SET_STATE</td><td>Operation illegal in the current set state.</td></tr>
-            <tr><td class="mono">CONFLICT</td><td>Stale head or competing accept.</td></tr>
-            <tr><td class="mono">INVALID_RESTORE_SCOPE</td><td>Scope cannot be fulfilled from the source.</td></tr>
-            <tr><td class="mono">EXTERNAL_MODIFICATION_DETECTED</td><td>Workspace file changed outside the protocol.</td></tr>
-            <tr><td class="mono">SECURITY_VIOLATION</td><td>Path or filesystem rule rejected the operation.</td></tr>
-            <tr><td class="mono">UNSUPPORTED_CAPABILITY</td><td>Includes unknown required extensions.</td></tr>
-            <tr><td class="mono">NON_CANONICAL_ENCODING</td><td>Valid semantics but wrong canonical bytes.</td></tr>
-            <tr><td class="mono">IDEMPOTENCY_CONFLICT</td><td>Same idempotency key, incompatible request.</td></tr>
+            <tr><td class="mono">INVALID_PROTOCOL_VERSION</td><td>Sidecar or record version not supported</td><td>No</td></tr>
+            <tr><td class="mono">INVALID_RECORD</td><td>Malformed record or structure</td><td>No</td></tr>
+            <tr><td class="mono">CORRUPT_VSN</td><td>Container fails integrity checks</td><td>No</td></tr>
+            <tr><td class="mono">INCOMPLETE_WRITE</td><td>Partial write detected (generation mismatch)</td><td>No</td></tr>
+            <tr><td class="mono">REVISION_NOT_FOUND</td><td>Requested revision not retained</td><td>No</td></tr>
+            <tr><td class="mono">REVISION_SET_NOT_FOUND</td><td>Requested set does not exist</td><td>No</td></tr>
+            <tr><td class="mono">FILE_ID_MISMATCH</td><td>Sidecar identity does not match logical file</td><td>No</td></tr>
+            <tr><td class="mono">INVALID_REVISION_SET_STATE</td><td>Operation illegal in current set state</td><td>No</td></tr>
+            <tr><td class="mono">CONFLICT</td><td>Stale head or competing accept</td><td>Yes</td></tr>
+            <tr><td class="mono">INVALID_RESTORE_SCOPE</td><td>Scope cannot be fulfilled from source</td><td>No</td></tr>
+            <tr><td class="mono">EXTERNAL_MODIFICATION_DETECTED</td><td>Workspace file changed outside protocol</td><td>Yes</td></tr>
+            <tr><td class="mono">SECURITY_VIOLATION</td><td>Path/filesystem rule rejected operation</td><td>No</td></tr>
+            <tr><td class="mono">UNSUPPORTED_CAPABILITY</td><td>Unknown required extension</td><td>No</td></tr>
+            <tr><td class="mono">NON_CANONICAL_ENCODING</td><td>Valid semantics but wrong canonical bytes</td><td>No</td></tr>
+            <tr><td class="mono">IDEMPOTENCY_CONFLICT</td><td>Same idempotency key, incompatible request</td><td>No</td></tr>
           </tbody>
         </table>
-        <p>Stage retry with the same RevisionSetId plus StageOperationId MUST NOT create duplicate logical revisions; Accept retry MUST NOT create a second logical commit or duplicate FileHeads and MUST return the same logical outcome.</p>
+        <p>Error wire format: canonical RCMP-1 encoding with ErrorCode (varint) + Message (string) + Context (map). Language mappings: C# exception/Result, Rust Result, Go error, Java exception, Python exception — but protocol error identity identical.</p>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
-    <section class="section" id="doc-streaming" aria-labelledby="doc-streaming-title">
+        <p>No <code class="inline-code">ProtocolError</code> type or error catalog was found in this repository, so the categories below are the required semantic contract for libraries to map onto once the protocol error set freezes. Semantic identity MUST stay interoperable even though surface syntax varies per language (exceptions, results, error values).</p>
+        <table>
+          </section>
+    <section class="section" id="brp-38" aria-labelledby="brp-38-title">
+      <div class="container doc">
+        <p class="eyebrow">38 &middot; Garbage Collection</p>
+        <h2 id="brp-38-title">Garbage Collection <span class="spec-tag">Normative — Frozen</span></h2>
+        <p><strong>Invariant:</strong> every retained or addressable Revision must remain fully reconstructable byte-for-byte.</p>
+        <p>GC roots: FileHead targets, RevisionSet members, ApplyTransaction roots, staging leases, restore sources, retained DiffArtifacts, legal/audit holds, active transactions.</p>
+        <p>Compaction strategy implementation-defined, MUST preserve reconstructability and replace container atomically.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-39" aria-labelledby="brp-39-title">
+      <div class="container doc">
+        <p class="eyebrow">39 &middot; Retention and Compaction</p>
+        <h2 id="brp-39-title">Retention and Compaction <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Retained/addressable: FileHead targets, RevisionSet members, ApplyTransaction roots, staging leases, restore sources, retained DiffArtifacts, legal/audit holds, active transactions. Compaction MUST preserve reconstructability and replace container atomically.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-40" aria-labelledby="brp-40-title">
+      <div class="container doc">
+        <p class="eyebrow">40 &middot; Multi-file Atomic Visibility</p>
+        <h2 id="brp-40-title">Multi-file Atomic Visibility <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Successful logical commit exposes all file revisions atomically. A.cs: R10->R11, B.cs: R20->R21, C.cs: R30->R31 simultaneously. Partial visibility = violation. Profile: ATOMIC_BATCH_VISIBILITY_V1.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-41" aria-labelledby="brp-41-title">
+      <div class="container doc">
+        <p class="eyebrow">41 &middot; Conformance</p>
+        <h2 id="brp-41-title">Conformance <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>No BRP-CORE-1 claim without passing mandatory vectors. Levels: CORE_V1, LOCAL_PROJECTION_V1, ATOMIC_BATCH_VISIBILITY_V1, REMOTE_STORE_V1. Each specifies Required/Optional/Forbidden. Must pass TV-001 through TV-030.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-42" aria-labelledby="brp-42-title">
+      <div class="container doc">
+        <p class="eyebrow">42 &middot; Test Vectors</p>
+        <h2 id="brp-42-title">Test Vectors <span class="spec-tag">Implementation Pending</span></h2>
+        <p>TV-001 Empty File, TV-002 Single Revision, TV-003 Revision Chain, TV-004 Binary Content, TV-005 Invalid UTF-8, TV-006 CRLF, TV-007 LF, TV-008 BOM, TV-009 Rename, TV-010 Move, TV-011 Delete, TV-012 Restore, TV-013 RevisionSet, TV-014 Multi-file RevisionSet, TV-015 MembersDigest, TV-016 Idempotency, TV-017 Idempotency Conflict, TV-018 Stale Head, TV-019 Unknown Optional Extension, TV-020 Unknown Required Extension, TV-021 Corrupt Content, TV-022 Corrupt Record, TV-023 Truncated VSN, TV-024 Crash Before Commit, TV-025 Crash After Commit Marker, TV-026 Unicode Path, TV-027 Case-sensitive Paths, TV-028 Canonical Encoding, TV-029 Atomic Batch Visibility, TV-030 Large/Streaming Content.</p>
+        <p><strong>Status:</strong> <span class="spec-tag">VECTOR SPECIFICATION — IMPLEMENTATION PENDING</span>. Values replaced after implementation.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="brp-43" aria-labelledby="brp-43-title">
+      <div class="container doc">
+        <p class="eyebrow">43 &middot; Interoperability</p>
+        <h2 id="brp-43-title">Interoperability <span class="spec-tag">Normative — Frozen</span></h2>
+        <p>Same BRP/VSN/RCMP version + required capabilities -> .vsn readable and semantically equivalent. Same semantic object -> identical canonical RCMP-1 bytes and SHA-256 across implementations.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
       <div class="container doc">
         <p class="eyebrow">28 &middot; Streaming &amp; Text/Binary</p>
         <h2 id="doc-streaming-title">Streaming and Text/Binary Content <span class="spec-tag">Specification</span></h2>
