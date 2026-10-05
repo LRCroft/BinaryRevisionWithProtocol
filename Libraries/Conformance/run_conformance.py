@@ -223,7 +223,7 @@ def run_conformance(max_workers=36):
 
 
 if __name__ == "__main__":
-    workers = int(os.environ.get("VSN_WORKERS", "6"))
+    workers = int(os.environ.get("VSN_WORKERS", "36"))
     results = run_conformance(workers)
     vc = sum(1 for r in results.values() if r["status"] == "VERIFIED")
     sys.exit(0 if vc == 31 else 1)
