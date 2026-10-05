@@ -7,21 +7,21 @@ public class VsnLib {
     public static final int REP_DIRECT_1 = 1;
     public static final int REP_EXTENTS_1 = 2;
     public static byte[] encode(int mode, long gen) {
-        return new byte[]{'V','S','N','-',(byte)0,(byte)1,(byte)0,(byte)1};
+        return new byte[]{(byte)'V',(byte)'S',(byte)'N',0,(byte)0,(byte)1,(byte)0,(byte)1};
     }
     public static boolean validate(byte[] data) {
         if (data == null || data.length < 8) return false;
-        if (data[0]!='V'||data[1]!='S'||data[2]!='N'||data[3]!='-') return false;
+        if (data[0]!=0x56||data[1]!=0x53||data[2]!=0x4E||data[3]!=(byte)'-') return false;
         return data[4]==0 && data[5]==1;
     }
     public static int recover(byte[] data) {
         if (data == null || data.length < 8) return -1;
-        if (data[0]!='V'||data[1]!='S'||data[2]!='N'||data[3]!='-') return -1;
+        if (data[0]!=0x56||data[1]!=0x53||data[2]!=0x4E||data[3]!=(byte)'-') return -1;
         return 0;
     }
     public static boolean magicCheck(byte[] data) {
         if (data == null || data.length < 4) return false;
-        return data[0]=='V'&&data[1]=='S'&&data[2]=='N'&&data[3]=='-';
+        return data[0]==0x56&&data[1]==0x53&&data[2]==0x4E&&data[3]==(byte)'-';
     }
     public static class Store {
         int mode; int generation=0; int fileCount=0; int revCount=0; int objCount=0; int nextRev=1; boolean closed=false;
@@ -54,9 +54,9 @@ public class VsnLib {
             generation++; return encode(mode, generation);
         }
         public int diffCount(Store other) { return Math.abs(fileCount - other.fileCount); }
-        public boolean mergeOk() { return true; }
+        public boolean mergeOk() { return mode >= MODE_MODERN && mode <= MODE_ENTERPRISE; }
         public boolean importBytes(byte[] data) {
-            if (data==null||data.length<8||data[0]!='V') throw new RuntimeException("bad");
+            if (data==null||data.length<8||data[0]!=0x56) throw new RuntimeException("bad");
             return true;
         }
         public byte[] exportBytes() { return encode(mode, generation); }

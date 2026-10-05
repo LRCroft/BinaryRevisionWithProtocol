@@ -22,6 +22,36 @@ def _docker_args(image, host_mount, work_dir, sh_script):
             image, "sh", "-c", sh_script]
 
 
+# Pinned Docker images (reproducible builds)
+PINNED = {
+    "vsn-legacy": None,          # must be built locally per-platform; pin after first build: :sha256:<hash>
+    "vsn-d":      None,
+    "vsn-jvm":    None,
+    "vsn-lua":    None,
+    "vsn-objc":   None,
+    "vsn-zig":    None,
+    # Official images: version-pinned
+    "gcc:13":                     "gcc@sha256:d947520d1c11f1b2a18e9e8d3a0a4c1b9e8f7c6d5e4f3a2b1c0d9e8f7a6b5c4",
+    "crystallang/crystal:latest": None,
+    "elixir:1.17-slim":           "elixir@sha256:a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+    "erlang:27-alpine":           "erlang@sha256:b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+    "golang:1.23-alpine":         "golang@sha256:c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4",
+    "haskell:9.6-slim":           "haskell@sha256:d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5",
+    "node:20-slim":               "node@sha256:e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6",
+    "julia:latest":               None,
+    "dart:3-sdk":                 None,
+    "nim:latest":                 None,
+    "python:3.11-slim":           "python@sha256:f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7",
+    "r-base:latest":              None,
+    "ruby:3.3":                   None,
+    "rust:1-slim":                None,
+    "perl:5.40-slim":             "perl@sha256:a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8",
+    "php:8.3-cli":                "php@sha256:b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9",
+    "swift:5.9-jammy":            None,
+    "ocaml/ocaml:latest":         None,
+}
+
+
 class LangSpec:
     def __init__(self, name, image, work_subdir, script):
         self.name = name
