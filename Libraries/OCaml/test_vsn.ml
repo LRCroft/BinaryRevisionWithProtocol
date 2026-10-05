@@ -3,9 +3,10 @@ open Vsn
 
 let passed = ref 0
 let failed = ref 0
+let cap_failed = Array.make 20 false
 let chk n cap cond =
-  if cond then begin incr passed; Printf.printf "PASS %d %s\n" n cap end
-  else begin incr failed; Printf.printf "FAIL %d %s\n" n cap end
+  if cond then incr passed else begin incr failed; cap_failed.(n) <- true end;
+  Printf.printf "%s %d %s\n" (if cond then "PASS" else "FAIL") n cap
 
 let chk_raises n cap f =
   let ok = (try f (); false with _ -> true) in
@@ -118,5 +119,8 @@ let () =
   chk 19 "interop parse frozen header" (check_magic (encode 1 1));
   chk 19 "interop magic bytes" (String.sub (encode 1 1) 0 4 = "VSN-");
 
-  Printf.printf "---\nOCaml capabilities: %d passed, %d failed\n" !passed !failed;
+  let caps_ok = ref 0 in
+  for i = 1 to 19 do if not cap_failed.(i) then incr caps_ok done;
+  Printf.printf "---\nOCaml: %d assertions, %d failed\n" !passed !failed;
+  Printf.printf "PASS %d\n" !caps_ok;
   if !failed > 0 then exit 1

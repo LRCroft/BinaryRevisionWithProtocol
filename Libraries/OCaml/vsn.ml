@@ -7,7 +7,7 @@ module Mutex = struct
   type t = { mu : bool ref }
   let create () = { mu = ref false }
   let execute m f =
-    while !m.mu do () done;
+    while !(m.mu) do () done;
     m.mu := true;
     try let r = f () in m.mu := false; r
     with e -> m.mu := false; raise e
