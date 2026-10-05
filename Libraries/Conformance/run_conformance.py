@@ -7,11 +7,25 @@ BASE = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 RESULTS_FILE = os.path.join(BASE, "Conformance", "_results.json")
 
 ALL_LANGUAGES = [
-    "CSharp", "FSharp", "Ada", "C", "COBOL", "Cpp", "Crystal", "D", "Dart",
-    "Elixir", "Erlang", "Fortran", "Go", "Haskell",
-    "Java", "JavaScript-TypeScript", "Julia", "Kotlin", "Lua",
-    "Nim", "Objective-C", "OCaml", "Perl", "PHP", "Python",
-    "R", "Ruby", "Rust", "Scala", "Swift", "Zig"
+    "CSharp", "FSharp",              # .NET SDK 10.0 (~3GB)
+    "Java", "Kotlin",                # vsn-jvm:latest (~800MB)
+    "Scala",                         # vsn-jvm:with-scalacli (~1GB)
+    "Swift",                         # swift:5.9-jammy (~2GB)
+    "JavaScript-TypeScript",         # node:20-slim (~300MB)
+    "Julia",                         # julia:latest (~1GB)
+    "Go",                            # golang:1.23-alpine (~500MB)
+    "Rust",                          # rust:1-slim (~400MB)
+    "Dart",                          # dart:3-sdk (~300MB)
+    "Ruby",                          # ruby:3.3 (~70MB)
+    "PHP",                           # php:8.3-cli (~80MB)
+    "Ada", "C", "COBOL", "Cpp",      # vsn-deb/vsn-legacy (custom, local)
+    "Crystal", "D",                  # crystallang/vsn-d (custom, local)
+    "Elixir", "Erlang",              # vsn-deb:latest (single image)
+    "Fortran", "Haskell",            # vsn-deb:latest
+    "Lua", "Nim",                    # vsn-deb:latest
+    "OCaml", "Perl",                 # vsn-deb:latest
+    "Objective-C",                   # vsn-objc:latest (custom)
+    "Zig"                            # vsn-zig:latest (custom)
 ]
 
 
