@@ -118,7 +118,7 @@ LANG_SPECS["Kotlin"] = LangSpec("Kotlin", "vsn-jvm:latest", "Kotlin",
 LANG_SPECS["Lua"] = LangSpec("Lua", "vsn-deb:latest", "Lua",
     "LUA_PATH='./?.lua;;' lua test_vsn.lua")
 LANG_SPECS["Nim"] = LangSpec("Nim", "vsn-deb:latest", "Nim",
-    "nim c -r test_vsn.nim")
+    "nim c -o:/tmp/t test_vsn.nim && /tmp/t")
 LANG_SPECS["Objective-C"] = LangSpec("Objective-C", "vsn-objc:latest", "Objective-C",
     "gcc-11 -x objective-c -o /tmp/t test_vsn.m -lobjc && /tmp/t")
 LANG_SPECS["OCaml"] = LangSpec("OCaml", "vsn-deb:latest", "OCaml",
