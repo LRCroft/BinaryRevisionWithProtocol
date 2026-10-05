@@ -1,7 +1,6 @@
 module test_vsn;
 import std.stdio;
 import core.stdc.stdlib;
-import std.typecons : immutable;
 import vsn;
 
 void cap(int n, string label, bool[] checks) {

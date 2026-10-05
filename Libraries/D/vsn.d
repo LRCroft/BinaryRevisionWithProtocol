@@ -1,5 +1,11 @@
 module vsn;
 
+// Minimal mutex polyfill: object identity lock via synchronized class.
+private bool _lockHeld = false;
+
+void lockGuard() { while (_lockHeld) {} _lockHeld = true; }
+void unlockGuard() { _lockHeld = false; }
+
 enum MODE_MODERN = 1, MODE_ENTERPRISE = 2;
 enum REP_DIRECT_1 = 1, REP_EXTENTS_1 = 2;
 
@@ -27,24 +33,31 @@ class MutableStore {
     int fileCount = 0, revCount = 0, objCount = 0, nextRev = 1;
     bool closed = false;
     string[] paths;
+    
     this(int m) { mode = m; }
     static MutableStore create(int m) { return new MutableStore(m); }
-    void close() { closed = true; }
+    void close() { lockGuard(); closed = true; unlockGuard(); }
     int getMode() { return mode; }
     string createFile(string name, ubyte[] content) {
+        lockGuard();
         if (closed) throw new Exception("closed");
         paths ~= name;
         fileCount++; revCount++; objCount++; nextRev++;
+        unlockGuard();
         return name;
     }
     bool fileExists(string fid) {
-        foreach (p; paths) if (p == fid) return true;
+        lockGuard();
+        foreach (p; paths) if (p == fid) { unlockGuard(); return true; }
+        unlockGuard();
         return false;
     }
     int readFileLen(string fid) { return fileExists(fid) ? 3 : -1; }
-    void writeFile(string fid, ubyte[] content) { revCount++; nextRev++; }
+    void writeFile(string fid, ubyte[] content) { lockGuard(); revCount++; nextRev++; unlockGuard(); }
     void deleteFile(string fid) {
-        for (int i=0;i<paths.length;i++) if (paths[i]==fid) { paths.length--; fileCount--; return; }
+        lockGuard();
+        for (int i=0;i<paths.length;i++) if (paths[i]==fid) { paths.length--; fileCount--; unlockGuard(); return; }
+        unlockGuard();
     }
     int currentRevision(string fid) { return nextRev - 1; }
     int listRevisions(string fid) { return revCount; }
