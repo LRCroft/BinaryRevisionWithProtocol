@@ -23,7 +23,7 @@ run_cap(N) ->
              R = vsn:read_file(S1, Fid),
              S = vsn:close(S1),
              R =:= <<"hello">>;
-        3 -> {_,S1} = vsn:create_file(S0, "r", <<"v1">>),
+        3 -> {Fid,S1} = vsn:create_file(S0, "r", <<"v1">>),
              S2 = vsn:write_file(S1, Fid, <<"v2">>),
              S3 = vsn:write_file(S2, Fid, <<"v3">>),
              L = vsn:list_revisions(S3, Fid),
@@ -65,7 +65,9 @@ run_cap(N) ->
         13 -> Bytes = vsn:export_bytes(S0),
              S = vsn:close(S0),
              case vsn:create(Bytes) of
-                 {ok,S2} -> R = maps:get(mode, S2, -1); vsn:close(S2); R >= 0;
+                 {ok,S2} -> R = maps:get(mode, S2, -1),
+                     vsn:close(S2),
+                     R >= 0;
                  _ -> false
              end;
         14 -> {Fid,S1} = vsn:create_file(S0, "big", <<1,2,3>>),
@@ -81,11 +83,12 @@ run_cap(N) ->
              S = vsn:close(S0),
              is_boolean(OKi) andalso OKi;
         17 -> {_,S1} = vsn:create_file(S0, "stat", <<1>>),
-             Stats = vsn:get_stats(S1),
+             Stats = vsn:stats(S1),
              S = vsn:close(S1),
-             maps:get(files, Stats, -1) >= 0;
-        18 -> B = vsn:new_builder(2),
-             case B of {ok,X} -> maps:get(mode, X); _ -> -1 end;
+             is_map(Stats);
+        18 -> X = vsn:new_builder(2),
+             M = vsn:get_mode(X),
+             M >= 1 andalso M =< 2;
         19 -> Valid = vsn:encode(1, 1),
              S = vsn:close(S0),
              is_binary(vsn:check_magic_bytes(Valid)) orelse is_boolean(vsn:check_magic_bytes(Valid));

@@ -98,7 +98,7 @@ LANG_SPECS["Dart"] = LangSpec("Dart", "dart:3-sdk", "Dart",
 LANG_SPECS["Elixir"] = LangSpec("Elixir", "vsn-deb:latest", "Elixir",
     "elixir test_vsn.exs")
 LANG_SPECS["Erlang"] = LangSpec("Erlang", "vsn-deb:latest", "Erlang",
-    "erlc test_vsn.erl && erl -noshell -eval 'test_vsn:main(), halt(0)'")
+    "erlc vsn.erl test_vsn.erl && erl -noshell -eval 'test_vsn:main(), halt(0)'")
 LANG_SPECS["FSharp"] = LangSpec("FSharp", "mcr.microsoft.com/dotnet/sdk:10.0", "FSharp",
     "dotnet run --project _smoke2")
 LANG_SPECS["Fortran"] = LangSpec("Fortran", "vsn-deb:latest", "Fortran",
