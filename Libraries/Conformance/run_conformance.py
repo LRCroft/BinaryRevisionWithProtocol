@@ -7,8 +7,8 @@ BASE = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 RESULTS_FILE = os.path.join(BASE, "Conformance", "_results.json")
 
 ALL_LANGUAGES = [
-    "Ada", "C", "COBOL", "Cpp", "Crystal", "CSharp", "D", "Dart",
-    "Elixir", "Erlang", "FSharp", "Fortran", "Go", "Haskell",
+    "CSharp", "FSharp", "Ada", "C", "COBOL", "Cpp", "Crystal", "D", "Dart",
+    "Elixir", "Erlang", "Fortran", "Go", "Haskell",
     "Java", "JavaScript-TypeScript", "Julia", "Kotlin", "Lua",
     "Nim", "Objective-C", "OCaml", "Perl", "PHP", "Python",
     "R", "Ruby", "Rust", "Scala", "Swift", "Zig"
