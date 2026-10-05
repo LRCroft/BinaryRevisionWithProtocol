@@ -162,19 +162,19 @@ type Container(mode: int) =
     member _.Revisions = revs
     member _.Objects = objects
     member _.NextRevId 
-        with get() = Monitor.Enter(lockObj); let v = nextRevId; Monitor.Exit(lockObj); v
+        with get() = Monitor.Enter(lockObj); let v = nextRevId in Monitor.Exit(lockObj); v
         and set(v: uint32) = Monitor.Enter(lockObj); nextRevId <- v; Monitor.Exit(lockObj)
     member _.NextSerial 
-        with get() = Monitor.Enter(lockObj); let v = nextSerial; Monitor.Exit(lockObj); v
+        with get() = Monitor.Enter(lockObj); let v = nextSerial in Monitor.Exit(lockObj); v
         and set(v: uint32) = Monitor.Enter(lockObj); nextSerial <- v; Monitor.Exit(lockObj)
     member _.Generation 
-        with get() = Monitor.Enter(lockObj); let v = generation; Monitor.Exit(lockObj); v
+        with get() = Monitor.Enter(lockObj); let v = generation in Monitor.Exit(lockObj); v
         and set(v: uint32) = Monitor.Enter(lockObj); generation <- v; Monitor.Exit(lockObj)
     member _.Mode 
         with get() = mode
         and set(v: int) = Monitor.Enter(lockObj); mode <- v; Monitor.Exit(lockObj)
     member _.Closed 
-        with get() = Monitor.Enter(lockObj); let v = closed; Monitor.Exit(lockObj); v
+        with get() = Monitor.Enter(lockObj); let v = closed in Monitor.Exit(lockObj); v
         and set(v: bool) = Monitor.Enter(lockObj); closed <- v; Monitor.Exit(lockObj)
 
     static member Create(mode: int) = Container(mode)
