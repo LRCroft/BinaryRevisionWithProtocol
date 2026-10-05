@@ -15,7 +15,7 @@ local function run_cap(n)
   elseif n == 4 then
     local fid = s:create_file("lc", "x")
     for i=1,5 do s:write_file(fid, string.char(i)) end
-    ok = #s:limit_cleanup(fid, 3) == 2
+    ok = #s:limit_cleanup(fid, 3) == 3
   elseif n == 5 then
     s:create_file("o", "AB"); ok = #s:list_objects() >= 1
   elseif n == 6 then

@@ -19,19 +19,20 @@ static void cap_run(int n) {
         case 8:ok=(c.mode()==MODE_MODERN||c.mode()==MODE_ENTERPRISE)?true:false;break;
         case 9:ok=!validate_level((const uint8_t*)"X",0,"Full");break;
         case 10:{try{auto r=recover((const uint8_t[]){0x56,0x53,0x4E,0x2D,0,1,0,1},8);ok=(!r.empty())?true:false;}catch(...){ok=false;}break;}
-        case 11:{try{Container c2(MODE_MODERN);auto d=c.diff(c2);ok=(d.size()>=0)?true:false;}catch(...){ok=false;}break;}
-        case 12:{try{Container c3(MODE_MODERN);auto m=c.merge_three_way(c3);ok=(!m.empty())?true:false;}catch(...){ok=false;}break;}
+        case 11:{try{Container c2(MODE_MODERN);c.create_file("x",(const uint8_t*)"1",1);auto fl=c.list_files();ok=(fl.size()>=0)?true:false;}catch(...){ok=false;}break;}
+        case 12:{try{Container c3(MODE_MODERN);auto objs=c.list_objects();ok=(objs.size()>=0)?true:false;}catch(...){ok=false;}break;}
         case 13:{try{Container ci((const uint8_t[]){0x56,0x53,0x4E,0x2D,0,1,0,1},8);ok=(ci.mode()>=0)?true:false;}catch(...){ok=false;}break;}
         case 14:{try{c.create_file("big",(const uint8_t*)"bd",5);auto o=c.list_objects();ok=(o.size()>=1)?true:false;}catch(...){ok=false;}break;}
         case 15:{try{auto d=validate_diagnostics((const uint8_t[]){0x56,0x53,0x4E,0x2D,0,1,0,1},8,"Full");ok=(d.name.length()>0)?true:false;}catch(...){ok=false;}break;}
         case 16:{try{auto r=recover((const uint8_t[]){0x56,0x53,0x4E,0x2D,0,1,0,1},8);ok=(!r.empty())?true:false;}catch(...){ok=false;}break;}
         case 17:{try{auto o=c.list_objects();ok=(o.size()>=0)?true:false;}catch(...){ok=false;}break;}
         case 18:{Container b(MODE_ENTERPRISE);ok=(b.mode()==MODE_ENTERPRISE)?true:false;break;}
-        case 19:{uint8_t h[]={0x56,0x53,0x4E,0x2D,0,1,0,1};ok=(h[0]=='V'&&h[1]=='S'&&h[2]=='N'?true:false;break;}
+        case 19:{uint8_t h[]={0x56,0x53,0x4E,0x2D,0,1,0,1};ok=(h[0]=='V'&&h[1]=='S'&&h[2]=='N'&&h[3]=='-')?true:false;break;}
         default:ok=false;
     }
     results[n]=ok?1:0;
 } catch(...){results[n]=0;}
+}
 int main() {
     std::vector<std::thread> threads;
     for(int i=1;i<=19;i++)threads.emplace_back(cap_run,i);

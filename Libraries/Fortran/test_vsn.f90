@@ -73,7 +73,7 @@ program test_vsn
       if (.not. vsn_merge_ok()) ok = .false.
     else if (n == 13) then
       ! Cap 13: Import/Export — valid VSN import
-      if (.not. vsn_import("VSN-" // repeat(' ', 4))) ok = .false.
+      if (vsn_import("VSN-12345678") .neqv. .true.) ok = .false.
     else if (n == 14) then
       ! Cap 14: Streaming
       call vsn_create(1); call vsn_create_file()
