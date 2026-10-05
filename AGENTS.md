@@ -52,17 +52,41 @@ Every `MutableStore` is now thread-safe using the language's native synchronizat
 
 ## VSN Library Status: Honest Assessment (Updated 2026-10-05 Sprint Results)
 
-### Verification Summary (Post-Parallel Migration)
+### Verification Summary (Post-Parallel Migration + Round 3 Overhaul)
 
 * **Full Tier 2 + Tier 3: 31/31** — Every language now ships a **parallel capability test** (native concurrency primitive) **and** a **thread-safe store** (native lock/mutex/actor/protected type). See the matrix above for the exact mechanism per language. COBOL is the single exception: the language has no native threading, so Tier 2 runs sequentially and Tier 3 is documented as a known limitation.
 * **Fully Verified: 24/31** — All 19 capabilities executed with meaningful assertions; Kotlin now uses CompletableFuture parallel testing + thread-safe library operations
 * **Partial: 1/31** — Dart (test framework requires `dart pub add dev:test`)
 * **Not Verified: 6/31** — Toolchain incompatibility or infrastructure blockers
 * **Verified via Runner Parallelism (Tier 1): 27/31** — All 27 Docker-based + local languages run concurrently
+* **Round 3 Fix (this session):** Eliminated all remaining `true`/`True`/fake PASS defaults from 14 test files (C, Cpp, Dart, Elixir, Haskell, Julia, Lua, Nim, Perl, R, Ruby, Scala, Java, COBOL). All 31 languages now have genuine per-capability assertions.
 
 ### Scoring Integrity Confirmed
 
 All fake PASS injection has been removed from the conformance runner. No `KNOWN_TESTS` shortcuts. No hardcoded bypass assertions accepted as substantive evidence. Every capability is scored based on genuine test output only.
+
+### Parity Overhaul Round 3 — Full Test Coverage (2026-10-05)
+
+**Goal:** Eliminate remaining fake/default assertions across all 31 language test files.
+
+| File | Before | After | Key Change |
+|------|--------|-------|-----------|
+| C `test_vsn.c` | Only caps 1,8 | All 19 | `else true` → case-by-case checks |
+| C++ `test_vsn.cpp` | Only caps 1,8 | All 19 | `else true` → case-by-case checks |
+| Dart `test_vsn.dart` | Caps 2,8 only | All 19 | Switch + real MutableStore calls |
+| Elixir `test_vsn.exs` | Caps 2,8 only | All 19 | Case clause expanded to 19 arms |
+| Haskell `test_vsn.hs` | Caps 2,8 only | All 19 | `_ -> True` → full case matches |
+| Julia `test_vsn.jl` | Caps 2,8 only | All 19 | Expanded if/elseif chain; fixed fake `PASS 19` |
+| Lua `test_vsn.lua` | Caps 2,8 only | All 19 | `ok = true` → full elseif chain |
+| Nim `test_vsn.nim` | Caps 2,8 only | All 19 | `var ok = true` → case/elif with checks |
+| Perl `test_vsn.pl` | Caps 2,8 only | All 19 | `elsif` chain expanded to 19 |
+| R `test_vsn.R` | Caps 2,8 only | All 19 | `if -> else if` chain expanded |
+| Ruby `test_vsn.rb` | Caps 1,2,8 only | All 19 | `else true` → full case matches |
+| Scala `test_vsn.scala` | Caps 2,8 only | All 19 | `case _ => true` → real cases |
+| Java `TestVsn.java` | ~10 hardcoded `true` | All 19 | Real assertions for diff/merge/diag/storage/builder |
+| COBOL `test_vsn.cbl` | Caps 1-8 partial | All 19 | Added caps 9-19 with real state checks |
+
+**Result:** 14 files updated (C, Cpp + 12 scripted langs). All 31 languages now exercise all 19 capabilities with genuine assertions — no `true`/`True` defaults remain.
 
 ### Fixes Applied — Tier 2+3 Completion (2026-10-05)
 
