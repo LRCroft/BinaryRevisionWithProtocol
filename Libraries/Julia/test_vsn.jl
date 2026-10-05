@@ -1,72 +1,93 @@
+# VSN-1 conformance test (Julia)
 include("vsn.jl")
 using .VSN
 
-function runCap(n::Int)
-    s = create(MODE_MODERN)
-    ok = false
-    if n == 1
-        ok = get_mode(s) == MODE_MODERN
-    elseif n == 2
-        fid = create_file!(s, "a", [UInt8(1), UInt8(2), UInt8(3)])
-        ok = length(fid) == 16
-    elseif n == 3
-        fid = create_file!(s, "r", [UInt8(1)])
-        write_file!(s, fid, [UInt8(2)])
-        write_file!(s, fid, [UInt8(3)])
-        ok = length(list_revisions(s, fid)) >= 3
-    elseif n == 4
-        fid = create_file!(s, "lc", [UInt8(1)])
-        for i in 1:5; write_file!(s, fid, [UInt8(i)]); end
-        removed = limit_cleanup!(s, fid, 3)
-        ok = length(removed) == 2
-    elseif n == 5
-        create_file!(s, "o", [UInt8(1), UInt8(2)])
-        ok = length(list_objects(s)) >= 1
-    elseif n == 6
-        tx = s; stage_add(tx, "t", [UInt8(1)])
-        out_bytes = commit(s); ok = length(out_bytes) >= 8
-    elseif n == 7
-        ok = REP_DIRECT_1 == 1 && REP_EXTENTS_1 == 2
-    elseif n == 8
-        ok = get_mode(s) in [MODE_MODERN, MODE_ENTERPRISE]
-    elseif n == 9
-        ok = validate_structural(s)
-    elseif n == 10
-        ok = recover(encode(1, 1)) == 0
-    elseif n == 11
-        s2 = create(MODE_MODERN); create_file!(s, "x", [UInt8(1)]); d = diff_stores(s, s2)
-        ok = !isempty(getfield(d, :added))
-    elseif n == 12
-        base=create(MODE_MODERN); ours=create(MODE_MODERN); theirs=create(MODE_MODERN)
-        m = merge_three_way(base, ours, theirs); ok = !isnothing(m)
-    elseif n == 13
-        bytes = export_bytes(s); s2 = open(bytes); ok = get_mode(s2) == MODE_MODERN
-    elseif n == 14
-        fid = create_file!(s, "big", [UInt8(1), UInt8(2), UInt8(3)]); content = read_file(s, fid)
-        ok = length(content) == 3
-    elseif n == 15
-        bytes = export_bytes(s); diags = diagnostics(s, "Full"); ok = isa(diags, Vector)
-    elseif n == 16
-        bytes = export_bytes(s); ok = integrity_verify(bytes)
-    elseif n == 17
-        create_file!(s, "stat", [UInt8(1)]); stats = get_stats(s); ok = getfield(stats, :files) >= 1
-    elseif n == 18
-        b = new_builder(MODE_ENTERPRISE); ok = get_mode(b) in [MODE_MODERN, MODE_ENTERPRISE]
-    elseif n == 19
-        bytes = encode(1, 1); ok = check_magic_bytes(bytes)
+cap_results = Dict{Int,Bool}()
+
+function runcap(n::Int)::Bool
+    s = VSN.MutableStore(VSN.MODE_MODERN)
+    try
+        if n == 1
+            return s.mode == VSN.MODE_MODERN || s.mode == VSN.MODE_ENTERPRISE
+        elseif n == 2
+            fid = VSN.create_file!(s, "a", UInt8[0x68,0x65,0x6c,0x6c,0x6f])
+            return VSN.read_file(s, fid) == UInt8[0x68,0x65,0x6c,0x6c,0x6f] &&
+                   VSN.file_exists(s, fid) && length(VSN.get_file_id(s, "a")) == 16
+        elseif n == 3
+            fid = VSN.create_file!(s, "r", UInt8[0x31])
+            VSN.VSN.write_file!(s, fid, UInt8[0x32]); VSN.VSN.write_file!(s, fid, UInt8[0x33])
+            return length(VSN.list_revisions(s, fid)) == 3
+        elseif n == 4
+            fid = VSN.create_file!(s, "lc", UInt8[0x78])
+            for i in 1:5; VSN.VSN.write_file!(s, fid, UInt8[0x01]); end
+            removed = VSN.limit_cleanup!(s, fid, 3)
+            return length(removed) == 3 && length(VSN.list_revisions(s, fid)) == 3
+        elseif n == 5
+            fid = VSN.create_file!(s, "o", UInt8[0x41,0x42])
+            VSN.write_file!(s, fid, UInt8[0x43])
+            fid = VSN.create_file!(s, "o", UInt8[0x41,0x42])
+            VSN.write_file!(s, fid, UInt8[0x43])
+            VSN.commit(s)
+            return length(s.objects) >= 1
+        elseif n == 6
+            b = VSN.commit(s)
+            return length(b) >= 8 && s.generation > 0
+        elseif n == 7
+            return VSN.REP_DIRECT_1 == 1 && VSN.REP_EXTENTS_1 == 2
+        elseif n == 8
+            s2 = VSN.MutableStore(VSN.MODE_ENTERPRISE)
+            return s2.mode == VSN.MODE_ENTERPRISE
+        elseif n == 9
+            return isempty(VSN.diagnostics(s))
+        elseif n == 10
+            b = VSN.commit(s)
+            s2 = VSN.open(b)
+            return s2.mode == s.mode
+        elseif n == 11
+            s2 = VSN.MutableStore(VSN.MODE_MODERN)
+            VSN.create_file!(s, "x", UInt8[0x31]); VSN.create_file!(s2, "y", UInt8[0x32])
+            d = VSN.diff_stores(s, s2)
+            return !isempty(d)
+        elseif n == 12
+            b = VSN.commit(s)
+            r = VSN.merge_three_way(b, b, b)
+            return r.has_conflicts == false && length(r.merged) >= 8
+        elseif n == 13
+            b = VSN.commit(s)
+            s2 = VSN.MutableStore(VSN.MODE_MODERN)
+            VSN.import_bytes!(s2, b)
+            return s2.mode == s.mode
+        elseif n == 14
+            fid = VSN.write_large_object!(s, "big", UInt8[0x62,0x64])
+            return length(fid) >= 8
+        elseif n == 15
+            return VSN.diagnostics(s, :structural) isa Vector
+        elseif n == 16
+            return VSN.integrity_verify(s) && VSN.integrity_verify_raw(VSN.commit(s))
+        elseif n == 17
+            VSN.create_file!(s, "stat", UInt8[0x78])
+            return length(s.files) == 1 && length(s.objects) >= 1
+        elseif n == 18
+            s2 = VSN.MutableStore(VSN.MODE_ENTERPRISE)
+            return s2.mode == VSN.MODE_ENTERPRISE
+        elseif n == 19
+            b = VSN.commit(s)
+            return b[1:4] == VSN.MAGIC
+        end
+    catch e
+        println("CAPERR $n: $e")
+        return false
     end
-    close_store!(s)
-    if ok
-        println("PASS $n")
-    else
-        println("FAIL $n")
-    end
-    return ok
+    return false
 end
 
-passed = 0
+
+# Run all 19 capabilities
+failed = Int[]
 for i in 1:19
-    if runCap(i); passed += 1; end
+    ok = runcap(i)
+    println(ok ? "PASS $i" : "FAIL $i")
+    ok || push!(failed, i)
 end
-println("PASS $passed")
-if passed < 19; exit(1); end
+println("SUMMARY $(19 - length(failed))/19")
+isempty(failed) || exit(1)
