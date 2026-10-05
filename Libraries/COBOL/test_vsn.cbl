@@ -29,9 +29,12 @@
           MOVE 0 TO TEST-OK
           EVALUATE N
           WHEN 1 *> C1: Container lifecycle
-              SET STORE-CLOSED TO SPACES
               MOVE MODE-MODERN TO S-MODE
-              IF STORE-CLOSED = SPACES ADD 1 TO PASSED-CNT ELSE ADD 1 TO FAILED-CNT
+              IF STORE-CLOSED = SPACES AND S-MODE > 0
+                  ADD 1 TO PASSED-CNT
+              ELSE
+                  ADD 1 TO FAILED-CNT
+              END-IF
               DISPLAY "PASS " N " cap1"
           WHEN 2 *> C2: File API
               ADD 1 TO FILE-CNT, REV-CNT, OBJ-CNT
@@ -128,3 +131,5 @@
               END-IF
               DISPLAY "PASS " N " cap19"
           END-EVALUATE
+           EXIT.
+       END PROGRAM TEST-VSN.
