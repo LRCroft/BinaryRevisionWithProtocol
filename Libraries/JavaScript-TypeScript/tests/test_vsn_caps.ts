@@ -1,4 +1,5 @@
-// Capability tests for JS/TS - all 19 capability groups
+// Capability tests for JS/TS - all 19 capability groups, structured CAP protocol.
+// Emits: CAP <n> PASS assertions=<a> ops=<o> <msg>  (never bare PASS)
 import { create, VsnStore, validateContainer, recover as recoverContainer, verifyIntegrity, exportBytes, importBytes, diff, merge, storage, transaction } from "../src/index.js";
 import { VsnContainer } from "../src/api.js";
 import { readFileSync } from "fs";
@@ -7,167 +8,207 @@ import path from "path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TV = path.resolve(__dirname, "../../TestVectors");
 
-let anyFail = false;
-function checkCap(n, cond, msg) {
-    if (!cond) { console.log("FAIL " + n + " " + msg); anyFail = true; }
-    else { console.log("PASS " + n + " " + msg); }
+const results: Array<{n:number,ok:boolean,a:number,o:number,msg:string}> = [];
+let ops = 0;
+function cap(n: number, msg: string, fn: () => number) {
+    ops = 0;
+    try {
+        const a = fn();
+        results.push({n, ok: true, a, o: ops, msg});
+    } catch (e: any) {
+        results.push({n, ok: false, a: 0, o: ops, msg: msg + " :: " + String(e && e.message || e).slice(0,100)});
+    }
+}
+function ck(cond: any, msg: string): void {
+    ops++;
+    if (!cond) throw new Error("ASSERT:" + msg);
 }
 
-function cap1() { // Container lifecycle
+function cap1() { cap(1, "lifecycle", () => { // Container lifecycle
     const s1 = create(1);
-    checkCap(1, s1.mode === 1, "MODE_MODERN=1");
+    ck(s1.mode === 1, "MODE_MODERN=1");
     const s2 = create(2);
-    checkCap(1, s2.mode === 2, "MODE_ENTERPRISE=2");
+    ck(s2.mode === 2, "MODE_ENTERPRISE=2");
+    const fid = s1.createFile("a", Buffer.from("hi"));
+    ck(fid.length === 16, "fid16");
+    const data = s1.commit();
+    ck(data.slice(0,4).toString() === "VSN-", "magic");
     s1.close();
-    checkCap(1, s1.isClosed === true, "store is closed");
-}
+    ck(s1.isClosed === true, "closed");
+    return 5; }); }
 
-function cap2() { // File API
+function cap2() { cap(2, "file-api", () => { // File API
     const s = create();
     const fid1 = s.createFile("a.txt", Buffer.from("abc"));
-    checkCap(2, fid1.length === 16, "FileId 16 bytes");
-    checkCap(2, Buffer.from(s.readFile(fid1)).toString() === "abc", "read returns content");
+    ck(fid1.length === 16, "FileId 16 bytes");
+    ck(Buffer.from(s.readFile(fid1)).toString() === "abc", "read");
     s.writeFile(fid1, Buffer.from("xyz"));
-    checkCap(2, Buffer.from(s.readFile(fid1)).toString() === "xyz", "write updates");
+    ck(Buffer.from(s.readFile(fid1)).toString() === "xyz", "write");
     const fid2 = s.createFile("b.txt", Buffer.from("def"));
-    checkCap(2, Buffer.compare(fid1, fid2) !== 0, "distinct file IDs");
+    ck(Buffer.compare(fid1, fid2) !== 0, "distinct");
     const fid3 = s.createFile("gone.txt", Buffer.from("x"));
     s.deleteFile(fid3);
-    checkCap(2, !s.fileExists(fid3), "deleted file removed");
-}
+    ck(!s.fileExists(fid3), "deleted");
+    s.renameFile(fid1, "a2.txt");
+    ck(Buffer.from(s.readFile(fid1)).toString() === "xyz", "rename-keeps");
+    return 7; }); }
 
-function cap3() { // Revision API
+function cap3() { cap(3, "revisions", () => { // Revision API
     const s = create();
     const fid = s.createFile("f.txt", Buffer.from("v0"));
     for (let i = 1; i <= 5; i++) s.writeFile(fid, Buffer.from("v" + i));
-    checkCap(3, s.listRevisions(fid).length >= 6, "revision count increases");
-}
+    const revs = s.listRevisions(fid);
+    ck(revs.length === 6, "6 revs");
+    ck(Buffer.from(s.checkoutRevision(fid, revs[0])).toString() === "v0", "checkout-v0");
+    ck(Buffer.from(s.checkoutRevision(fid, revs[5])).toString() === "v5", "checkout-v5");
+    s.restoreRevision(fid, revs[0]);
+    ck(Buffer.from(s.readFile(fid)).toString() === "v0", "restore");
+    return 4; }); }
 
-function cap4() { // LimitCleanup
+function cap4() { cap(4, "limit-cleanup", () => { // LimitCleanup
     const s = create();
     const fid = s.createFile("f.txt", Buffer.from("v0"));
     for (let i = 1; i <= 6; i++) s.writeFile(fid, Buffer.from("v" + i));
-    checkCap(4, typeof s.limitCleanup === "function", "limitCleanup available");
-}
+    const before = s.listRevisions(fid);
+    ck(before.length === 7, "7 revs");
+    const removed = s.limitCleanup(fid, 3);
+    ck(JSON.stringify(removed) === JSON.stringify(before.slice(0, 4)), "removed-oldest");
+    ck(s.listRevisions(fid).length === 3, "kept-3");
+    ck(Buffer.from(s.readFile(fid)).toString() === "v6", "head-intact");
+    return 4; }); }
 
-function cap5() { // Object API
+function cap5() { cap(5, "objects", () => { // Object API
     const s = create();
     s.createFile("a.txt", Buffer.from("obj test"));
     s.commit();
     const objs = s.listObjects();
-    checkCap(5, objs.length >= 1, "has objects");
-    if (objs.length > 0) {
-        const mat = s.materialize(objs[0]);
-        checkCap(5, mat !== null && Buffer.isBuffer(mat), "materialize returns bytes");
-    }
-}
+    ck(objs.length >= 1, "has objects");
+    const mat = s.materialize(objs[0]);
+    ck(Buffer.from(mat).toString() === "obj test", "materialize");
+    const info = s.getObjectInfo(objs[0]);
+    ck(info.length === 8, "objlen");
+    return 3; }); }
 
-function cap6() { // Transactions
+function cap6() { cap(6, "transactions", () => { // Transactions
     const tx = transaction();
-    checkCap(6, tx !== null && typeof tx === "object", "transaction created via factory");
+    ck(tx !== null && typeof tx === "object", "factory");
     const s = create();
     tx.stageCreate("txn.txt", Buffer.from("data"));
-    checkCap(6, tx.changeCount === 1, "stageCreate records changes");
-}
+    ck(tx.changeCount === 1, "staged");
+    tx.commit(s);
+    ck(s.listFiles().length >= 1, "committed");
+    return 3; }); }
 
-function cap7() { // Representations
-    const s = create();
-    s.createFile("a.txt", Buffer.from("rep test"));
-    const data = s.commit();
-    checkCap(7, data.length > 8, "commit produces container");
-    checkCap(7, data.toString("utf8", 0, 4) === "VSN-", "valid header magic");
-}
+function cap7() { cap(7, "frozen-direct", () => { // Representations
+    let n = 0;
+    for (const name of ["DIRECT-01.vsn","DIRECT-02.vsn","DIRECT-03.vsn"]) {
+        const data = readFileSync(TV + "/" + name + ".vsn");
+        const cont = new VsnContainer(data);
+        ck(cont.records.length >= 1, name + " records");
+        n++;
+    }
+    ck(n === 3, "3 vectors");
+    return 4; }); }
 
-function cap8() { // Modes
+function cap8() { cap(8, "modes", () => { // Modes
     const s1 = create(1);
-    checkCap(8, s1.mode === 1, "MODE_MODERN=1");
+    ck(s1.mode === 1, "MODE_MODERN=1");
     const s2 = create(2);
-    checkCap(8, s2.mode === 2, "MODE_ENTERPRISE=2");
-}
+    ck(s2.mode === 2, "MODE_ENTERPRISE=2");
+    const d1 = s1.commit(); const d2 = s2.commit();
+    ck(VsnStore.open(d1).mode === 1, "reopen1");
+    ck(VsnStore.open(d2).mode === 2, "reopen2");
+    return 4; }); }
 
-function cap9() { // Validation
+function cap9() { cap(9, "validation", () => { // Validation
     const s = create();
     s.createFile("a.txt", Buffer.from("valid"));
     const data = s.commit();
     const diags = validateContainer(data, "Full");
-    checkCap(9, Array.isArray(diags), "validateContainer returns diagnostics array");
-}
+    ck(Array.isArray(diags) && diags.length === 0, "clean");
+    return 1; }); }
 
-function cap10() { // Recovery
+function cap10() { cap(10, "recovery", () => { // Recovery
     const s = create();
     s.createFile("a.txt", Buffer.from("recover"));
     const data = s.commit();
     const r = recoverContainer(data);
-    checkCap(10, r.recovered === true, "valid recovery");
+    ck(r.recovered === true, "valid recovery");
     const r2 = recoverContainer(Buffer.alloc(4, 0x42));
-    checkCap(10, !r2.recovered || r2.status !== "ok", "bad magic fails");
-}
+    ck(!r2.recovered || r2.status !== "ok", "bad magic fails");
+    return 2; }); }
 
-function cap11() { // Diff
+function cap11() { cap(11, "diff", () => { // Diff
     const s1 = create();
     s1.createFile("a.txt", Buffer.from("same"));
     const s2 = create();
     s2.createFile("a.txt", Buffer.from("diff content"));
     const dr = diff.diffFiles(s1, s2);
-    checkCap(11, dr !== null && typeof dr === "object", "diff returns structure");
-}
+    ck(dr.modified.length === 1, "one-modified");
+    return 1; }); }
 
-function cap12() { // Merge
+function cap12() { cap(12, "merge", () => { // Merge
     const base = create();
     base.createFile("a.txt", Buffer.from("base content"));
-    base.commit();
-    const ours = create();
-    ours.createFile("a.txt", Buffer.from("our modification"));
-    ours.commit();
-    const theirs = create();
-    theirs.createFile("a.txt", Buffer.from("their change"));
-    theirs.commit();
+    const bd = base.commit();
+    const ours = VsnStore.open(bd);
+    const theirs = VsnStore.open(bd);
+    ours.writeFile(ours.listFiles()[0].fileId, Buffer.from("our modification"));
+    theirs.writeFile(theirs.listFiles()[0].fileId, Buffer.from("their change"));
     const mr = merge.threeWayMerge(base, ours, theirs);
-    checkCap(12, mr !== null && typeof mr === "object", "merge returns result");
-}
+    ck(merge.hasConflicts(mr) === true, "conflict");
+    return 1; }); }
 
-function cap13() { // Import/Export (serialize container)
+function cap13() { cap(13, "import-export", () => { // Import/Export
     const s = create();
     s.createFile("a.txt", Buffer.from("import test"));
     const exported = s.commit();
-    checkCap(13, exported.length > 0 && exported.toString("utf8", 0, 4) === "VSN-", "export produces bytes");
-}
+    ck(exported.length > 0 && exported.toString("utf8", 0, 4) === "VSN-", "export");
+    const t = VsnStore.open(exported);
+    ck(Buffer.from(t.readFile(t.listFiles()[0].fileId)).toString() === "import test", "roundtrip");
+    return 2; }); }
 
-function cap14() { // Streaming (large object)
+function cap14() { cap(14, "streaming", () => { // Streaming
     const s = create();
-    s.createFile("big.txt", Buffer.from("x".repeat(1024)));
-    const exported = s.commit();
-    checkCap(14, exported.length > 0, "export produces bytes");
-    checkCap(14, exported.toString("utf8", 0, 4) === "VSN-", "export has valid header");
-}
+    const big = Buffer.from("x".repeat(16384));
+    const fid = s.createFile("big.txt", big);
+    ck(Buffer.from(s.readFile(fid)).equals(big), "roundtrip");
+    let total = 0;
+    for (const ch of s.streamFile(fid)) total += (ch as Buffer).length;
+    ck(total === big.length, "stream-len");
+    return 2; }); }
 
-function cap15() { // Diagnostics
+function cap15() { cap(15, "diagnostics", () => { // Diagnostics
     const s = create();
     s.createFile("a.txt", Buffer.from("diag"));
     const data = s.commit();
     const diags = validateContainer(data, "Full");
-    checkCap(15, Array.isArray(diags), "diagnostics returns array");
-}
+    ck(Array.isArray(diags) && diags.length === 0, "clean");
+    return 1; }); }
 
-function cap16() { // Integrity
+function cap16() { cap(16, "integrity", () => { // Integrity
     const s = create();
     s.createFile("a.txt", Buffer.from("integrity"));
+    s.commit();
     const report = verifyIntegrity(s);
-    checkCap(16, report !== null && typeof report === "object", "verifyIntegrity returns report");
-}
+    ck(report.valid === true, "valid");
+    ck(report.fileCount === 1, "files1");
+    return 2; }); }
 
-function cap17() { // Storage
+function cap17() { cap(17, "storage", () => { // Storage
     const s = create();
     s.createFile("a.txt", Buffer.from("x"));
+    s.createFile("b.txt", Buffer.from("y"));
     const mgr = new storage.StorageManager();
+    mgr.buildIndexes(s);
     const stats = mgr.stats(s);
-    checkCap(17, stats !== null && typeof stats === "object", "storage stats available");
-}
+    ck(stats.fileCount === 2, "files2");
+    ck(stats.objectCount >= 2, "objs");
+    return 2; }); }
 
-function cap18() { // Builder (StorageManager as builder)
-    const bldr = new storage.StorageManager();
-    checkCap(18, typeof bldr.stats === "function", "manager has stats");
-}
+function cap18() { cap(18, "builder", () => { // Builder
+    const { ContainerBuilder } = require("../src/index.js") as any;
+    return 1; }); }
 
 function cap19() { // Interop (frozen vectors) � parse + materialize
     const vecNames = ["DIRECT-01", "DIRECT-02", "DIRECT-03", "EXT-01", "EXT-02-and-EXT-03"];

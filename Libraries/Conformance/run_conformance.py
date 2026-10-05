@@ -159,15 +159,34 @@ def verify_frozen_vectors():
 
 
 def parse_caps(output):
+    """Strict structured CAP protocol.
+
+    Accepted line: CAP <n> <PASS|FAIL> assertions=<a> ops=<o> [msg]
+    Legacy bare 'PASS n' lines are recorded as WEAK (untrusted) and can
+    never yield VERIFIED. Returns (caps, weak) where weak[n] is True when
+    the evidence was legacy-only.
+    """
     caps = {}
+    weak = {}
     for line in output.splitlines():
         line = line.strip()
-        m = re.match(r'^(?:test_vsn_test\.go:\d+:\s+)?(PASS|FAIL)\s+(\d+)(?::|\s|$)', line)
+        m = re.match(r'^CAP\s+(\d+)\s+(PASS|FAIL)\s+assertions=(\d+)\s+ops=(\d+)\b', line, re.IGNORECASE)
         if m:
-            n = int(m.group(2))
+            n = int(m.group(1))
             if 1 <= n <= 19:
-                caps[n] = "PASS" if m.group(1) == "PASS" else "FAIL"
-    return caps
+                if n in caps:
+                    caps[n] = "DUP"
+                else:
+                    caps[n] = "PASS" if m.group(2).upper() == "PASS" else "FAIL"
+                    weak[n] = False
+            continue
+        m2 = re.match(r'^(?:test_vsn_test\.go:\d+:\s+)?(PASS|FAIL)\s+(\d+)(?::|\s|$)', line)
+        if m2:
+            n = int(m2.group(2))
+            if 1 <= n <= 19 and n not in caps:
+                caps[n] = "PASS" if m2.group(1) == "PASS" else "FAIL"
+                weak[n] = True
+    return caps, weak
 
 
 def run_language(name, timeout=300):
@@ -184,13 +203,24 @@ def run_language(name, timeout=300):
 
 
 def classify(name, rc, output):
-    caps = parse_caps(output)
-    passed = [n for n, v in caps.items() if v == "PASS"]
-    failed = [n for n, v in caps.items() if v == "FAIL"]
-    missing = [n for n in range(1, 20) if n not in passed and n not in failed]
-    if rc != 0:
-        status = "NOT_VERIFIED"
-    elif len(passed) == 19 and len(failed) == 0:
+    caps, weak = parse_caps(output)
+    passed = [n for n, v in caps.items() if v == "PASS" and not weak.get(n)]
+    failed = [n for n, v in caps.items() if v == "FAIL" or v == "DUP"]
+    weak_pass = [n for n, v in caps.items() if v == "PASS" and weak.get(n)]
+    missing = [n for n in range(1, 20) if n not in caps]
+    weak_flag = bool(weak_pass) or any(v == "DUP" for v in caps.values())
+    if rc != 0 or failed or missing or weak_flag:
+        if rc == 0 and not failed and not missing and weak_flag:
+            status = "PARTIAL"  # executed but untrusted legacy markers
+        elif [n for n in failed]:
+            status = "FAIL" if rc == 0 else "NOT_VERIFIED"
+            if rc != 0:
+                status = "NOT_VERIFIED"
+        elif passed or weak_pass:
+            status = "PARTIAL"
+        else:
+            status = "NOT_VERIFIED"
+    elif len(passed) == 19:
         status = "VERIFIED"
     elif passed:
         status = "PARTIAL"
