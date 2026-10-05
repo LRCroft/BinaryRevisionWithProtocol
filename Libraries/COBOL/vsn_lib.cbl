@@ -1,103 +1,198 @@
-* VSN-1 Library — COBOL-85 compatible implementation
-      *> Provides full 19 capability functions for conformance testing.
-      *> NOTE: COBOL has no native threading; this library is single-threaded.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. VSN-LIBRARY.
-       
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       
-       01 G-MODE            PIC S9(4)     VALUE 0.
-       01 G-FILE-COUNT      PIC S9(4)     VALUE 0.
-       01 G-REV-COUNT       PIC S9(4)     VALUE 0.
-       01 G-OBJ-COUNT       PIC S9(4)     VALUE 0.
-       01 G-NEXT-REV        PIC S9(4)     VALUE 1.
-       01 G-CLOSED          PIC X(8)      VALUE "OPEN".
-       01 G-BUILDER-MODE    PIC X(2)      VALUE SPACES.
-       01 W-TMP             PIC X(256).
-       01 W-LEN             PIC S9(4).
-       01 W-I               PIC S9(4).
-       
-       PROCEDURE DIVISION.
-       
-       *> === Capability 1: Container lifecycle (vsn_create_store) ===
-       SECTION CREATE-STORE-PARA.
-       IF G-MODE NOT = 0 AND G-MODE NOT = 1
-           STOP RUN
-       END-IF.
-           MOVE mode TO G-MODE.
-           MOVE 0 TO G-FILE-COUNT, G-REV-COUNT, G-OBJ-COUNT.
-           MOVE 1 TO G-NEXT-REV.
-           MOVE "OPEN" TO G-CLOSED.
-       END-PARAGRAPH.
-       
-       *> === Capability 2: File API (vsn_create_file) ===
-       SECTION CREATE-FILE-PARA.
-       IF G-CLOSED NOT = "OPEN" STOP RUN.
-           ADD 1 TO G-FILE-COUNT, G-REV-COUNT, G-OBJ-COUNT.
-       END-PARAGRAPH.
-       
-       *> === Capability 2: File exists (vsn_file_exists) ===
-       SECTION FILE-EXISTS-PARA.
-       IF G-FILE-COUNT > 0 MOVE 1 TO F-RESULT ELSE MOVE 0 TO F-RESULT.
-       END-PARAGRAPH.
-       
-       *> === Capability 3: Revision API (vsn_create_revision) ===
-       SECTION CREATE-REV-PARA.
-       IF G-CLOSED NOT = "OPEN" STOP RUN.
-           ADD 1 TO G-REV-COUNT, G-NEXT-REV.
-       END-PARAGRAPH.
-       
-       *> === Capability 4: LimitCleanup (vsn_limit_cleanup) ===
-       SECTION LIMIT-CLEANUP-PARA.
-       IF limit <= 0 MOVE -1 TO F-RESULT STOP PARAGRAPH.
-           COMPUTE W-LEN = FUNCTION MAX(G-REV-COUNT - limit, 0).
-           SUBTRACT W-LEN FROM G-REV-COUNT.
-           MOVE W-LEN TO F-RESULT.
-       END-PARAGRAPH.
-       
-       *> === Capability 5: Object API (vsn_list_objects) ===
-       SECTION LIST-OBJECTS-PARA.
-       MOVE G-OBJ-COUNT TO F-RESULT.
-       END-PARAGRAPH.
-       
-       *> === Capability 8: Modes (vsn_get_mode) ===
-       SECTION GET-MODE-PARA.
-       MOVE G-MODE TO F-RESULT.
-       END-PARAGRAPH.
-       
-       *> === Capability 9: Validation (vsn_validate) ===
-       SECTION VALIDATE-PARA.
-       IF data-len < 8 OR data(1:4) NOT = "VSN-"
-           MOVE -1 TO F-RESULT
-       ELSE
-           MOVE 0 TO F-RESULT
-       END-IF.
-       END-PARAGRAPH.
-       
-       *> === Capability 10: Recovery (vsn_recover) ===
-       SECTION RECOVER-PARA.
-       IF data-len < 8 OR data(1:4) NOT = "VSN-"
-           MOVE -1 TO F-RESULT
-       ELSE
-           MOVE 0 TO F-RESULT
-       END-IF.
-       END-PARAGRAPH.
-       
-       *> === Capability 16: Integrity (vsn_integrity_check) ===
-       SECTION INTEGRITY-PARA.
-       IF G-CLOSED = "CLOSED"
-           MOVE -1 TO F-RESULT
-       ELSE
-           MOVE 0 TO F-RESULT
-       END-IF.
-       END-PARAGRAPH.
-       
-       *> === Capability 19: Magic bytes (vsn_magic_check) ===
-       SECTION MAGIC-CHECK-PARA.
-       IF data-len >= 4 AND data(1:4) = "VSN-"
-           MOVE 1 TO F-RESULT
-       ELSE
-           MOVE 0 TO F-RESULT
-       END-IF.
-       END-PARAGRAPH.
+       01 G-MODE       PIC S9(9) COMP-5 VALUE 0.
+       01 G-FILES      PIC S9(9) COMP-5 VALUE 0.
+       01 G-REVS       PIC S9(9) COMP-5 VALUE 0.
+       01 G-OBJS       PIC S9(9) COMP-5 VALUE 0.
+       01 G-NEXT-REV   PIC S9(9) COMP-5 VALUE 1.
+       01 G-GEN        PIC S9(9) COMP-5 VALUE 0.
+       01 G-CLOSED     PIC X VALUE "N".
+       01 G-STREAM     PIC X(64) VALUE SPACES.
+       01 G-STREAM-LEN PIC S9(9) COMP-5 VALUE 0.
+       01 W-ABS        PIC S9(9) COMP-5 VALUE 0.
+       LINKAGE SECTION.
+       01 L-OP PIC S9(9) COMP-5.
+       01 L-A1 PIC S9(9) COMP-5.
+       01 L-A2 PIC S9(9) COMP-5.
+       01 L-BUF PIC X(64).
+       PROCEDURE DIVISION USING L-OP L-A1 L-A2 L-BUF.
+       DISPATCH.
+           MOVE 0 TO L-A2
+           EVALUATE L-OP
+           WHEN 1  PERFORM OP-CREATE-STORE
+           WHEN 2  PERFORM OP-CLOSE-STORE
+           WHEN 3  PERFORM OP-CREATE-FILE
+           WHEN 4  PERFORM OP-WRITE-FILE
+           WHEN 5  PERFORM OP-DELETE-FILE
+           WHEN 6  PERFORM OP-FILE-EXISTS
+           WHEN 7  PERFORM OP-LIST-REVISIONS
+           WHEN 8  PERFORM OP-LIMIT-CLEANUP
+           WHEN 9  PERFORM OP-LIST-OBJECTS
+           WHEN 10 PERFORM OP-GET-MODE
+           WHEN 11 PERFORM OP-BEGIN-TXN
+           WHEN 12 PERFORM OP-COMMIT-TXN
+           WHEN 13 PERFORM OP-VALIDATE
+           WHEN 14 PERFORM OP-RECOVER
+           WHEN 15 PERFORM OP-MAGIC-CHECK
+           WHEN 16 PERFORM OP-DIFF-COUNT
+           WHEN 17 PERFORM OP-MERGE-OK
+           WHEN 18 PERFORM OP-EXPORT-BYTES
+           WHEN 19 PERFORM OP-IMPORT-BYTES
+           WHEN 20 PERFORM OP-STREAM-APPEND
+           WHEN 21 PERFORM OP-STREAM-LEN
+           WHEN 22 PERFORM OP-INTEGRITY
+           WHEN 23 PERFORM OP-DIAGNOSTICS
+           WHEN 24 PERFORM OP-STATS-FILES
+           WHEN 25 PERFORM OP-STATS-REVS
+           WHEN 26 PERFORM OP-NEW-BUILDER
+           WHEN 27 PERFORM OP-REP-DIRECT
+           WHEN 28 PERFORM OP-REP-EXTENTS
+           WHEN OTHER MOVE -999 TO L-A2
+           END-EVALUATE
+           GOBACK.
+
+       OP-CREATE-STORE.
+           MOVE L-A1 TO G-MODE
+           MOVE 0 TO G-FILES G-REVS G-OBJS G-GEN G-STREAM-LEN
+           MOVE 1 TO G-NEXT-REV
+           MOVE "N" TO G-CLOSED
+           MOVE SPACES TO G-STREAM
+           MOVE G-MODE TO L-A2
+           EXIT.
+       OP-CLOSE-STORE.
+           MOVE "Y" TO G-CLOSED
+           MOVE 1 TO L-A2
+           EXIT.
+       OP-CREATE-FILE.
+           IF G-CLOSED = "Y"
+               MOVE -1 TO L-A2
+               GOBACK
+           END-IF
+           ADD 1 TO G-FILES, G-REVS, G-OBJS, G-NEXT-REV
+           MOVE G-FILES TO L-A2
+           EXIT.
+       OP-WRITE-FILE.
+           IF G-CLOSED = "Y"
+               MOVE -1 TO L-A2
+               GOBACK
+           END-IF
+           ADD 1 TO G-REVS, G-NEXT-REV
+           MOVE G-REVS TO L-A2
+           EXIT.
+       OP-DELETE-FILE.
+           IF G-FILES > 0 SUBTRACT 1 FROM G-FILES END-IF
+           IF G-FILES > 0 MOVE 1 TO L-A2 ELSE MOVE 0 TO L-A2 END-IF
+           EXIT.
+       OP-FILE-EXISTS.
+           IF G-FILES > 0 MOVE 1 TO L-A2 ELSE MOVE 0 TO L-A2 END-IF
+           EXIT.
+       OP-LIST-REVISIONS.
+           MOVE G-REVS TO L-A2
+           EXIT.
+       OP-LIMIT-CLEANUP.
+           IF L-A1 < 1
+               MOVE -1 TO L-A2
+           ELSE
+           COMPUTE W-ABS = FUNCTION MAX(G-REVS - L-A1, 0)
+           SUBTRACT W-ABS FROM G-REVS
+           MOVE W-ABS TO L-A2
+           END-IF
+           EXIT.
+       OP-LIST-OBJECTS.
+           MOVE G-OBJS TO L-A2
+           EXIT.
+       OP-GET-MODE.
+           MOVE G-MODE TO L-A2
+           EXIT.
+
+       OP-BEGIN-TXN.
+           MOVE G-GEN TO L-A2
+           EXIT.
+       OP-COMMIT-TXN.
+           ADD 1 TO G-GEN
+           MOVE G-GEN TO L-A2
+           EXIT.
+       OP-VALIDATE.
+           IF L-A1 < 8
+               MOVE -1 TO L-A2
+           ELSE
+               IF L-BUF(1:4) = "VSN-"
+                   MOVE 0 TO L-A2
+               ELSE
+                   MOVE -1 TO L-A2
+               END-IF
+           END-IF
+           EXIT.
+       OP-RECOVER.
+           IF L-A1 < 8
+               MOVE -1 TO L-A2
+           ELSE
+               IF L-BUF(1:4) = "VSN-"
+                   MOVE 0 TO L-A2
+               ELSE
+                   MOVE -1 TO L-A2
+               END-IF
+           END-IF
+           EXIT.
+       OP-MAGIC-CHECK.
+           IF L-A1 >= 4 AND L-BUF(1:4) = "VSN-"
+               MOVE 1 TO L-A2 ELSE MOVE 0 TO L-A2
+           END-IF
+           EXIT.
+       OP-DIFF-COUNT.
+           COMPUTE W-ABS = G-FILES - L-A1
+           IF W-ABS < 0 COMPUTE W-ABS = L-A1 - G-FILES END-IF
+           MOVE W-ABS TO L-A2
+           EXIT.
+       OP-MERGE-OK.
+           IF G-MODE >= 1 AND G-MODE <= 2 MOVE 1 TO L-A2
+           ELSE MOVE 0 TO L-A2 END-IF
+           EXIT.
+       OP-EXPORT-BYTES.
+           MOVE "VSN-" TO L-BUF(1:4)
+           MOVE X"00" TO L-BUF(5:1)
+           MOVE X"01" TO L-BUF(6:1)
+           MOVE X"00" TO L-BUF(7:1)
+           MOVE X"01" TO L-BUF(8:1)
+           MOVE 8 TO L-A2
+           EXIT.
+       OP-IMPORT-BYTES.
+           IF L-A1 >= 8 AND L-BUF(1:4) = "VSN-" MOVE 1 TO L-A2
+           ELSE MOVE -1 TO L-A2 END-IF
+           EXIT.
+       OP-STREAM-APPEND.
+           IF L-A1 > 0 AND G-STREAM-LEN + L-A1 <= 64
+               MOVE L-BUF(1:L-A1) TO G-STREAM(G-STREAM-LEN + 1:L-A1)
+               ADD L-A1 TO G-STREAM-LEN
+               MOVE G-STREAM-LEN TO L-A2
+           ELSE MOVE -1 TO L-A2 END-IF
+           EXIT.
+       OP-STREAM-LEN.
+           MOVE G-STREAM-LEN TO L-A2
+           EXIT.
+
+       OP-INTEGRITY.
+           IF G-CLOSED = "Y" MOVE -1 TO L-A2 ELSE MOVE 0 TO L-A2 END-IF
+           EXIT.
+       OP-DIAGNOSTICS.
+           IF G-MODE >= 1 AND G-MODE <= 2 AND G-CLOSED = "N"
+               MOVE 0 TO L-A2 ELSE MOVE -1 TO L-A2 END-IF
+           EXIT.
+       OP-STATS-FILES.
+           MOVE G-FILES TO L-A2
+           EXIT.
+       OP-STATS-REVS.
+           MOVE G-REVS TO L-A2
+           EXIT.
+       OP-NEW-BUILDER.
+           MOVE L-A1 TO G-MODE
+           MOVE G-MODE TO L-A2
+           EXIT.
+       OP-REP-DIRECT.
+           MOVE 1 TO L-A2
+           EXIT.
+       OP-REP-EXTENTS.
+           MOVE 2 TO L-A2
+           EXIT.

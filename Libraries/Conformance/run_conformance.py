@@ -84,7 +84,7 @@ LANG_SPECS["Ada"] = LangSpec("Ada", "vsn-deb:latest", "Ada",
 LANG_SPECS["C"] = LangSpec("C", "vsn-deb:latest", "C",
     "gcc -o /tmp/t test_vsn.c vsn.c -lpthread && /tmp/t")
 LANG_SPECS["COBOL"] = LangSpec("COBOL", "vsn-deb:latest", "COBOL",
-    "cobc -x -o /tmp/t test_vsn.cbl && /tmp/t")
+    "cobc -x -o /tmp/t test_vsn.cbl vsn_lib.cbl && /tmp/t")
 LANG_SPECS["CSharp"] = LangSpec("CSharp", "mcr.microsoft.com/dotnet/sdk:10.0", "CSharp",
     "dotnet run --project VsnTest")
 LANG_SPECS["Cpp"] = LangSpec("Cpp", "gcc:13", "Cpp",
