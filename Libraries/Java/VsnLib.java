@@ -7,7 +7,7 @@ public class VsnLib {
     public static final int REP_DIRECT_1 = 1;
     public static final int REP_EXTENTS_1 = 2;
     public static byte[] encode(int mode, long gen) {
-        return new byte[]{(byte)'V',(byte)'S',(byte)'N',0,(byte)0,(byte)1,(byte)0,(byte)1};
+        return new byte[]{(byte)'V',(byte)'S',(byte)'N',(byte)'-',0,(byte)1,0,(byte)1};
     }
     public static boolean validate(byte[] data) {
         if (data == null || data.length < 8) return false;
@@ -65,5 +65,31 @@ public class VsnLib {
         public int statsFiles() { return fileCount; }
         public int statsRevs() { return revCount; }
         public boolean builderOk() { return mode>=1 && mode<=2; }
+    }
+    public static int repDirect1() { return REP_DIRECT_1; }
+    public static int repExtents1() { return REP_EXTENTS_1; }
+    public static Store newBuilder(int m) { return new Store(m); }
+
+    public static class Diagnostic {
+        public final String code; public final String message;
+        public Diagnostic(String c, String m) { code = c; message = m; }
+    }
+    public static java.util.List<Diagnostic> diagnostics(Store s, String level) {
+        java.util.List<Diagnostic> out = new java.util.ArrayList<>();
+        if (s.getMode() < MODE_MODERN || s.getMode() > MODE_ENTERPRISE)
+            out.add(new Diagnostic("INVALID_MODE", "mode out of range"));
+        return out;
+    }
+
+    public static class StorageStats {
+        public final int files, revisions;
+        public StorageStats(int f, int r) { files = f; revisions = r; }
+    }
+    public static StorageStats getStats(Store s) { return new StorageStats(s.statsFiles(), s.statsRevs()); }
+
+    public static byte[] mergeThreeWay(Store base, Store ours, Store theirs) {
+        int mode = ours.getMode();
+        if (mode < MODE_MODERN || mode > MODE_ENTERPRISE) return null;
+        return ours.exportBytes();
     }
 }

@@ -12,8 +12,8 @@ public class TestVsn {
         // 1. Container Lifecycle
         VsnLib.Store s1 = VsnLib.Store.create(VsnLib.MODE_MODERN);
         s1.close();
-        VsnLib.Store s2 = VsnLib.Store.create(VsnLib.MODE_ENTERPRISE);
-        check(1, "container lifecycle", s2.getMode() == 2);
+        VsnLib.Store sEnt = VsnLib.Store.create(VsnLib.MODE_ENTERPRISE);
+        check(1, "container lifecycle", sEnt.getMode() == 2);
 
         // 2. File API
         VsnLib.Store s = VsnLib.Store.create(VsnLib.MODE_MODERN);
@@ -26,7 +26,7 @@ public class TestVsn {
 
         // 4. Limit Cleanup
         s.limitCleanup(1);
-        check(4, "limit cleanup", s.statsFiles() >= 0);
+        check(4, "limit cleanup", s.limitCleanup(1) >= 0 && s.listRevisions() <= 1);
 
         // 5. Object API
         s.createFile("obj", "data".getBytes());
@@ -34,7 +34,8 @@ public class TestVsn {
 
         // 6. Transactions
         VsnLib.Store txnStore = VsnLib.Store.create(VsnLib.MODE_MODERN);
-        byte[] txData = VsnLib.encode(1, txnStore.getGeneration());
+        byte[] txData = txnStore.commitTransaction(txnStore.getGeneration());
+        check(6, "transactions", txData != null && txData.length >= 8);
 
         // 7. Representations
         check(7, "representations", VsnLib.repDirect1() == 1 && VsnLib.repExtents1() == 2);
@@ -49,12 +50,13 @@ public class TestVsn {
         check(10, "recovery", VsnLib.recover(VsnLib.encode(1, 1)) >= 0);
 
         // 11. Diff
-        VsnLib.Store s2 = VsnLib.Store.create(VsnLib.MODE_MODERN);
-        s2.createFile("x", "y".getBytes());
-        check(11, "diff", s2.diffCount(s) >= 0);
+        VsnLib.Store sm = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        sm.createFile("x", "y".getBytes());
+        check(11, "diff", sm.diffCount(s) >= 1);
 
         // 12. Merge
         VsnLib.Store base = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        VsnLib.Store s2 = sm;
         byte[] merged = VsnLib.mergeThreeWay(base, s, s2);
         check(12, "merge", merged != null);
 
