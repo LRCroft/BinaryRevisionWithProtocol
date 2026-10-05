@@ -30,6 +30,7 @@ public class VsnLib {
         public static Store create(int m) { return new Store(m); }
         public void close() { lock.lock(); try { closed=true; } finally { lock.unlock(); } }
         public int getMode() { return mode; }
+        public long getGeneration() { return generation; }
         public String createFile(String name, byte[] content) {
             lock.lock(); try {
             if (closed) throw new RuntimeException("closed");

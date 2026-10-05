@@ -23,10 +23,8 @@ function runCap(n::Int)
         create_file!(s, "o", [UInt8(1), UInt8(2)])
         ok = length(list_objects(s)) >= 1
     elseif n == 6
-        tx = begin_transaction(s)
-        stage_add!(tx, "t", [UInt8(1)])
-        out_bytes = commit!(s, tx)
-        ok = length(out_bytes) >= 8
+        tx = s; stage_add(tx, "t", [UInt8(1)])
+        out_bytes = commit(s); ok = length(out_bytes) >= 8
     elseif n == 7
         ok = REP_DIRECT_1 == 1 && REP_EXTENTS_1 == 2
     elseif n == 8

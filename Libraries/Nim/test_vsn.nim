@@ -22,8 +22,8 @@ proc runCap(n: int): bool =
   of 4:
     try:
       var s2 = s; let (f,s3) = createFile(s2, "lc", "x")
-      for i in 1..5: discard writeFile(s3, f, $i); result = s3
-      let (dropped,_) = limitCleanup(result, f, 3); ok = dropped.len == 2
+      for i in 1..5: discard writeFile(s3, f, $i)
+      let (dropped,_) = limitCleanup(s3, f, 3); ok = dropped.len == 2
     except: ok = false
   of 5:
     try: var s2=s; discard createFile(s2, "o", "AB"); ok = listObjects(s2).len >= 1

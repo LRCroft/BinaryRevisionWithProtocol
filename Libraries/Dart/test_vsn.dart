@@ -135,7 +135,6 @@ Future<bool> runCap(int n) async {
   if (ok) print('PASS $n'); else print('FAIL $n');
   return ok;
 }
-}
 
 void main() async {
   final results = await Future.wait(List.generate(19, (i) => runCap(i + 1)));

@@ -47,16 +47,20 @@ contains
 
   subroutine vsn_create(mode)
     integer, intent(in) :: mode
+!$omp critical(vsn_lock)
     vsn_mode = mode
     vsn_file_count = 0
     vsn_rev_count = 0
     vsn_obj_count = 0
     vsn_next_rev = 1
     vsn_closed = .false.
+!$omp end critical(vsn_lock)
   end subroutine
 
   subroutine vsn_close()
+!$omp critical(vsn_lock)
     vsn_closed = .true.
+!$omp end critical(vsn_lock)
   end subroutine
 
   function vsn_get_mode() result(m)
@@ -66,10 +70,12 @@ contains
 
   subroutine vsn_create_file()
     if (vsn_closed) stop 'closed'
+!$omp critical(vsn_lock)
     vsn_file_count = vsn_file_count + 1
     vsn_rev_count = vsn_rev_count + 1
     vsn_obj_count = vsn_obj_count + 1
     vsn_next_rev = vsn_next_rev + 1
+!$omp end critical(vsn_lock)
   end subroutine
 
   function vsn_file_exists() result(ok)
@@ -87,12 +93,16 @@ contains
   end function
 
   subroutine vsn_write_file()
+!$omp critical(vsn_lock)
     vsn_rev_count = vsn_rev_count + 1
     vsn_next_rev = vsn_next_rev + 1
+!$omp end critical(vsn_lock)
   end subroutine
 
   subroutine vsn_delete_file()
+!$omp critical(vsn_lock)
     if (vsn_file_count > 0) vsn_file_count = vsn_file_count - 1
+!$omp end critical(vsn_lock)
   end subroutine
 
   function vsn_current_rev() result(r)

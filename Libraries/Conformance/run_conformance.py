@@ -63,35 +63,35 @@ class LangSpec:
         return "cd /work/" + self.work_subdir + " && " + self.script
 
 LANG_SPECS = {}
-LANG_SPECS["Ada"] = LangSpec("Ada", "vsn-legacy:latest", "Ada",
+LANG_SPECS["Ada"] = LangSpec("Ada", "vsn-deb:latest", "Ada",
     "gnatmake -o /tmp/t test_vsn.adb && /tmp/t")
-LANG_SPECS["C"] = LangSpec("C", "vsn-legacy:latest", "C",
+LANG_SPECS["C"] = LangSpec("C", "vsn-deb:latest", "C",
     "gcc -o /tmp/t test_vsn.c vsn.c && /tmp/t")
-LANG_SPECS["COBOL"] = LangSpec("COBOL", "vsn-legacy:latest", "COBOL",
+LANG_SPECS["COBOL"] = LangSpec("COBOL", "vsn-deb:latest", "COBOL",
     "cobc -x -o /tmp/t test_vsn.cbl && /tmp/t")
 LANG_SPECS["CSharp"] = LangSpec("CSharp", "mcr.microsoft.com/dotnet/sdk:10.0", "CSharp",
     "dotnet run --project VsnTest")
-LANG_SPECS["Cpp"] = LangSpec("Cpp", "gcc:13", "Cpp",
-    "g++ -o /tmp/t test_vsn.cpp vsn.cpp ../C/vsn.c -std=c++17 && /tmp/t")
+LANG_SPECS["Cpp"] = LangSpec("Cpp", "vsn-legacy:latest", "Cpp",
+    "g++ -o /tmp/t test_vsn.cpp vsn.cpp -std=c++17 && /tmp/t")
 LANG_SPECS["Crystal"] = LangSpec("Crystal", "crystallang/crystal:latest", "Crystal",
     "crystal test_vsn.cr")
 LANG_SPECS["D"] = LangSpec("D", "vsn-d:latest", "D",
     "dmd -of=/tmp/t test_vsn.d vsn.d && /tmp/t")
 LANG_SPECS["Dart"] = LangSpec("Dart", "dart:3-sdk", "Dart",
     "dart pub get && dart run test_vsn.dart")
-LANG_SPECS["Elixir"] = LangSpec("Elixir", "elixir:1.17-slim", "Elixir",
+LANG_SPECS["Elixir"] = LangSpec("Elixir", "vsn-deb:latest", "Elixir",
     "elixir test_vsn.exs")
-LANG_SPECS["Erlang"] = LangSpec("Erlang", "erlang:27-alpine", "Erlang",
+LANG_SPECS["Erlang"] = LangSpec("Erlang", "vsn-deb:latest", "Erlang",
     "erlc test_vsn.erl && erl -noshell -eval 'test_vsn:main(), halt(0)'")
 LANG_SPECS["FSharp"] = LangSpec("FSharp", "mcr.microsoft.com/dotnet/sdk:10.0", "FSharp",
     "dotnet run --project _smoke2")
-LANG_SPECS["Fortran"] = LangSpec("Fortran", "vsn-legacy:latest", "Fortran",
+LANG_SPECS["Fortran"] = LangSpec("Fortran", "vsn-deb:latest", "Fortran",
     "gfortran -o /tmp/t vsn.f90 test_vsn.f90 && /tmp/t")
 LANG_SPECS["Go"] = LangSpec("Go", "golang:1.23-alpine", "Go",
     "go test -v -run TestCapability19Groups ./...")
-LANG_SPECS["Haskell"] = LangSpec("Haskell", "haskell:9.6-slim", "Haskell",
+LANG_SPECS["Haskell"] = LangSpec("Haskell", "vsn-deb:latest", "Haskell",
     "ghc -o /tmp/t test_vsn.hs VSN.hs && /tmp/t")
-LANG_SPECS["Java"] = LangSpec("Java", "vsn-jvm:latest", "Java",
+LANG_SPECS["Java"] = LangSpec("Java", "vsn-deb:latest", "Java",
     "javac -d /tmp/classes VsnLib.java TestVsn.java && java -cp /tmp/classes TestVsn")
 LANG_SPECS["JavaScript-TypeScript"] = LangSpec("JavaScript-TypeScript", "node:20-slim", "JavaScript-TypeScript",
     "ln -sf /work/TestVectors TestVectors 2>/dev/null; cd tests && ln -sf ../../../TestVectors TestVectors 2>/dev/null; cd .. && npx tsx tests/test_vsn_caps.ts")
@@ -99,20 +99,20 @@ LANG_SPECS["Julia"] = LangSpec("Julia", "julia:latest", "Julia",
     "julia test_vsn.jl")
 LANG_SPECS["Kotlin"] = LangSpec("Kotlin", "vsn-jvm:latest", "Kotlin",
     "java -jar test.jar")
-LANG_SPECS["Lua"] = LangSpec("Lua", "vsn-lua:latest", "Lua",
+LANG_SPECS["Lua"] = LangSpec("Lua", "vsn-deb:latest", "Lua",
     "LUA_PATH='./?.lua;;' lua test_vsn.lua")
-LANG_SPECS["Nim"] = LangSpec("Nim", "nim:latest", "Nim",
+LANG_SPECS["Nim"] = LangSpec("Nim", "vsn-deb:latest", "Nim",
     "nim c -r test_vsn.nim")
 LANG_SPECS["Objective-C"] = LangSpec("Objective-C", "vsn-objc:latest", "Objective-C",
     "gcc-11 -x objective-c -o /tmp/t test_vsn.m -lobjc && /tmp/t")
-LANG_SPECS["OCaml"] = LangSpec("OCaml", "ocaml/ocaml:latest", "OCaml",
+LANG_SPECS["OCaml"] = LangSpec("OCaml", "vsn-deb:latest", "OCaml",
     "ocamlc -o /tmp/t vsn.ml test_vsn.ml && /tmp/t")
-LANG_SPECS["Perl"] = LangSpec("Perl", "perl:5.40-slim", "Perl",
+LANG_SPECS["Perl"] = LangSpec("Perl", "vsn-deb:latest", "Perl",
     "perl -I. test_vsn.pl")
 LANG_SPECS["PHP"] = LangSpec("PHP", "php:8.3-cli", "PHP",
     "php test_vsn.php")
-LANG_SPECS["Python"] = LangSpec("Python", "python:3.11-slim", "Python",
-    "python conformance_test.py")
+LANG_SPECS["Python"] = LangSpec("Python", "vsn-deb:latest", "Python",
+    "python3 conformance_test.py")
 LANG_SPECS["R"] = LangSpec("R", "r-base:latest", "R",
     'Rscript -e "source(\'vsn.R\'); source(\'test_vsn.R\')"')
 LANG_SPECS["Ruby"] = LangSpec("Ruby", "ruby:3.3", "Ruby",
@@ -183,7 +183,7 @@ def classify(name, rc, output):
     return status, caps, passed, failed, missing
 
 
-def run_conformance(max_workers=6):
+def run_conformance(max_workers=36):
     results = {}
     start = _time.time()
     fv = verify_frozen_vectors()

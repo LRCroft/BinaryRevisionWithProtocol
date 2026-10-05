@@ -17,9 +17,12 @@ class Container {
     public int $cfv = CFV; public int $ev = EV; public array $records = []; public array $objects = [];
     public int $trailerRecordCount = 0; public int $trailerGeneration = 0;
     public int $mode = MODE_MODERN; public int $byteLength = 0;
-    public $lock = null;
-    public function __construct() { $this->lock = new \stdClass(); }
-    public function withLock(callable $fn) { return $fn(); }
+    private bool $locked = false;
+    public function withLock(callable $fn) {
+        while ($this->locked) { usleep(10); }
+        $this->locked = true;
+        try { return $fn(); } finally { $this->locked = false; }
+    }
 }
 
 function parse(string $data): Container {

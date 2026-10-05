@@ -23,26 +23,27 @@ class MutableStore(var mode: Int = Constants.MODE_MODERN) {
   private var fileCount = 0; private var revCount = 0; private var objCount = 0
   private var nextRev = 1; private var closed_ = false
   private val contents = scala.collection.mutable.Map[String, Array[Byte]]()
-  def close(): Unit = { closed_ = true }
-  def createFile(path: String, content: Array[Byte]): String = {
+  private val lock = new Object()
+  def close(): Unit = lock.synchronized { closed_ = true }
+  def createFile(path: String, content: Array[Byte]): String = lock.synchronized {
     if (closed_) throw new RuntimeException("closed")
     contents(path) = content; fileCount += 1; revCount += 1; objCount += 1; nextRev += 1
     path
   }
-  def readFile(fid: String): Array[Byte] = contents(fid)
-  def writeFile(fid: String, content: Array[Byte]): Unit = { contents(fid) = content; revCount += 1; nextRev += 1 }
-  def deleteFile(fid: String): Unit = { contents.remove(fid); fileCount -= 1 }
-  def fileExists(fid: String): Boolean = contents.contains(fid)
-  def currentRevision(fid: String): Int = nextRev - 1
-  def listRevisions(fid: String): Int = revCount
-  def limitCleanup(fid: String, limit: Int): Int = {
+  def readFile(fid: String): Array[Byte] = lock.synchronized { contents(fid) }
+  def writeFile(fid: String, content: Array[Byte]): Unit = lock.synchronized { contents(fid) = content; revCount += 1; nextRev += 1 }
+  def deleteFile(fid: String): Unit = lock.synchronized { contents.remove(fid); fileCount -= 1 }
+  def fileExists(fid: String): Boolean = lock.synchronized { contents.contains(fid) }
+  def currentRevision(fid: String): Int = lock.synchronized { nextRev - 1 }
+  def listRevisions(fid: String): Int = lock.synchronized { revCount }
+  def limitCleanup(fid: String, limit: Int): Int = lock.synchronized {
     if (limit == 0) throw new IllegalArgumentException("limit zero")
     val rm = math.max(revCount - limit, 0); revCount -= rm; rm
   }
-  def listObjects(): Int = objCount
-  def beginTransaction(): Long = generation
+  def listObjects(): Int = lock.synchronized { objCount }
+  def beginTransaction(): Long = lock.synchronized { generation }
   def stageAdd(path: String, content: Array[Byte]): Unit = createFile(path, content)
-  def commitTransaction(expected: Long): Array[Byte] = {
+  def commitTransaction(expected: Long): Array[Byte] = lock.synchronized {
     if (expected != generation) throw new RuntimeException("gen mismatch")
     generation += 1; VsnApi.encode(mode, generation)
   }

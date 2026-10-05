@@ -25,13 +25,12 @@ public class TestVsn {
         check(3, "revision API", s.currentRevision() > 0);
 
         // 4. Limit Cleanup
-        int oldFileCount = s.getFileCount();
         s.limitCleanup(1);
-        check(4, "limit cleanup", true);
+        check(4, "limit cleanup", s.statsFiles() >= 0);
 
         // 5. Object API
         s.createFile("obj", "data".getBytes());
-        check(5, "object API", s.getObjectCount() >= 1);
+        check(5, "object API", s.listObjects() >= 1);
 
         // 6. Transactions
         VsnLib.Store txnStore = VsnLib.Store.create(VsnLib.MODE_MODERN);
@@ -52,7 +51,7 @@ public class TestVsn {
         // 11. Diff
         VsnLib.Store s2 = VsnLib.Store.create(VsnLib.MODE_MODERN);
         s2.createFile("x", "y".getBytes());
-        check(11, "diff", true);
+        check(11, "diff", s2.diffCount(s) >= 0);
 
         // 12. Merge
         VsnLib.Store base = VsnLib.Store.create(VsnLib.MODE_MODERN);
@@ -65,7 +64,7 @@ public class TestVsn {
 
         // 14. Streaming
         s.createFile("big", "bigdata".getBytes());
-        check(14, "streaming", true);
+        check(14, "streaming", s.listObjects() >= 1);
 
         // 15. Diagnostics
         java.util.List<VsnLib.Diagnostic> diags = VsnLib.diagnostics(s, "Full");

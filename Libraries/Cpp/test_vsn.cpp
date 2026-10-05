@@ -9,7 +9,7 @@ static int results[20]={0};
 
 static void cap_run(int n) {
     try { Container c(MODE_MODERN); bool ok=true; switch(n) {
-        case 1: c.~Container();c=Container(MODE_ENTERPRISE);ok=(c.mode()==MODE_ENTERPRISE)?true:false;break;
+        case 1: { Container c2(MODE_ENTERPRISE); ok=(c2.mode()==MODE_ENTERPRISE)?true:false; } break;
         case 2:{try{auto fid=c.create_file("a",(const uint8_t*)"hello",5);auto rd=c.read_file(fid);ok=(rd.size()==5)?true:false;c.write_file(fid,(const uint8_t*)"xyz",3);rd=c.read_file(fid);ok=(ok&&rd.size()==3)?true:false;}catch(...){ok=false;}break;}
         case 3:{try{auto fid=c.create_file("r",(const uint8_t*)"v1",2);c.write_file(fid,(const uint8_t*)"v2",2);c.write_file(fid,(const uint8_t*)"v3",2);auto r=c.list_revisions(fid);ok=(r.size()>=3)?true:false;}catch(...){ok=false;}break;}
         case 4:{try{auto fid=c.create_file("lc",(const uint8_t*)"x",1);for(int i=0;i<5;i++)c.write_file(fid,(const uint8_t*)"a",1);(void)c.limit_cleanup(fid,3);}catch(...){ok=false;}break;}

@@ -248,14 +248,15 @@ class TestVsn {
         a.createFile("shared.txt", byteArrayOf(1))
         val b = Builder.build(ModeModern)
         b.createFile("shared.txt", byteArrayOf(1))
-        return true
+        val c = Builder.build(ModeModern)
+        return true && a.mode == ModeModern && b.mode == ModeModern
     }
     fun testThreeWayMergeWithConflict(): Boolean {
         val a = Builder.build(ModeModern)
         a.createFile("conflict.txt", byteArrayOf(1))
         val b = Builder.build(ModeModern)
         b.createFile("conflict.txt", byteArrayOf(2))
-        return true
+        return true && a.mode == ModeModern && b.mode == ModeEnterprise
     }
     companion object {
         @JvmStatic

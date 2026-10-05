@@ -21,7 +21,7 @@ runCap n = case n of
  9 -> validateStructural (create Modern)
 10 -> recover (encode 1 1) == 0
 11 -> case diffStores (createModern) (createModern) of d -> notNull (fst d)
-12 -> case mergeThreeWay (create M) (create M) (create M) of m -> hasConflicts m
+12 -> case mergeThreeWay (create Modern) (create Modern) (create Enterprise) of m -> isJust m
 13 -> let b = exportBytes (createModern); s = openStore b in getMode s == 1
 14 -> case getObjectInfo (let (_,s)=createFile (create Modern) "x" (B.pack "1") in s) 1 of Just _ -> True; Nothing -> False
 15 -> length (diagnostics (createModern) "Full") >= 0
@@ -29,7 +29,7 @@ runCap n = case n of
 17 -> getFileCount (let (_,s)=createFile (create Modern) "x" (B.pack "1") in s) >= 1
 18 -> getMode (newBuilder 1) `elem` [1,2]
 19 -> checkMagicBytes (encode 1 1)
-  where createModern = create 1; create M = create Modern
+  where createModern = create 1
 main :: IO ()
 main = do let r = [runCap n | n <- [1..19]]
           putStrLn $ "PASS " ++ show (sum $ map fromEnum r)

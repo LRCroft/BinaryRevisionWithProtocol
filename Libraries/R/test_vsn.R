@@ -8,13 +8,13 @@ run_cap <- function(n) {
   if (n == 1) ok <- get_mode(s) == MODE_MODERN
   else if (n == 2) ok <- !is.null(create_file(s, "a", charToRaw("hello")))
   else if (n == 3) {
-    s2 <- create(MODE_MODERN); create_file(s2, "r", charToRaw("v1"))
-    write_file(s2, NULL, charToRaw("v2")); write_file(s2, NULL, charToRaw("v3"))
-    ok <- length(list_revisions(s2, NULL)) >= 3; close_store(s2)
+    s2 <- create(MODE_MODERN); f <- create_file(s2, "r", charToRaw("v1"))
+    write_file(s2, f, charToRaw("v2")); write_file(s2, f, charToRaw("v3"))
+    ok <- length(list_revisions(s2, f)) >= 3; close_store(s2)
   } else if (n == 4) {
-    s2 <- create(MODE_MODERN); create_file(s2, "lc", charToRaw("x"))
-    for(i in 1:5) write_file(s2, NULL, charToRaw(as.character(i)))
-    ok <- length(limit_cleanup(s2, NULL, 3)) == 2; close_store(s2)
+    f <- create_file(s2, "lc", charToRaw("x"))
+    for(i in 1:5) write_file(s2, f, charToRaw(as.character(i)))
+    ok <- length(limit_cleanup(s2, f, 3)) == 2; close_store(s2)
   } else if (n == 5) {
     create_file(create(MODE_MODERN), "o", charToRaw("AB"))
     ok <- length(list_objects(create(MODE_MODERN))) >= 1; close_store(s)
@@ -47,4 +47,3 @@ run_cap <- function(n) {
 
 results <- sapply(1:19, run_cap)
 cat(sprintf("PASS %d\n", sum(results)))
-

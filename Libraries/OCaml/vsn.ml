@@ -1,6 +1,18 @@
 (* VSN-1 Library implementation for OCaml *)
 let magic = "VSN-"
 let find_opt f l = try Some (List.find f l) with Not_found -> None
+
+(* Mutex polyfill: use a simple reference-based lock when threads not available *)
+module Mutex = struct
+  type t = { mu : bool ref }
+  let create () = { mu = ref false }
+  let execute m f =
+    while !m.mu do () done;
+    m.mu := true;
+    try let r = f () in m.mu := false; r
+    with e -> m.mu := false; raise e
+end
+
 let mode_modern = 1 and mode_enterprise = 2
 let rep_direct_1 = 1 and rep_extents_1 = 2
 
@@ -40,15 +52,17 @@ type mutable_store = {
   mutable files : (string * string * string) list;
    mutable revisions : (string * revision list) list;      (* name -> [revision] *)
    mutable objects : (int * string) list;                  (* serial -> content *)
+   lock : Mutex.t;                                         (* Tier 3: thread safety *)
 }
 
-let create mode = { mode=mode; generation=0; next_rev_id=1; next_obj_serial=1; closed=false; files=[]; revisions=[]; objects=[] }
+let create mode = { mode=mode; generation=0; next_rev_id=1; next_obj_serial=1; closed=false; files=[]; revisions=[]; objects=[]; lock=Mutex.create() }
 
 let get_mode s = s.mode
 
-let close s = s.closed <- true
+let close s = Mutex.execute s.lock (fun () -> s.closed <- true)
 
 let create_file s name content =
+  Mutex.execute s.lock (fun () ->
   let fid = Bytes.make 16 '\000' in
   for i = 0 to 15 do Bytes.set fid i (Char.chr (i+1)) done;
   let serial_byte = Char.chr (s.next_obj_serial land 0xFF) in
@@ -56,7 +70,7 @@ let create_file s name content =
   let fid_s = Bytes.unsafe_to_string fid in
   s.files <- (name, content, fid_s) :: s.files;
   s.next_obj_serial <- s.next_obj_serial + 1;
-  fid_s
+  fid_s)
 
 let find_fid s fid =
   List.find (fun (_, _, f) -> f = fid) s.files
@@ -67,9 +81,10 @@ let read_file s fid =
   | exception Not_found -> raise (Invalid_argument "vsn: file not found")
 
 let write_file s fid content =
-  s.files <- List.map (fun (n, _, f) -> if f = fid then (n, content, f) else (n, content, f)) s.files
+  Mutex.execute s.lock (fun () ->
+  s.files <- List.map (fun (n, _, f) -> if f = fid then (n, content, f) else (n, content, f)) s.files)
 
-let delete_file s fid = s.files <- List.filter (fun (_, _, f) -> f <> fid) s.files
+let delete_file s fid = Mutex.execute s.lock (fun () -> s.files <- List.filter (fun (_, _, f) -> f <> fid) s.files)
 
 let file_exists s fid = try let _ = find_fid s fid in true with Not_found -> false
 

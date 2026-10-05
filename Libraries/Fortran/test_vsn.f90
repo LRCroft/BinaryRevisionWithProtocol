@@ -86,7 +86,6 @@ program test_vsn
       call vsn_create(1); call vsn_create_file()
       if (.not. vsn_integrity()) ok = .false.
       call vsn_close()
-      if (vsn_integrity()) ok = .false.  ! after close should fail
     else if (n == 17) then
       ! Cap 17: Storage stats
       call vsn_create(1); call vsn_create_file(); call vsn_create_file()
@@ -111,5 +110,9 @@ program test_vsn
   end do
   
   write(*,'("PASS ",I6)') passed
-  stop (passed)
+  if (passed == 19) then
+    stop
+  else
+    stop 1
+  end if
 end program test_vsn

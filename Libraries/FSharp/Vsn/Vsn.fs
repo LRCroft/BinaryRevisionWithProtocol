@@ -145,7 +145,9 @@ type Writer() =
 
 
 // --- Container (mutable store, mirrors C VsnContainer) ---
+open System.Threading
 type Container(mode: int) =
+    let lockObj = obj()
     let mutable files = ResizeArray<FileId>()
     let mutable revs = ResizeArray<Revision>()
     let mutable objects = ResizeArray<ContentObject>()
@@ -159,14 +161,24 @@ type Container(mode: int) =
     member _.Files = files
     member _.Revisions = revs
     member _.Objects = objects
-    member _.NextRevId with get() = nextRevId and set(v: uint32) = nextRevId <- v
-    member _.NextSerial with get() = nextSerial and set(v: uint32) = nextSerial <- v
-    member _.Generation with get() = generation and set(v: uint32) = generation <- v
-    member _.Mode with get() = mode and set(v: int) = mode <- v
-    member _.Closed with get() = closed and set(v: bool) = closed <- v
+    member _.NextRevId 
+        with get() = Monitor.Enter(lockObj); let v = nextRevId; Monitor.Exit(lockObj); v
+        and set(v: uint32) = Monitor.Enter(lockObj); nextRevId <- v; Monitor.Exit(lockObj)
+    member _.NextSerial 
+        with get() = Monitor.Enter(lockObj); let v = nextSerial; Monitor.Exit(lockObj); v
+        and set(v: uint32) = Monitor.Enter(lockObj); nextSerial <- v; Monitor.Exit(lockObj)
+    member _.Generation 
+        with get() = Monitor.Enter(lockObj); let v = generation; Monitor.Exit(lockObj); v
+        and set(v: uint32) = Monitor.Enter(lockObj); generation <- v; Monitor.Exit(lockObj)
+    member _.Mode 
+        with get() = mode
+        and set(v: int) = Monitor.Enter(lockObj); mode <- v; Monitor.Exit(lockObj)
+    member _.Closed 
+        with get() = Monitor.Enter(lockObj); let v = closed; Monitor.Exit(lockObj); v
+        and set(v: bool) = Monitor.Enter(lockObj); closed <- v; Monitor.Exit(lockObj)
 
     static member Create(mode: int) = Container(mode)
-    member x.Close() = x.Closed <- true
+    member x.Close() = Monitor.Enter(lockObj); x.Closed <- true; Monitor.Exit(lockObj)
 
     /// Deterministic 16-byte file id from path + file count (mirrors vsn_create_file).
     static member MakeFileId(path: string, count: int) : FileId =

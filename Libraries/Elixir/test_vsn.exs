@@ -99,6 +99,7 @@ defmodule VSNTest do
               stats = S.get_stats(s)
               Map.has_key?(stats, :files) and stats.files >= 1
             rescue _ -> false
+            end
           18 -> true
           19 ->
             bytes = VSN.encode(VSN.mode_modern(), 0)
@@ -106,9 +107,13 @@ defmodule VSNTest do
           _ -> false
         end
         S.close(s)
-        if ok do IO.puts("PASS #{n}")
-        else IO.puts("FAIL #{n}") end
-        if ok do 1 else 0 end
+        if ok do
+          IO.puts("PASS #{n}")
+          1
+        else
+          IO.puts("FAIL #{n}")
+          0
+        end
       end)
     end
     passed = tasks |> Enum.map(&Task.await/1) |> Enum.sum()

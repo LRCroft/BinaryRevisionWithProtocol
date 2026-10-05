@@ -12,6 +12,7 @@ static void set_result(int n, int v) {
     pthread_mutex_lock(&mtx);
     results[n] = v;
     pthread_mutex_unlock(&mtx);
+}
 
 static void *cap_run(void *arg) {
     int n = (int)(long)arg;

@@ -15,8 +15,8 @@ threads = (1..19).map do |n|
   Thread.new do
     s = VSN::MutableStore.create(VSN::MODE_MODERN)
     ok = case n
-         when 1 then s.mode == VSN::MODE_MODERN
-         when 2 then s.create_file('a', 'hello') != nil
+         when 1 then begin; ok = s.mode == VSN::MODE_MODERN; rescue; ok = false; end
+         when 2 then begin; ok = s.create_file('a', 'hello') != nil; rescue; ok = false; end
          when 3
           s2=VSN::MutableStore.create(VSN::MODE_MODERN); f=s2.create_file("r","v1")
           s2.write_file(f,"v2"); s2.write_file(f,"v3")
@@ -38,11 +38,8 @@ threads = (1..19).map do |n|
          when 11
           s2=VSN::MutableStore.create(VSN::MODE_MODERN); s.create_file("x","1"); d=s.diff_stores(s2)
           ok2=d[:added] != nil && !d[:added].empty?; s2.close; ok2
-         when 12
-          b=VSN::MutableStore.create(VSN::MODE_MODERN); o=VSN::MutableStore.create(VSN::MODE_MODERN); t=VSN::MutableStore.create(VSN::MODE_MODERN)
-          m=VSN::merge_three_way(b,o,t); ok2=m != nil; b.close; o.close; t.close
-         when 13
-          bytes=s.export_bytes; s2=VSN::MutableStore.open(bytes); ok2=s2.mode == VSN::MODE_MODERN; s2.close
+         when 12 then b=VSN::MutableStore.create(VSN::MODE_MODERN); o=VSN::MutableStore.create(VSN::MODE_MODERN); t=VSN::MutableStore.create(VSN::MODE_MODERN); m=VSN::merge_three_way(b,o,t); ok2=m != nil; b.close; o.close; t.close; ok2
+         when 13 then bytes=s.export_bytes; s2=VSN::MutableStore.open(bytes); ok2=s2.mode == VSN::MODE_MODERN; s2.close; ok2
          when 14
           fid=s.create_file("big","bd"); c=s.read_file(fid); ok2=c.length >= 0
          when 15

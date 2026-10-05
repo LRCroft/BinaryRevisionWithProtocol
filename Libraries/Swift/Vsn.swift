@@ -41,20 +41,23 @@ public class MutableStore {
     private var nextRev = 1
     private var closed = false
     private var contents: [String: [UInt8]] = [:]
+    private let lock = NSLock()
 
     public init(mode: UInt8) { self.mode = mode }
-    public func close() { closed = true }
+    public func close() { lock.lock(); closed = true; lock.unlock() }
     public func createFile(_ path: String, content: [UInt8]) -> String {
-        if closed { fatalError("closed") }
+        lock.lock()
+        if closed { lock.unlock(); fatalError("closed") }
         contents[path] = content; fileCount += 1; revCount += 1; objCount += 1; nextRev += 1
+        lock.unlock()
         return path
     }
-    public func readFile(_ fid: String) -> [UInt8] { contents[fid]! }
-    public func writeFile(_ fid: String, content: [UInt8]) { contents[fid] = content; revCount += 1; nextRev += 1 }
-    public func deleteFile(_ fid: String) { contents.removeValue(forKey: fid); fileCount -= 1 }
-    public func fileExists(_ fid: String) -> Bool { contents[fid] != nil }
-    public func currentRevision(_ fid: String) -> Int { nextRev - 1 }
-    public func listRevisions(_ fid: String) -> Int { revCount }
+    public func readFile(_ fid: String) -> [UInt8] { lock.lock(); let v = contents[fid]!; lock.unlock(); return v }
+    public func writeFile(_ fid: String, content: [UInt8]) { lock.lock(); contents[fid] = content; revCount += 1; nextRev += 1; lock.unlock() }
+    public func deleteFile(_ fid: String) { lock.lock(); contents.removeValue(forKey: fid); fileCount -= 1; lock.unlock() }
+    public func fileExists(_ fid: String) -> Bool { lock.lock(); let r = contents[fid] != nil; lock.unlock(); return r }
+    public func currentRevision(_ fid: String) -> Int { lock.lock(); let r = nextRev - 1; lock.unlock(); return r }
+    public func listRevisions(_ fid: String) -> Int { lock.lock(); let r = revCount; lock.unlock(); return r }
     public func limitCleanup(_ fid: String, limit: Int) -> Int {
         if limit == 0 { fatalError("limit zero") }
         let rm = max(revCount - limit, 0); revCount -= rm; return rm

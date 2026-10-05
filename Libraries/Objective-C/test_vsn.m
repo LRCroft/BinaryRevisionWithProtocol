@@ -1,8 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <objc/objc.h>
 #include <objc/runtime.h>
+#include <Foundation/Foundation.h>
 
 @interface VsnLib
 + (int)parse:(const char*)d len:(int)l;
@@ -17,6 +15,8 @@
 @end
 
 @implementation VsnLib
+static NSLock *_vsnLock = nil;
++ (void)initialize { if(!_vsnLock) _vsnLock = [[NSLock alloc] init]; }
 + (int)parse:(const char*)d len:(int)l {
     if (l < 8 || d[0]!='V'||d[1]!='S'||d[2]!='N'||d[3]!='-') return -1;
     return 0;
@@ -52,18 +52,18 @@ static int g_nextRev = 1;
 static int g_mode = 1;
 static int g_closed = 0;
 
-void vsn_create(int m) { g_mode=m; g_fileCount=0; g_revCount=0; g_objCount=0; g_nextRev=1; g_closed=0; }
-void vsn_close() { g_closed=1; }
-int vsn_getMode() { return g_mode; }
-void vsn_createFile() { g_fileCount++; g_revCount++; g_objCount++; g_nextRev++; }
-int vsn_fileExists() { return g_fileCount>0 ? 1:0; }
-int vsn_readLen() { return g_fileCount>0 ? 3:-1; }
-void vsn_writeFile() { g_revCount++; g_nextRev++; }
-void vsn_deleteFile() { if(g_fileCount>0) g_fileCount--; }
-int vsn_currentRev() { return g_nextRev-1; }
-int vsn_listRevs() { return g_revCount; }
-int vsn_limitCleanup(int lim) { if(lim==0) return -1; int rm=g_revCount-lim; if(rm<0)rm=0; g_revCount-=rm; return rm; }
-int vsn_listObjects() { return g_objCount; }
+void vsn_create(int m) { [[NSLock alloc] init]; _vsnLock.lock; g_mode=m; g_fileCount=0; g_revCount=0; g_objCount=0; g_nextRev=1; g_closed=0; _vsnLock.unlock; }
+void vsn_close() { _vsnLock.lock; g_closed=1; _vsnLock.unlock; }
+int vsn_getMode() { _vsnLock.lock; int m=g_mode; _vsnLock.unlock; return m; }
+void vsn_createFile() { _vsnLock.lock; g_fileCount++; g_revCount++; g_objCount++; g_nextRev++; _vsnLock.unlock; }
+int vsn_fileExists() { _vsnLock.lock; int r=g_fileCount>0?1:0; _vsnLock.unlock; return r; }
+int vsn_readLen() { _vsnLock.lock; int r=g_fileCount>0?3:-1; _vsnLock.unlock; return r; }
+void vsn_writeFile() { _vsnLock.lock; g_revCount++; g_nextRev++; _vsnLock.unlock; }
+void vsn_deleteFile() { _vsnLock.lock; if(g_fileCount>0) g_fileCount--; _vsnLock.unlock; }
+int vsn_currentRev() { _vsnLock.lock; int r=g_nextRev-1; _vsnLock.unlock; return r; }
+int vsn_listRevs() { _vsnLock.lock; int r=g_revCount; _vsnLock.unlock; return r; }
+int vsn_limitCleanup(int lim) { if(lim==0) return -1; _vsnLock.lock; int rm=g_revCount-lim; if(rm<0)rm=0; g_revCount-=rm; _vsnLock.unlock; return rm; }
+int vsn_listObjects() { _vsnLock.lock; int r=g_objCount; _vsnLock.unlock; return r; }
 int vsn_beginTxn() { return 0; }
 int vsn_commitTxn() { return 0; }
 int vsn_diff(int other) { int a=g_fileCount,b=other; return a>b?a-b:b-a; }
