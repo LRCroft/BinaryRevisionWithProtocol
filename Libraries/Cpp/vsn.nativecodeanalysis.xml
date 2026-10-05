@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\CampMember\BinaryRevisionWithProtocol\Libraries\C\</FILEPATH>
+      <FILENAME>vsn.c</FILENAME>
+      <LINE>318</LINE>
+      <COLUMN>11</COLUMN>
+    </SFA>
+    <DEFECTCODE>6011</DEFECTCODE>
+    <DESCRIPTION>Dereferencing NULL pointer 'c'. </DESCRIPTION>
+    <FUNCTION>vsn_create</FUNCTION>
+    <DECORATED>?vsn_create@@YAPEAUVsnContainer@@H@Z</DECORATED>
+    <FUNCLINE>316</FUNCLINE>
+    <PROBABILITY>1</PROBABILITY>
+    <RANK>4</RANK>
+    <CATEGORY>
+      <RULECATEGORY>mspft</RULECATEGORY>
+    </CATEGORY>
+    <PATH>
+      <SFA>
+        <FILEPATH>C:\CampMember\BinaryRevisionWithProtocol\Libraries\C\</FILEPATH>
+        <FILENAME>vsn.c</FILENAME>
+        <LINE>317</LINE>
+        <COLUMN>18</COLUMN>
+        <KEYEVENT>
+          <ID>1</ID>
+          <KIND>declaration</KIND>
+          <IMPORTANCE>Essential</IMPORTANCE>
+          <MESSAGE>'c' may be NULL</MESSAGE>
+        </KEYEVENT>
+      </SFA>
+      <SFA>
+        <FILEPATH>C:\CampMember\BinaryRevisionWithProtocol\Libraries\C\</FILEPATH>
+        <FILENAME>vsn.c</FILENAME>
+        <LINE>318</LINE>
+        <COLUMN>11</COLUMN>
+        <KEYEVENT>
+          <ID>2</ID>
+          <KIND>usage</KIND>
+          <IMPORTANCE>Essential</IMPORTANCE>
+          <MESSAGE>'c' is dereferenced, but may still be NULL</MESSAGE>
+        </KEYEVENT>
+      </SFA>
+    </PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\CampMember\BinaryRevisionWithProtocol\Libraries\C\</FILEPATH>
+      <FILENAME>vsn.c</FILENAME>
+      <LINE>333</LINE>
+      <COLUMN>4</COLUMN>
+    </SFA>
+    <DEFECTCODE>6262</DEFECTCODE>
+    <DESCRIPTION>Function uses '337804' bytes of stack.  Consider moving some data to heap.</DESCRIPTION>
+    <FUNCTION>vsn_commit</FUNCTION>
+    <DECORATED>?vsn_commit@@YAHPEAUVsnContainer@@PEAE_KPEA_K@Z</DECORATED>
+    <FUNCLINE>333</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\CampMember\BinaryRevisionWithProtocol\Libraries\C\</FILEPATH>
+      <FILENAME>vsn.c</FILENAME>
+      <LINE>637</LINE>
+      <COLUMN>4</COLUMN>
+    </SFA>
+    <DEFECTCODE>6262</DEFECTCODE>
+    <DESCRIPTION>Function uses '341924' bytes of stack.  Consider moving some data to heap.</DESCRIPTION>
+    <FUNCTION>vsn_validate_level</FUNCTION>
+    <DECORATED>?vsn_validate_level@@YAHPEBE_KPEBD@Z</DECORATED>
+    <FUNCLINE>637</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\CampMember\BinaryRevisionWithProtocol\Libraries\C\</FILEPATH>
+      <FILENAME>vsn.c</FILENAME>
+      <LINE>679</LINE>
+      <COLUMN>4</COLUMN>
+    </SFA>
+    <DEFECTCODE>6262</DEFECTCODE>
+    <DESCRIPTION>Function uses '337820' bytes of stack.  Consider moving some data to heap.</DESCRIPTION>
+    <FUNCTION>vsn_recover</FUNCTION>
+    <DECORATED>?vsn_recover@@YAHPEBE_KPEAE1PEA_K@Z</DECORATED>
+    <FUNCLINE>679</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\CampMember\BinaryRevisionWithProtocol\Libraries\C\</FILEPATH>
+      <FILENAME>vsn.c</FILENAME>
+      <LINE>882</LINE>
+      <COLUMN>4</COLUMN>
+    </SFA>
+    <DEFECTCODE>6262</DEFECTCODE>
+    <DESCRIPTION>Function uses '403344' bytes of stack.  Consider moving some data to heap.</DESCRIPTION>
+    <FUNCTION>vsn_verify_integrity</FUNCTION>
+    <DECORATED>?vsn_verify_integrity@@YAHPEBE_KPEAH@Z</DECORATED>
+    <FUNCLINE>882</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\CampMember\BinaryRevisionWithProtocol\Libraries\Cpp\</FILEPATH>
+      <FILENAME>vsn.cpp</FILENAME>
+      <LINE>85</LINE>
+      <COLUMN>21</COLUMN>
+    </SFA>
+    <DEFECTCODE>6262</DEFECTCODE>
+    <DESCRIPTION>Function uses '1048600' bytes of stack.  Consider moving some data to heap.</DESCRIPTION>
+    <FUNCTION>vsn::recover</FUNCTION>
+    <DECORATED>?recover@vsn@@YA?AV?$vector@EV?$allocator@E@std@@@std@@PEBE_K@Z</DECORATED>
+    <FUNCLINE>85</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

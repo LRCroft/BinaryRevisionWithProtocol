@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentation — BinaryRevisionWithProtocol</title>
+  <meta name="description" content="Technical specification and implementation reference for BinaryRevisionWithProtocol: revision model, .vsn sidecar, transactions, recovery, serialization, and implementation status." />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a class="brand" href="./index.html" aria-label="BinaryRevisionWithProtocol home">
+        <span class="brand-mark" aria-hidden="true">&#9672;</span>
+        <span class="brand-text">BinaryRevisionWithProtocol</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="Primary">
+        <ul>
+          <li><a href="./index.html#overview">Overview</a></li>
+          <li><a href="./index.html#protocol">Protocol</a></li>
+          <li><a href="./index.html#vsn" class="mono">.vsn</a></li>
+          <li><a href="./index.html#libraries">Libraries</a></li>
+          <li><a href="./docs.html" aria-current="page">Docs</a></li>
+          <li><a href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">GitHub<span aria-hidden="true" class="ext">&nearr;</span></a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+    <section class="hero docs-hero" aria-labelledby="docs-title">
+      <div class="container">
+        <p class="eyebrow">BinaryRevisionWithProtocol &middot; Documentation</p>
+        <h1 id="docs-title">Documentation</h1>
+        <p class="subtitle">Technical specification and implementation reference.</p>
+        <p class="lede">Open protocol &middot; Git-independent &middot; In development. This page describes the intended protocol and the current repository state as inspected. Nothing here replaces a frozen specification.</p>
+        <p class="doc-notice"><strong>Repository status:</strong> no protocol implementation code, schemas, or test vectors were found in the repository at the time of writing. All protocol behavior below is <strong>specification / planned</strong> unless explicitly marked otherwise.</p>
+      </div>
+    </section>
+    <nav class="section docs-toc" aria-label="Documentation contents">
+      <div class="container">
+        <h2>Contents</h2>
+        <ol>
+          <li><a href="#doc-overview"><span class="mono">01</span> Overview</a></li>
+          <li><a href="#doc-architecture"><span class="mono">02</span> Architecture</a></li>
+          <li><a href="#doc-vsn"><span class="mono">03</span> .vsn Sidecar</a></li>
+          <li><a href="#doc-revision"><span class="mono">04</span> Revision Model</a></li>
+          <li><a href="#doc-identity"><span class="mono">05</span> File Identity</a></li>
+          <li><a href="#doc-revisionset"><span class="mono">06</span> RevisionSet</a></li>
+          <li><a href="#doc-content"><span class="mono">07</span> Content Model</a></li>
+          <li><a href="#doc-diff"><span class="mono">08</span> Diff</a></li>
+          <li><a href="#doc-restore"><span class="mono">09</span> Restore</a></li>
+          <li><a href="#doc-apply"><span class="mono">10</span> ApplyTransaction</a></li>
+          <li><a href="#doc-recovery"><span class="mono">11</span> Crash Recovery</a></li>
+          <li><a href="#doc-commit"><span class="mono">12</span> Logical Commit</a></li>
+          <li><a href="#doc-rcmp"><span class="mono">13</span> Serialization / RCMP-1</a></li>
+          <li><a href="#doc-digest"><span class="mono">14</span> MembersDigest</a></li>
+          <li><a href="#doc-idempotency"><span class="mono">15</span> Idempotency</a></li>
+          <li><a href="#doc-gc"><span class="mono">16</span> Garbage Collection</a></li>
+          <li><a href="#doc-security"><span class="mono">17</span> Security</a></li>
+          <li><a href="#doc-conformance"><span class="mono">18</span> Conformance</a></li>
+          <li><a href="#doc-vectors"><span class="mono">19</span> Test Vectors</a></li>
+          <li><a href="#doc-status"><span class="mono">20</span> Implementation Status</a></li>
+          <li><a href="#doc-libraries"><span class="mono">21</span> Multi-Language Libraries</a></li>
+          <li><a href="#doc-capabilities"><span class="mono">22</span> Library Capabilities</a></li>
+          <li><a href="#doc-container"><span class="mono">23</span> .vsn Container Format</a></li>
+          <li><a href="#doc-reconstruct"><span class="mono">24</span> Content Reconstruction</a></li>
+          <li><a href="#doc-vsatomic"><span class="mono">25</span> .vsn Atomicity</a></li>
+          <li><a href="#doc-concurrency"><span class="mono">26</span> Concurrency</a></li>
+          <li><a href="#doc-errors"><span class="mono">27</span> Library Error Contract</a></li>
+          <li><a href="#doc-streaming"><span class="mono">28</span> Streaming &amp; Text/Binary</a></li>
+          <li><a href="#doc-paths"><span class="mono">29</span> Paths &amp; Rename</a></li>
+          <li><a href="#doc-restoretable"><span class="mono">30</span> Restore Scopes</a></li>
+          <li><a href="#doc-interop"><span class="mono">31</span> Interop &amp; Versions</a></li>
+          <li><a href="#doc-retention"><span class="mono">32</span> Retention &amp; Compaction</a></li>
+          <li><a href="#doc-freeze"><span class="mono">33</span> Freeze Checklist</a></li>
+          <li><a href="#doc-glossary"><span class="mono">34</span> Glossary</a></li>
+        </ol>
+      </div>
+    </nav>
+    <section class="section" id="doc-overview" aria-labelledby="doc-overview-title">
+      <div class="container doc">
+        <p class="eyebrow">01 &middot; Overview</p>
+        <h2 id="doc-overview-title">Overview <span class="spec-tag">Specification</span></h2>
+        <p><strong>BinaryRevisionWithProtocol is an open protocol for immutable file revisions, transactional multi-file changes, diff, restore, and crash-safe workspace projection — without requiring Git.</strong></p>
+        <p>A Revision is one immutable state of one logical file. A RevisionSet groups revisions across one or more files into a reviewable logical transaction. FileHead points at the currently accepted revision. Workspace Projection materializes accepted state as ordinary files.</p>
+        <p>Git is not required and not replaced. Implementations can run standalone or coexist with Git or other source-control systems. <a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-architecture" aria-labelledby="doc-architecture-title">
+      <div class="container doc">
+        <p class="eyebrow">02 &middot; Architecture</p>
+        <h2 id="doc-architecture-title">Architecture <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">component flow</span></div>
+<pre class="mono tree"><code>Physical File
+     |
+     `-- .vsn Sidecar
+             |
+             v
+         Revision
+             |
+             v
+       RevisionSet
+             |
+             v
+          FileHead
+             |
+             v
+   Workspace Projection</code></pre></div>
+        <table>
+          <thead><tr><th>Entity</th><th>Responsibility</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Revision</td><td>Immutable state of one file.</td></tr>
+            <tr><td class="mono">RevisionSet</td><td>Logical transaction / change set.</td></tr>
+            <tr><td class="mono">ApplyTransaction</td><td>Physical projection and recovery transaction.</td></tr>
+            <tr><td class="mono">FileHead</td><td>Canonical accepted state pointer.</td></tr>
+            <tr><td>Workspace files</td><td>Materialized projection of accepted state.</td></tr>
+            <tr><td class="mono">DiffArtifact</td><td>Derived, disposable comparison.</td></tr>
+          </tbody>
+        </table>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    <section class="section" id="doc-vsn" aria-labelledby="doc-vsn-title">
+      <div class="container doc">
+        <p class="eyebrow">03 &middot; .vsn Sidecar</p>
+        <h2 id="doc-vsn-title">.vsn Sidecar <span class="spec-tag">Specification</span></h2>
+        <p><strong>.vsn is a companion sidecar file that travels with its logical file and carries its revision state/history and the information required to reconstruct or locate those revisions.</strong></p>
+        <p>Normative terms in this page follow RFC 2119: MUST / MUST NOT are absolute requirements, SHOULD / SHOULD NOT are strong recommendations with documented exceptions, and MAY marks truly optional behavior.</p>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">file-local sidecars</span></div>
+<pre class="mono tree"><code>project/
+`-- src/
+    |-- Program.cs
+    |-- Program.cs.vsn
+    |-- UserService.cs
+    `-- UserService.cs.vsn</code></pre></div>
+        <ul class="check-list">
+          <li>One logical file maps to one sidecar: <code class="inline-code">Program.cs</code> + <code class="inline-code">Program.cs.vsn</code>.</li>
+          <li>The sidecar carries FileId, revision history, revision metadata, accepted/head information, revision references, and references to content/revision data.</li>
+          <li>A valid sidecar MUST embed every byte required to reconstruct each retained Revision. External storage MAY exist for sync, cache, backup, or collaboration, but it MUST NOT be required for retained-revision reconstruction.</li>
+          <li><code class="inline-code">FileId</code> is authoritative identity. Filename is not identity.</li>
+          <li>Rename preserves FileId; move preserves FileId.</li>
+          <li>The <code class="inline-code">.vsn</code> file is not the protocol itself. It is one representation/storage mechanism for the protocol; other backends can exist.</li>
+          <li>Design goal: copy both files to another workspace and the revision history travels with them.</li>
+        </ul>
+        <table>
+          <thead><tr><th>Situation</th><th>Intended behavior</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Rename file</td><td>Same FileId, sidecar follows the logical file.</td><td>Specification</td></tr>
+            <tr><td>Move file</td><td>Same FileId, sidecar follows the logical file.</td><td>Specification</td></tr>
+            <tr><td>Copy both files</td><td>History travels with the pair.</td><td>Specification</td></tr>
+            <tr><td>Sidecar missing</td><td>Behavior not yet frozen; do not assume recovery.</td><td>Planned</td></tr>
+            <tr><td>Sidecar corrupted</td><td>Behavior not yet frozen; do not assume recovery.</td><td>Planned</td></tr>
+            <tr><td>Physical file deleted</td><td>Behavior not yet frozen.</td><td>Planned</td></tr>
+          </tbody>
+        </table>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-revision" aria-labelledby="doc-revision-title">
+      <div class="container doc">
+        <p class="eyebrow">04 &middot; Revision Model</p>
+        <h2 id="doc-revision-title">Revision Model <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">immutability</span></div>
+<pre class="mono tree"><code>Revision A
+    |
+    v
+Revision B
+    |
+    v
+Revision C</code></pre></div>
+        <ul class="check-list">
+          <li>A Revision is one immutable state of one logical file.</li>
+          <li>A committed Revision is never rewritten.</li>
+          <li>Revisions remain addressable according to retention policy; old revisions may be purged only under documented GC rules.</li>
+          <li>Restore creates new revision state based on an old revision; it never mutates the source revision.</li>
+          <li>Workspace files are projections; FileHead represents accepted state.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    <section class="section" id="doc-identity" aria-labelledby="doc-identity-title">
+      <div class="container doc">
+        <p class="eyebrow">05 &middot; File Identity</p>
+        <h2 id="doc-identity-title">File Identity <span class="spec-tag">Specification</span></h2>
+        <p><strong>FileId is the authoritative identity of a logical file.</strong> Identity is not inferred from path, filename, content hash, size, timestamp, similarity, or delete/create proximity.</p>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">rename preserves identity</span></div>
+<pre class="mono tree"><code>src/A.cs
+    |
+    v rename
+src/B.cs
+    FileId unchanged</code></pre></div>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">move preserves identity</span></div>
+<pre class="mono tree"><code>src/A.cs
+    |
+    v move
+tests/A.cs
+    FileId unchanged</code></pre></div>
+        <p>Deleting one file and creating another with identical bytes does not automatically make them the same logical file.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-revisionset" aria-labelledby="doc-revisionset-title">
+      <div class="container doc">
+        <p class="eyebrow">06 &middot; RevisionSet</p>
+        <h2 id="doc-revisionset-title">RevisionSet <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">public lifecycle</span></div>
+<pre class="mono tree"><code>DRAFT
+  |
+  v
+PENDING_REVIEW
+  |
+  v
+ACCEPTING
+  |
+  v
+ACCEPTED
+
+PENDING_REVIEW --&gt; REJECTED
+ACCEPTING -----&gt; CONFLICTED
+DRAFT ---------&gt; ABORTED</code></pre></div>
+        <p><code class="inline-code">SEALED</code> is not a public RevisionSet state. <code class="inline-code">RECOVERY_REQUIRED</code> is not a RevisionSet state; recovery belongs to ApplyTransaction. Sealing is an operation, not a state.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-content" aria-labelledby="doc-content-title">
+      <div class="container doc">
+        <p class="eyebrow">07 &middot; Content Model</p>
+        <h2 id="doc-content-title">Content Model <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">references</span></div>
+<pre class="mono tree"><code>Revision
+   |
+   `-- ContentRef
+          |
+          `-- Content Object / Storage</code></pre></div>
+        <ul class="check-list">
+          <li>ContentRef identifies raw logical bytes by SHA-256 and exact byte size.</li>
+          <li>Canonical form: <code class="inline-code">sha256:&lt;64 lowercase hexadecimal characters&gt;</code>.</li>
+          <li>Hash is computed over raw file bytes before compression, encryption, or storage transformations.</li>
+          <li>Binary-safe: arbitrary bytes are first-class. No newline or encoding normalization.</li>
+          <li>LF and CRLF remain distinct byte sequences; BOM remains content; invalid UTF-8 is not silently replaced.</li>
+          <li>ContentRef is authoritative for identity; DiffArtifact is derived.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    <section class="section" id="doc-diff" aria-labelledby="doc-diff-title">
+      <div class="container doc">
+        <p class="eyebrow">08 &middot; Diff</p>
+        <h2 id="doc-diff-title">Diff <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">derived comparison</span></div>
+<pre class="mono tree"><code>Revision A
+    |
+    +-- Compare --+
+    |             |
+    v             v
+Revision B --&gt; DiffArtifact</code></pre></div>
+        <ul class="check-list">
+          <li>DiffArtifact is derived, reproducible, and disposable. It is never canonical revision state.</li>
+          <li>Restore does not depend on DiffArtifact for reconstructing the source revision.</li>
+          <li>Exact diff modes are not frozen in this repository yet; document them only when implemented.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-restore" aria-labelledby="doc-restore-title">
+      <div class="container doc">
+        <p class="eyebrow">09 &middot; Restore</p>
+        <h2 id="doc-restore-title">Restore <span class="spec-tag">Specification</span></h2>
+        <ul class="check-list">
+          <li>Intended scopes: <code class="inline-code">CONTENT_ONLY</code>, <code class="inline-code">CONTENT_AND_PATH</code>, <code class="inline-code">FULL_STATE</code>.</li>
+          <li>Restore points at a source revision and creates new state; it never rewrites the source.</li>
+          <li>Restore reconstructs from revision content, not from DiffArtifact.</li>
+          <li>Scope/source matrix, ABSENT behavior, and failure rules are not frozen yet; no implementation found in this repository.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-apply" aria-labelledby="doc-apply-title">
+      <div class="container doc">
+        <p class="eyebrow">10 &middot; ApplyTransaction</p>
+        <h2 id="doc-apply-title">ApplyTransaction <span class="spec-tag">Specification</span></h2>
+        <p><strong>RevisionSet is the logical change transaction. ApplyTransaction is the physical workspace projection and recovery transaction.</strong></p>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">intended states</span></div>
+<pre class="mono tree"><code>PREPARING -&gt; PREPARED -&gt; PROJECTION_APPLYING -&gt; PROJECTION_APPLIED
+  -&gt; LOGICAL_COMMITTING -&gt; LOGICALLY_COMMITTED -&gt; FINALIZED
+ROLLING_BACK -&gt; ROLLED_BACK
+* -&gt; RECOVERY_REQUIRED (physical recovery only)</code></pre></div>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-recovery" aria-labelledby="doc-recovery-title">
+      <div class="container doc">
+        <p class="eyebrow">11 &middot; Crash Recovery</p>
+        <h2 id="doc-recovery-title">Crash Recovery <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">commit marker rule</span></div>
+<pre class="mono tree"><code>LogicalCommitMarker absent
+    -&gt; accepted state remains old
+    -&gt; rollback projection
+
+LogicalCommitMarker present
+    -&gt; accepted state is new
+    -&gt; roll forward projection
+    -&gt; finalize</code></pre></div>
+        <p><code class="inline-code">RECOVERY_REQUIRED</code> is a physical ApplyTransaction recovery state, not a RevisionSet state. It is not evidence that a RevisionSet was accepted or rejected.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-commit" aria-labelledby="doc-commit-title">
+      <div class="container doc">
+        <p class="eyebrow">12 &middot; Logical Commit</p>
+        <h2 id="doc-commit-title">Logical Commit <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">acceptance invariant</span></div>
+<pre class="mono tree"><code>RevisionSet = ACCEPTED
+        &lt;=&gt;
+Logical Commit exists</code></pre></div>
+        <p>Logical commit updates canonical accepted state (FileHeads, path index, WorkspaceVersion, LogicalCommitMarker, accept idempotency result). Physical projection finalization is separate cleanup.</p>
+        <p>Conflict path: <code class="inline-code">ACCEPTING -&gt; conflict -&gt; CONFLICTED</code>. No logical commit, FileHeads unchanged, partial projection rolled back.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-rcmp" aria-labelledby="doc-rcmp-title">
+      <div class="container doc">
+        <p class="eyebrow">13 &middot; Serialization / RCMP-1</p>
+        <h2 id="doc-rcmp-title">Serialization / RCMP-1 <span class="spec-tag">Planned</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">intended pipeline</span></div>
+<pre class="mono tree"><code>Semantic Record
+      |
+      v
+RCMP-1 Canonical Bytes
+      |
+      v
+Deterministic bytes
+      |
+      v
+SHA-256</code></pre></div>
+        <p>No RCMP-1 encoder, schema, or byte-level test vector was found in this repository. The intended rules (MessagePack arrays, deterministic ordering, UUID/hash/timestamp/UTF-8 encoding, no floating point in core records, extension maps with numeric keys) remain planned. No hexadecimal examples are included because none exist in the implementation.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    <section class="section" id="doc-digest" aria-labelledby="doc-digest-title">
+      <div class="container doc">
+        <p class="eyebrow">14 &middot; MembersDigest</p>
+        <h2 id="doc-digest-title">MembersDigest <span class="spec-tag">Planned</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">intended algorithm</span></div>
+<pre class="mono tree"><code>Members
+  |
+  v sort by Ordinal
+Require contiguous ordinals
+  |
+  v canonical RCMP-1 array
+SHA-256 -&gt; sha256:&lt;64 lowercase hex&gt;</code></pre></div>
+        <p>No implementation or test vector found; do not treat this as verified behavior yet.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-idempotency" aria-labelledby="doc-idempotency-title">
+      <div class="container doc">
+        <p class="eyebrow">15 &middot; Idempotency</p>
+        <h2 id="doc-idempotency-title">Idempotency <span class="spec-tag">Planned</span></h2>
+        <p>Intended key: <code class="inline-code">RevisionSetId + StageOperationId</code>. Retry, concurrent retry, reservation, request digest, result reuse, and orphaned-content handling are not verified against code in this repository.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-gc" aria-labelledby="doc-gc-title">
+      <div class="container doc">
+        <p class="eyebrow">16 &middot; Garbage Collection</p>
+        <h2 id="doc-gc-title">Garbage Collection <span class="spec-tag">Planned</span></h2>
+        <p><strong>Invariant:</strong> every retained or addressable Revision must remain fully reconstructable byte-for-byte.</p>
+        <p>No GC implementation, roots, leases, holds, grace periods, or purge ordering were found in this repository. Revision metadata reachability vs. content reachability is specified but not verified.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-security" aria-labelledby="doc-security-title">
+      <div class="container doc">
+        <p class="eyebrow">17 &middot; Security</p>
+        <h2 id="doc-security-title">Security <span class="spec-tag">Planned</span></h2>
+        <p>No path/filesystem enforcement code was found in this repository. Intended rules (workspace-relative paths, absolute-path and <code class="inline-code">..</code> rejection, NUL rejection, symlink/junction handling, TOCTOU protection) remain specification only.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    <section class="section" id="doc-conformance" aria-labelledby="doc-conformance-title">
+      <div class="container doc">
+        <p class="eyebrow">18 &middot; Conformance</p>
+        <h2 id="doc-conformance-title">Conformance <span class="spec-tag">Planned</span></h2>
+        <p>Intended levels (<code class="inline-code">CORE_V1</code>, <code class="inline-code">LOCAL_PROJECTION_V1</code>, <code class="inline-code">REMOTE_STORE_V1</code>, <code class="inline-code">ATOMIC_BATCH_VISIBILITY_V1</code>, <code class="inline-code">SPECIALIZED_DIFF_V1</code>) have no test harness in this repository. CORE_V1 cannot be claimed without mandatory test vectors.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-vectors" aria-labelledby="doc-vectors-title">
+      <div class="container doc">
+        <p class="eyebrow">19 &middot; Test Vectors</p>
+        <h2 id="doc-vectors-title">Test Vectors <span class="spec-tag">Not found</span></h2>
+        <p>No <code class="inline-code">TV-001</code>–<code class="inline-code">TV-030</code> vectors, canonical bytes, or hashes were found in this repository. This section will list purpose, input, expected output, bytes, hashes, and errors only after vectors land in code or tests. No values are invented here.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-status" aria-labelledby="doc-status-title">
+      <div class="container doc">
+        <p class="eyebrow">20 &middot; Implementation Status</p>
+        <h2 id="doc-status-title">Implementation Status</h2>
+        <p>Evidence base: repository root contains the static site (<code class="inline-code">index.html</code>, <code class="inline-code">docs.html</code>, <code class="inline-code">style.css</code>, <code class="inline-code">script.js</code>), an empty <code class="inline-code">README.md</code>, and an empty <code class="inline-code">Libraries/</code> directory. No protocol source, schemas, tests, or vectors found.</p>
+        <table>
+          <thead><tr><th>Component</th><th>Status</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">.vsn</td><td>Specification</td><td>Companion model defined; no storage code found.</td></tr>
+            <tr><td class="mono">Revision</td><td>Specification</td><td>Immutability defined; no code found.</td></tr>
+            <tr><td class="mono">RevisionSet</td><td>Specification</td><td>Lifecycle defined; no state machine found.</td></tr>
+            <tr><td class="mono">FileHead</td><td>Specification</td><td>Pointer model defined; no code found.</td></tr>
+            <tr><td class="mono">ContentRef</td><td>Specification</td><td>Hash form defined; no storage found.</td></tr>
+            <tr><td class="mono">DiffArtifact</td><td>Specification</td><td>Derived role defined; no diff code found.</td></tr>
+            <tr><td>Restore</td><td>Planned</td><td>Scopes intended; behavior not frozen.</td></tr>
+            <tr><td class="mono">ApplyTransaction</td><td>Specification</td><td>Physical transaction defined; no code found.</td></tr>
+            <tr><td>Recovery</td><td>Specification</td><td>Marker rule defined; no recovery code found.</td></tr>
+            <tr><td class="mono">RCMP-1</td><td>Planned</td><td>No encoder, schema, or vectors found.</td></tr>
+            <tr><td>Idempotency</td><td>Planned</td><td>Key shape intended; no code found.</td></tr>
+            <tr><td>GC</td><td>Planned</td><td>Invariant stated; no collector found.</td></tr>
+            <tr><td>Conformance</td><td>Planned</td><td>Levels named; no harness found.</td></tr>
+            <tr><td class="mono">C# Library</td><td>Planned</td><td>No C# source found in this repository.</td></tr>
+            <tr><td class="mono">Python Library</td><td>Planned</td><td>No Python source found in this repository.</td></tr>
+            <tr><td class="mono">Rust Library</td><td>Planned</td><td>No Rust source found in this repository.</td></tr>
+            <tr><td>JS / TS Library</td><td>Planned</td><td>No JS/TS source found in this repository.</td></tr>
+            <tr><td class="mono">Java Library</td><td>Planned</td><td>No Java source found in this repository.</td></tr>
+            <tr><td class="mono">Go Library</td><td>Planned</td><td>No Go source found in this repository.</td></tr>
+            <tr><td class="mono">C++ Library</td><td>Planned</td><td>No C++ source found in this repository.</td></tr>
+          </tbody>
+        </table>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-libraries" aria-labelledby="doc-libraries-title">
+      <div class="container doc">
+        <p class="eyebrow">21 &middot; Multi-Language Libraries</p>
+        <h2 id="doc-libraries-title">Multi-Language Libraries <span class="spec-tag">Planned</span></h2>
+        <p>The protocol is intentionally language-independent. Each library below is the same protocol, <code class="inline-code">.vsn</code> format, revision model, FileId rules, content representation, RCMP-1 encoding, MembersDigest, logical commit, and recovery semantics — implemented natively per language.</p>
+        <table>
+          <thead><tr><th>Library</th><th>Status</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>BinaryRevisionWithProtocol — C# Library</td><td>Planned</td><td>No source found.</td></tr>
+            <tr><td>BinaryRevisionWithProtocol — Python Library</td><td>Planned</td><td>No source found.</td></tr>
+            <tr><td>BinaryRevisionWithProtocol — Rust Library</td><td>Planned</td><td>No source found.</td></tr>
+            <tr><td>BinaryRevisionWithProtocol — JavaScript / TypeScript Library</td><td>Planned</td><td>No source found.</td></tr>
+            <tr><td>BinaryRevisionWithProtocol — Java Library</td><td>Planned</td><td>No source found.</td></tr>
+            <tr><td>BinaryRevisionWithProtocol — Go Library</td><td>Planned</td><td>No source found.</td></tr>
+            <tr><td>BinaryRevisionWithProtocol — C++ Library</td><td>Planned</td><td>No source found.</td></tr>
+          </tbody>
+        </table>
+        <p>Actual package names will be added only when libraries are published. Interoperability requires passing the same byte-level conformance vectors. No library may require Git or an external content store to open a <code class="inline-code">.vsn</code> and reconstruct retained revisions.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-capabilities" aria-labelledby="doc-capabilities-title">
+      <div class="container doc">
+        <p class="eyebrow">22 &middot; Library Capabilities</p>
+        <h2 id="doc-capabilities-title">Library Capabilities <span class="spec-tag">Specification</span></h2>
+        <p><strong>Every BinaryRevisionWithProtocol library operates on the same protocol semantics and the same <code class="inline-code">.vsn</code> representation. Different language implementations may expose idiomatic APIs, but they must produce equivalent protocol behavior.</strong></p>
+        <p><strong>A conforming library must be able to operate on a self-contained <code class="inline-code">.vsn</code> file without requiring Git, a database, a server, or an external revision/content store for retained revisions.</strong></p>
+        <h3 class="subhead">Self-contained .vsn</h3>
+        <p>The fundamental local model is <code class="inline-code">Program.cs</code> + <code class="inline-code">Program.cs.vsn</code>. The sidecar must contain all information and content required to reconstruct every retained Revision of its logical file.</p>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">self-contained sidecar</span></div>
+<pre class="mono tree"><code>              Program.cs.vsn
+                    |
+      +-------------+-------------+
+      |             |             |
+  File Identity  Revisions     Content
+      |             |             |
+      +-------------+-------------+
+                    |
+               Library API
+                    |
+      +-------------+--------------+
+      |             |              |
+   History        Diff          Restore</code></pre></div>
+        <p>A valid <code class="inline-code">.vsn</code> must not depend on Git, an external database, a remote revision server, or an external blob store for reconstruction of retained revisions.</p>
+        <h3 class="subhead">Capability categories</h3>
+        <h4>1. Open / Create / Verify</h4>
+        <p>Protocol-level capabilities equivalent to <code class="inline-code">CreateVsn</code>, <code class="inline-code">OpenVsn</code>, <code class="inline-code">VerifyVsn</code>: create a new sidecar, open an existing one, detect unsupported protocol versions, validate structure and required metadata, validate integrity, detect corruption, and safely reject malformed data.</p>
+        <h4>2. File Identity</h4>
+        <p>Capabilities equivalent to <code class="inline-code">GetFileIdentity</code>, <code class="inline-code">GetFileId</code>, <code class="inline-code">GetCurrentPath</code>: expose FileId and the current logical path. Identity is independent of filename and content hash, and preserved across rename (<code class="inline-code">src/A.cs</code> to <code class="inline-code">src/B.cs</code> keeps the same FileId) and move.</p>
+        <h4>3. Revision Management</h4>
+        <p>Capabilities equivalent to <code class="inline-code">CreateRevision</code>, <code class="inline-code">GetRevision</code>, <code class="inline-code">GetRevisionContent</code>, <code class="inline-code">GetRevisionMetadata</code>, <code class="inline-code">VerifyRevision</code>: create revisions, read content and metadata, verify integrity, and inspect parent revision, RevisionSet, actor, path, presence, change flags, and restore lineage. A committed Revision is immutable.</p>
+        <h4>4. Revision History</h4>
+        <p>Capabilities equivalent to <code class="inline-code">GetRevisionHistory</code>, <code class="inline-code">GetRevisionById</code>, <code class="inline-code">GetLatestRevision</code>, <code class="inline-code">GetHead</code>: navigate <code class="inline-code">R1 -&gt; R2 -&gt; R3 -&gt; R4</code> and inspect any retained revision without an external service.</p>
+        <h4>5. RevisionSet Management</h4>
+        <p>Capabilities equivalent to <code class="inline-code">BeginRevisionSet</code>, <code class="inline-code">StageRevision</code>, <code class="inline-code">SealRevisionSet</code>, <code class="inline-code">GetRevisionSet</code>, <code class="inline-code">AcceptRevisionSet</code>, <code class="inline-code">RejectRevisionSet</code>. A RevisionSet groups multiple file revisions into one logical change set; each member identifies a FileId with BaseRevisionId (expected prior state) and TargetRevisionId (proposed state); MembersDigest gives deterministic membership integrity; acceptance is all-or-nothing. Public states: DRAFT, PENDING_REVIEW, ACCEPTING, ACCEPTED, REJECTED, CONFLICTED, ABORTED. No SEALED state; no RECOVERY_REQUIRED here.</p>
+        <h4>6. Diff</h4>
+        <p>Capabilities equivalent to <code class="inline-code">CompareRevisions</code>, <code class="inline-code">CreateDiff</code>, <code class="inline-code">GetDiff</code>: compare two revisions for content equality, presence, path, metadata, binary and text content. DiffArtifact is derived, not canonical; restore must never require a pre-generated DiffArtifact.</p>
+        <h4>7. Restore</h4>
+        <p>Capability equivalent to <code class="inline-code">RestoreRevision</code> with scopes <code class="inline-code">CONTENT_ONLY</code> (bytes only), <code class="inline-code">CONTENT_AND_PATH</code> (bytes plus logical path), and <code class="inline-code">FULL_STATE</code> (bytes, path, and metadata). The library reads the source revision directly from the sidecar, never rewrites it, creates new state where the protocol requires it, fails when a scope cannot be fulfilled, and never depends on DiffArtifact.</p>
+        <h4>8. File Operations</h4>
+        <p>Create (first revision for a FileId), Modify (new revision parented on the previous one), Rename (path change, FileId preserved), Move (parent change, FileId preserved), Delete (ABSENT tombstone revision, history kept), Restore (new state from an existing revision). Never infer rename from matching content.</p>
+        <h4>9. Integrity</h4>
+        <p>Capabilities equivalent to <code class="inline-code">VerifyContent</code>, <code class="inline-code">VerifyRevision</code>, <code class="inline-code">VerifyVsn</code>, <code class="inline-code">VerifyMembersDigest</code>, <code class="inline-code">VerifySerialization</code>. SHA-256 content identity is <code class="inline-code">sha256:&lt;64 lowercase hexadecimal characters&gt;</code>. Invariant: every retained or addressable Revision must remain fully reconstructable byte-for-byte.</p>
+        <h4>10. Transaction / Accept</h4>
+        <p>Capabilities equivalent to <code class="inline-code">AcceptRevisionSet</code> and <code class="inline-code">RejectRevisionSet</code>. The library separates Logical Commit from Workspace Projection. Invariant: RevisionSet = ACCEPTED if and only if a Logical Commit exists. Acceptance updates canonical accepted state atomically and never reports success without a logical commit.</p>
+        <h4>11. Crash Recovery</h4>
+        <p>Capabilities equivalent to <code class="inline-code">Recover</code>, <code class="inline-code">GetRecoveryState</code>, <code class="inline-code">VerifyProjection</code>, <code class="inline-code">Rollback</code>, <code class="inline-code">RollForward</code>. ApplyTransaction owns physical recovery: LogicalCommitMarker absent means old accepted state plus projection rollback; present means new accepted state plus roll-forward. RECOVERY_REQUIRED belongs only to ApplyTransaction. Recovery never guesses from timestamps or current file contents.</p>
+        <h4>12. Garbage Collection</h4>
+        <p>Capabilities equivalent to <code class="inline-code">GarbageCollect</code> and <code class="inline-code">Purge</code>. Before deleting content, the library must establish it is no longer required by any retained or addressable revision or active protocol root, preserving: Retained Revision implies Reconstructable Content.</p>
+        <h4>13. Serialization</h4>
+        <p>Capabilities equivalent to <code class="inline-code">Encode</code>, <code class="inline-code">Decode</code>, <code class="inline-code">CanonicalEncode</code>, <code class="inline-code">VerifyCanonicalEncoding</code>: decode valid records, reject malformed ones, emit deterministic canonical bytes, validate UUIDs, timestamps, hashes, and extension maps, reject duplicate extension keys, and separate unknown optional from required extensions.</p>
+        <h4>14. Conformance</h4>
+        <p>Capabilities equivalent to <code class="inline-code">RunConformanceTests</code> and <code class="inline-code">VerifyTestVector</code> against shared semantic vectors: RCMP-1 bytes, content hashes, MembersDigest, revision and RevisionSet behavior, restore, recovery, idempotency, and path security. No library defines its own protocol interpretation.</p>
+        <h3 class="subhead">Language-neutral capability matrix</h3>
+        <table>
+          <thead><tr><th>Capability</th><th>Protocol Requirement</th></tr></thead>
+          <tbody>
+            <tr><td>Create .vsn</td><td>Required</td></tr>
+            <tr><td>Open .vsn</td><td>Required</td></tr>
+            <tr><td>Verify .vsn</td><td>Required</td></tr>
+            <tr><td>FileId</td><td>Required</td></tr>
+            <tr><td>Revision creation</td><td>Required</td></tr>
+            <tr><td>Revision history</td><td>Required</td></tr>
+            <tr><td>Revision content reconstruction</td><td>Required</td></tr>
+            <tr><td>RevisionSet</td><td>Required</td></tr>
+            <tr><td>Diff</td><td>Required</td></tr>
+            <tr><td>Restore</td><td>Required</td></tr>
+            <tr><td>Rename / Move</td><td>Required</td></tr>
+            <tr><td>Delete / Tombstone</td><td>Required</td></tr>
+            <tr><td>Integrity verification</td><td>Required</td></tr>
+            <tr><td>Accept / Reject</td><td>Required</td></tr>
+            <tr><td>Crash recovery</td><td>Required</td></tr>
+            <tr><td>RCMP-1</td><td>Required where applicable</td></tr>
+            <tr><td>Garbage collection</td><td>Required for implementations owning storage</td></tr>
+            <tr><td>Conformance vectors</td><td>Required</td></tr>
+          </tbody>
+        </table>
+        <p>Exact API surface may vary by language.</p>
+        <h3 class="subhead">Language API principle</h3>
+        <p><strong>The protocol defines semantics, not programming-language method names.</strong> For example, <code class="inline-code">GetRevisionContent</code> may surface as streams, byte iterators, readers, promises, or spans depending on the language. Those idiomatic mappings are not frozen here; language libraries will be designed after this contract is frozen.</p>
+        <h3 class="subhead">Self-contained library requirement</h3>
+        <p><strong>A library MUST be able to open a valid <code class="inline-code">.vsn</code> and reconstruct every retained Revision using the <code class="inline-code">.vsn</code> itself, without requiring Git, a database, a server, or an external content store.</strong> The sidecar carries metadata, revision history, content, integrity, and protocol information sufficient for that file. External services may support sync, indexing, collaboration, or backup, but never reconstruction of retained revisions.</p>
+        <h3 class="subhead">Future language libraries</h3>
+        <p>Intended native implementations: C#, Python, Rust, JavaScript / TypeScript, Java, Go, C++. Each is Planned based on actual repository status — no library source exists yet, and no language API is frozen by this page.</p>
+        <h3 class="subhead">Protocol, representation, library, application</h3>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">layering</span></div>
+<pre class="mono tree"><code>Protocol -- defines semantics
+.vsn -- self-contained file representation
+Library -- implements protocol and .vsn
+Application -- uses the library</code></pre></div>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-container" aria-labelledby="doc-container-title">
+      <div class="container doc">
+        <p class="eyebrow">23 &middot; .vsn Container Format</p>
+        <h2 id="doc-container-title">.vsn Container Format <span class="spec-tag">To be frozen</span></h2>
+        <p>No physical <code class="inline-code">.vsn</code> binary layout was found in this repository. The required container architecture below is normative as structure; exact byte order, offsets, and record tags are <strong>not yet frozen</strong> and MUST NOT be invented by independent implementations.</p>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">required container areas</span></div>
+<pre class="mono tree"><code>.vsn
+|-- Header
+|-- Protocol / Format information
+|-- File identity
+|-- Revision metadata
+|-- Revision index / lookup information
+|-- Embedded content records
+|-- Integrity information
+`-- Extension / future compatibility area</code></pre></div>
+        <ul class="check-list">
+          <li>A reader MUST reject a sidecar whose protocol/format version it does not support.</li>
+          <li>ContentRef carries content identity (SHA-256 of raw bytes plus exact size). Container location of the embedded bytes is a representation concern and MUST NOT be conflated with identity unless a frozen format says otherwise.</li>
+          <li>Same content MUST yield the same content identity. Whether identical bytes share one physical record is implementation-defined, but every retained Revision MUST stay independently reconstructable.</li>
+        </ul>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-reconstruct" aria-labelledby="doc-reconstruct-title">
+      <div class="container doc">
+        <p class="eyebrow">24 &middot; Content Reconstruction</p>
+        <h2 id="doc-reconstruct-title">Content Reconstruction <span class="spec-tag">Specification</span></h2>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">reconstruction path</span></div>
+<pre class="mono tree"><code>RevisionId -&gt; Revision -&gt; ContentRef
+  -&gt; Embedded Content -&gt; Raw bytes</code></pre></div>
+        <p><strong>A valid retained Revision MUST be reconstructable byte-for-byte from its logical file's <code class="inline-code">.vsn</code> without Git, a database, a server, or an external content store.</strong> Raw bytes are authoritative: no newline, encoding, BOM, or Unicode normalization; no text conversion; binary content is first-class; zero-length files are valid; invalid UTF-8 is valid binary content; LF and CRLF are distinct sequences. The content hash MUST be computed over the exact raw bytes.</p>
+        <p>Lifecycle: create content, associate it with a Revision, retain it while any retained or addressable revision or active protocol root needs it, then purge only after reachability analysis. A Revision record MUST NOT remain addressable after its required content is permanently deleted, and content MUST NOT be physically deleted while still required.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-vsatomic" aria-labelledby="doc-vsatomic-title">
+      <div class="container doc">
+        <p class="eyebrow">25 &middot; .vsn Atomicity</p>
+        <h2 id="doc-vsatomic-title">.vsn Write Atomicity and Crash Recovery <span class="spec-tag">To be frozen</span></h2>
+        <p>No physical commit mechanism (append-only log, atomic rewrite, journal, generation counter, or commit marker) was found in this repository. The observable guarantee is normative: a library MUST NOT expose a partially committed <code class="inline-code">.vsn</code> state as valid, and <code class="inline-code">OpenVsn</code> after an interrupted write MUST surface either the old valid state or a detected-incomplete error — never silent corruption. Whether the frozen format is append-only, atomically rewritten, journaled, or generation-numbered is not yet frozen. This is separate from ApplyTransaction recovery, which protects workspace projection rather than the container itself.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-concurrency" aria-labelledby="doc-concurrency-title">
+      <div class="container doc">
+        <p class="eyebrow">26 &middot; Concurrency</p>
+        <h2 id="doc-concurrency-title">Concurrency <span class="spec-tag">To be frozen</span></h2>
+        <p>Semantic guarantees required: multiple readers MUST be safe; a writer MUST NOT silently overwrite another writer's committed revision state. A commit based on a stale head MUST fail with a conflict or stale-state error rather than silently winning. Expected-head or version checking MUST back Stage and Accept paths once frozen. Locking mechanics, stale-lock handling, crash-while-holding-a-lock behavior, and whether locking is mandatory or optimistic concurrency is allowed are not yet frozen; implementations MUST document their mechanism without changing these guarantees.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-errors" aria-labelledby="doc-errors-title">
+      <div class="container doc">
+        <p class="eyebrow">27 &middot; Library Error Contract</p>
+        <h2 id="doc-errors-title">Library Error Contract <span class="spec-tag">Specification</span></h2>
+        <p>No <code class="inline-code">ProtocolError</code> type or error catalog was found in this repository, so the categories below are the required semantic contract for libraries to map onto once the protocol error set freezes. Semantic identity MUST stay interoperable even though surface syntax varies per language (exceptions, results, error values).</p>
+        <table>
+          <thead><tr><th>Error</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">INVALID_PROTOCOL_VERSION</td><td>Sidecar or record version not supported.</td></tr>
+            <tr><td class="mono">INVALID_RECORD</td><td>Malformed record or structure.</td></tr>
+            <tr><td class="mono">CORRUPT_VSN</td><td>Container fails integrity checks.</td></tr>
+            <tr><td class="mono">REVISION_NOT_FOUND</td><td>Requested revision is not retained.</td></tr>
+            <tr><td class="mono">REVISION_SET_NOT_FOUND</td><td>Requested set does not exist.</td></tr>
+            <tr><td class="mono">FILE_ID_MISMATCH</td><td>Sidecar identity does not match the logical file.</td></tr>
+            <tr><td class="mono">INVALID_REVISION_SET_STATE</td><td>Operation illegal in the current set state.</td></tr>
+            <tr><td class="mono">CONFLICT</td><td>Stale head or competing accept.</td></tr>
+            <tr><td class="mono">INVALID_RESTORE_SCOPE</td><td>Scope cannot be fulfilled from the source.</td></tr>
+            <tr><td class="mono">EXTERNAL_MODIFICATION_DETECTED</td><td>Workspace file changed outside the protocol.</td></tr>
+            <tr><td class="mono">SECURITY_VIOLATION</td><td>Path or filesystem rule rejected the operation.</td></tr>
+            <tr><td class="mono">UNSUPPORTED_CAPABILITY</td><td>Includes unknown required extensions.</td></tr>
+            <tr><td class="mono">NON_CANONICAL_ENCODING</td><td>Valid semantics but wrong canonical bytes.</td></tr>
+            <tr><td class="mono">IDEMPOTENCY_CONFLICT</td><td>Same idempotency key, incompatible request.</td></tr>
+          </tbody>
+        </table>
+        <p>Stage retry with the same RevisionSetId plus StageOperationId MUST NOT create duplicate logical revisions; Accept retry MUST NOT create a second logical commit or duplicate FileHeads and MUST return the same logical outcome.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-streaming" aria-labelledby="doc-streaming-title">
+      <div class="container doc">
+        <p class="eyebrow">28 &middot; Streaming &amp; Text/Binary</p>
+        <h2 id="doc-streaming-title">Streaming and Text/Binary Content <span class="spec-tag">Specification</span></h2>
+        <p>Protocol requirement: content is raw bytes, period. Content-touching operations SHOULD support streaming so correctness never depends on loading an entire file into memory; exact streaming APIs stay language-idiomatic and unfrozen. UTF-8 validity alone never classifies content as text, invalid UTF-8 is valid binary, binary data MUST NOT be modified, text diff is optional, hashes run on raw bytes, and byte identity outranks textual interpretation. Newline normalization MUST NOT be part of the protocol.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-paths" aria-labelledby="doc-paths-title">
+      <div class="container doc">
+        <p class="eyebrow">29 &middot; Paths &amp; Rename</p>
+        <h2 id="doc-paths-title">Filesystem Paths and Rename Semantics <span class="spec-tag">Specification</span></h2>
+        <p>Libraries MUST separate the logical protocol path in the sidecar from the host filesystem path. The sidecar MUST use protocol path rules on every OS. Rename and move mean: same FileId, new PathSnapshot, new Revision. Delete-A plus Create-B with identical bytes MUST NOT imply rename; rename needs authoritative identity, never hash, name, diff, timestamp, or timing similarity. OS separators, reserved names, case, Unicode, symlinks, junctions, mounts, and hard links MUST NOT change FileId semantics; absolute paths, <code class="inline-code">..</code>, and NUL stay rejected.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-restoretable" aria-labelledby="doc-restoretable-title">
+      <div class="container doc">
+        <p class="eyebrow">30 &middot; Restore Scopes</p>
+        <h2 id="doc-restoretable-title">Restore Scope Matrix <span class="spec-tag">Specification</span></h2>
+        <table>
+          <thead><tr><th>Scope</th><th>Content</th><th>Presence</th><th>Path</th><th>Metadata</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">CONTENT_ONLY</td><td>source</td><td>source</td><td>current</td><td>current</td></tr>
+            <tr><td class="mono">CONTENT_AND_PATH</td><td>source</td><td>source</td><td>source</td><td>current</td></tr>
+            <tr><td class="mono">FULL_STATE</td><td>source</td><td>source</td><td>source</td><td>source</td></tr>
+          </tbody>
+        </table>
+        <p>Restore reads the source revision directly and MUST NOT modify it or depend on DiffArtifact.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-interop" aria-labelledby="doc-interop-title">
+      <div class="container doc">
+        <p class="eyebrow">31 &middot; Interop &amp; Versions</p>
+        <h2 id="doc-interop-title">Cross-Language Interoperability and Versioning <span class="spec-tag">Specification</span></h2>
+        <p><strong>A <code class="inline-code">.vsn</code> from one conforming implementation MUST be readable by another supporting the same protocol version and required capabilities.</strong> This is a conformance requirement; no cross-language implementations exist in this repository yet.</p>
+        <p>Versions MUST NOT be conflated: ProtocolVersion, RecordVersion, format families, and library version are distinct, and a library release alone MUST NOT imply a format change. Same semantic object MUST yield same canonical RCMP-1 bytes and SHA-256 in every language; unknown optional extensions are skipped while unknown required ones surface UNSUPPORTED_CAPABILITY.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-retention" aria-labelledby="doc-retention-title">
+      <div class="container doc">
+        <p class="eyebrow">32 &middot; Retention &amp; Compaction</p>
+        <h2 id="doc-retention-title">Retention and Compaction <span class="spec-tag">Specification</span></h2>
+        <p>Retained and addressable revisions include FileHead targets, RevisionSet members, ApplyTransaction roots, staging leases, restore sources, retained DiffArtifacts, legal or audit holds, and active transactions. Compaction strategy is implementation-defined, but any compaction MUST preserve reconstructability and MUST replace the container atomically.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-freeze" aria-labelledby="doc-freeze-title">
+      <div class="container doc">
+        <p class="eyebrow">33 &middot; Freeze Checklist</p>
+        <h2 id="doc-freeze-title">Specification Freeze Checklist</h2>
+        <table>
+          <thead><tr><th>Area</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Protocol semantics</td><td>Frozen</td></tr>
+            <tr><td>Revision model</td><td>Frozen</td></tr>
+            <tr><td>RevisionSet model</td><td>Frozen</td></tr>
+            <tr><td>ApplyTransaction</td><td>Frozen</td></tr>
+            <tr><td>Recovery semantics</td><td>Frozen</td></tr>
+            <tr><td>Restore scopes</td><td>Frozen</td></tr>
+            <tr><td>Diff semantics</td><td>Frozen</td></tr>
+            <tr><td>RCMP-1</td><td>Frozen</td></tr>
+            <tr><td>MembersDigest</td><td>Frozen</td></tr>
+            <tr><td>Idempotency</td><td>Frozen</td></tr>
+            <tr><td>.vsn physical format</td><td>Review</td></tr>
+            <tr><td>Embedded content model</td><td>Review</td></tr>
+            <tr><td>.vsn atomicity</td><td>Review</td></tr>
+            <tr><td>Concurrency</td><td>Review</td></tr>
+            <tr><td>Error contract</td><td>Review</td></tr>
+            <tr><td>Streaming</td><td>Review</td></tr>
+            <tr><td>Filesystem semantics</td><td>Review</td></tr>
+            <tr><td>Capability negotiation</td><td>Review</td></tr>
+            <tr><td>Cross-language conformance</td><td>Review</td></tr>
+          </tbody>
+        </table>
+        <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">architectural boundary</span></div>
+<pre class="mono tree"><code>BinaryRevisionWithProtocol: semantics, identity,
+  revision, sets, diff, restore, tx, recovery
+  -&gt; .vsn: self-contained representation
+  -&gt; Libraries: C# / Python / Rust / TS / Java / Go / C++
+  -&gt; Applications use libraries</code></pre></div>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+    <section class="section" id="doc-glossary" aria-labelledby="doc-glossary-title">
+      <div class="container doc">
+        <p class="eyebrow">34 &middot; Glossary</p>
+        <h2 id="doc-glossary-title">Glossary</h2>
+        <dl class="grid concepts-grid">
+          <div><dt>File</dt><dd>Physical bytes in a workspace.</dd></div>
+          <div><dt>Logical File</dt><dd>Identity tracked by FileId across renames and moves.</dd></div>
+          <div><dt>FileId</dt><dd>Authoritative identity of a logical file.</dd></div>
+          <div><dt>Revision</dt><dd>One immutable state of one logical file.</dd></div>
+          <div><dt>RevisionId</dt><dd>Stable identifier of a Revision.</dd></div>
+          <div><dt>RevisionSet</dt><dd>Logical transaction grouping revisions for review and acceptance.</dd></div>
+          <div><dt>RevisionSetId</dt><dd>Stable identifier of a RevisionSet.</dd></div>
+          <div><dt>FileHead</dt><dd>Pointer to the currently accepted revision.</dd></div>
+          <div><dt>ContentRef</dt><dd>Stable reference to content bytes by hash and size.</dd></div>
+          <div><dt>ObjectRef</dt><dd>Reference to a stored content object.</dd></div>
+          <div><dt>DiffArtifact</dt><dd>Derived comparison between revisions.</dd></div>
+          <div><dt>ApplyTransaction</dt><dd>Physical projection and recovery transaction.</dd></div>
+          <div><dt>Logical Commit</dt><dd>Acceptance of a reviewed RevisionSet.</dd></div>
+          <div><dt>Workspace Projection</dt><dd>Materialized files rendered from accepted state.</dd></div>
+          <div><dt>.vsn</dt><dd>Self-contained file-local companion sidecar carrying the revision information, content, and references needed to reconstruct retained revisions.</dd></div>
+          <div><dt>RCMP-1</dt><dd>Planned canonical serialization format.</dd></div>
+          <div><dt>MembersDigest</dt><dd>Planned hash over canonically encoded RevisionSet members.</dd></div>
+        </dl>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <p class="footer-brand">BinaryRevisionWithProtocol</p>
+        <p class="muted">Open protocol for binary-safe file revisions.</p>
+      </div>
+      <div class="footer-links">
+        <a href="./index.html">Home</a>
+        <a href="./docs.html">Docs</a>
+        <a href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">&nearr;</span></a>
+      </div>
+      <p class="muted small">&copy; <span id="year">2026</span> BinaryRevisionWithProtocol. Specification in development.</p>
+    </div>
+  </footer>
+  <script src="./script.js" defer></script>
+</body>
+</html>

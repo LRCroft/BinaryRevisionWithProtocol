@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\CampMember\BinaryRevisionWithProtocol\Libraries\Cpp\</FILEPATH>
+      <FILENAME>test_vsn.cpp</FILENAME>
+      <LINE>51</LINE>
+      <COLUMN>12</COLUMN>
+    </SFA>
+    <DEFECTCODE>6262</DEFECTCODE>
+    <DESCRIPTION>Function uses '337776' bytes of stack.  Consider moving some data to heap.</DESCRIPTION>
+    <FUNCTION>test_bad_magic</FUNCTION>
+    <DECORATED>?test_bad_magic@@YAXXZ</DECORATED>
+    <FUNCLINE>51</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\CampMember\BinaryRevisionWithProtocol\Libraries\Cpp\</FILEPATH>
+      <FILENAME>test_vsn.cpp</FILENAME>
+      <LINE>69</LINE>
+      <COLUMN>12</COLUMN>
+    </SFA>
+    <DEFECTCODE>6262</DEFECTCODE>
+    <DESCRIPTION>Function uses '18196' bytes of stack.  Consider moving some data to heap.</DESCRIPTION>
+    <FUNCTION>test_tx_commit</FUNCTION>
+    <DECORATED>?test_tx_commit@@YAXXZ</DECORATED>
+    <FUNCLINE>69</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\CampMember\BinaryRevisionWithProtocol\Libraries\Cpp\</FILEPATH>
+      <FILENAME>test_vsn.cpp</FILENAME>
+      <LINE>76</LINE>
+      <COLUMN>12</COLUMN>
+    </SFA>
+    <DEFECTCODE>6262</DEFECTCODE>
+    <DESCRIPTION>Function uses '18196' bytes of stack.  Consider moving some data to heap.</DESCRIPTION>
+    <FUNCTION>test_tx_rollback</FUNCTION>
+    <DECORATED>?test_tx_rollback@@YAXXZ</DECORATED>
+    <FUNCLINE>76</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

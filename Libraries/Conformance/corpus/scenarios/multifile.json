@@ -1,0 +1,35 @@
+{
+  "acceptedGeneration": 3,
+  "files": [
+    {
+      "contentBase64": "AAH/AH8=",
+      "fileId": "05050505050505050505050505050505",
+      "headRevision": 1,
+      "objectSerial": 1,
+      "path": "bin.dat",
+      "repIdentity": 1,
+      "repVersion": 1
+    },
+    {
+      "contentBase64": "cGxhaW4gdGV4dA==",
+      "fileId": "06060606060606060606060606060606",
+      "headRevision": 2,
+      "objectSerial": 2,
+      "path": "text.txt",
+      "repIdentity": 1,
+      "repVersion": 1
+    },
+    {
+      "contentBase64": "",
+      "fileId": "07070707070707070707070707070707",
+      "headRevision": 3,
+      "objectSerial": 3,
+      "path": "empty.txt",
+      "repIdentity": 1,
+      "repVersion": 1
+    }
+  ],
+  "generation": 3,
+  "mode": 1,
+  "recoveryStatus": "RECOVERED"
+}

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Libraries &mdash; BinaryRevisionWithProtocol</title>
+    <meta name="description" content="VSN Library implementation and API capability reference: container, files, revisions, representations, recovery, validation, storage, and diagnostics." />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header" id="top">
+      <div class="container header-inner">
+        <a class="brand" href="./index.html" aria-label="BinaryRevisionWithProtocol home">
+          <span class="brand-mark" aria-hidden="true">&#9672;</span>
+          <span class="brand-text">BinaryRevisionWithProtocol</span>
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+          <span class="nav-toggle-bar" aria-hidden="true"></span>
+          <span class="nav-toggle-bar" aria-hidden="true"></span>
+          <span class="nav-toggle-bar" aria-hidden="true"></span>
+        </button>
+        <nav class="site-nav" id="site-nav" aria-label="Primary">
+          <ul>
+            <li><a href="./index.html#overview">Overview</a></li>
+            <li><a href="./index.html#protocol">Protocol</a></li>
+            <li><a href="./index.html#modes">Modes</a></li>
+            <li><a href="./index.html#vsn" class="mono">.vsn</a></li>
+            <li><a href="./libraries.html" aria-current="page">Libraries</a></li>
+            <li><a href="./docs.html">Docs</a></li>
+            <li><a href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">&nearr;</span></a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main id="main">
+      <section class="hero docs-hero" aria-labelledby="lib-title">
+        <div class="container">
+          <p class="eyebrow">BinaryRevisionWithProtocol &middot; Implementation Layer</p>
+          <h1 id="lib-title">Libraries</h1>
+          <p class="subtitle">VSN Library &mdash; Implementation and API Capability Reference</p>
+          <p class="lede">What a VSN Library can do with a <code class="inline-code">.vsn</code> file, and how each capability relates to the frozen VSN-1 architecture.</p>
+          <div class="code-card" role="img" aria-label="Protocol, library, and application layering">
+            <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">three layers</span></div>
+            <pre class="mono tree"><code>VSN-1
+  Defines canonical file / container semantics
+        |
+        v
+VSN Library
+  Implements VSN-1
+  Provides APIs, validation, recovery,
+  materialization, optimization and tooling
+        |
+        v
+Application
+  Consumes the Library</code></pre>
+          </div>
+          <p><strong>Library is not protocol.</strong> This page documents an implementation and API layer built <em>on top of</em> VSN-1. It is not part of the VSN-1 binary protocol specification and introduces no record type, field, or identifier. The normative specification remains authoritative.</p>
+        </div>
+      </section>
+      <section class="docs-toc" aria-labelledby="lib-toc-title">
+        <div class="container">
+          <h2 id="lib-toc-title">On this page</h2>
+          <ol>
+            <li><a href="#lib-intro"><span class="mono">01</span> Introduction</a></li>
+            <li><a href="#lib-languages"><span class="mono">02</span> Supported Languages</a></li>
+            <li><a href="#lib-architecture"><span class="mono">03</span> Architecture and layering</a></li>
+            <li><a href="#lib-container"><span class="mono">04</span> Container management</a></li>
+            <li><a href="#lib-files"><span class="mono">05</span> File management</a></li>
+            <li><a href="#lib-revisions"><span class="mono">06</span> Revision management</a></li>
+            <li><a href="#lib-content-objects"><span class="mono">07</span> Content and object management</a></li>
+            <li><a href="#lib-representations"><span class="mono">08</span> Representation management</a></li>
+            <li><a href="#lib-direct1-extents1"><span class="mono">09</span> DIRECT-1 and EXTENTS-1</a></li>
+            <li><a href="#lib-transactions"><span class="mono">10</span> Transactions and commit</a></li>
+            <li><a href="#lib-recovery"><span class="mono">11</span> Recovery</a></li>
+            <li><a href="#lib-validation"><span class="mono">12</span> Validation and verification</a></li>
+            <li><a href="#lib-diff"><span class="mono">13</span> Diff and comparison</a></li>
+            <li><a href="#lib-merge"><span class="mono">14</span> Merge</a></li>
+            <li><a href="#lib-checkout"><span class="mono">15</span> Checkout, snapshot, and restore</a></li>
+            <li><a href="#lib-import-export"><span class="mono">16</span> Import and export</a></li>
+            <li><a href="#lib-streaming"><span class="mono">17</span> Streaming and large files</a></li>
+            <li><a href="#lib-modern"><span class="mono">18</span> Modern mode</a></li>
+            <li><a href="#lib-enterprise"><span class="mono">19</span> Enterprise mode</a></li>
+            <li><a href="#lib-storage"><span class="mono">20</span> Storage optimization</a></li>
+            <li><a href="#lib-gc"><span class="mono">21</span> Garbage collection</a></li>
+            <li><a href="#lib-integrity"><span class="mono">22</span> Integrity and security</a></li>
+            <li><a href="#lib-forward-compat"><span class="mono">23</span> Forward compatibility</a></li>
+            <li><a href="#lib-concurrency"><span class="mono">24</span> Concurrency and transaction isolation</a></li>
+            <li><a href="#lib-limits"><span class="mono">25</span> Resource and safety limits</a></li>
+            <li><a href="#lib-rewrite"><span class="mono">26</span> Format-preserving rewrite</a></li>
+            <li><a href="#lib-multi-container"><span class="mono">27</span> Multi-container management</a></li>
+            <li><a href="#lib-capability-query"><span class="mono">28</span> Capability and compatibility queries</a></li>
+            <li><a href="#lib-diagnostics"><span class="mono">29</span> Diagnostics and developer APIs</a></li>
+            <li><a href="#lib-observability"><span class="mono">30</span> Progress and observability</a></li>
+            <li><a href="#lib-errors"><span class="mono">31</span> Error model</a></li>
+            <li><a href="#lib-matrix"><span class="mono">32</span> Capability matrix</a></li>
+            <li><a href="#lib-boundary"><span class="mono">33</span> Protocol and Library boundary</a></li>
+            <li><a href="#lib-status"><span class="mono">34</span> Implementation status</a></li>
+          </ol>
+        </div>
+      </section>
+      <section class="section" id="lib-intro" aria-labelledby="lib-intro-title">
+        <div class="container doc">
+          <p class="eyebrow">01</p>
+          <h2 id="lib-intro-title">Introduction</h2>
+          <p class="lede">This page is the implementation and API capability reference for the <strong>VSN Library</strong>. It describes what an implementation may do with a <code class="inline-code">.vsn</code> file and how each operation relates to the frozen VSN-1 architecture.</p>
+          <div class="doc-notice">This page is documentation of a <strong>Library/API layer that sits on top of VSN-1</strong>. It is not part of the VSN-1 binary protocol specification. It introduces no record type, no field, no identifier, and no requirement. Where it describes behaviour defined by the protocol, the normative specification is authoritative.</div>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-languages" aria-labelledby="lib-languages-title">
+        <div class="container doc">
+          <p class="eyebrow">02</p>
+          <h2 id="lib-languages-title">Supported Languages</h2>
+          <p class="section-lede">These are the <strong>31 language targets</strong> for the VSN Library API. Language support is a property of the <strong>implementation layer</strong>, not of the container format: every conforming binding targets the same API surface over the same <code class="inline-code">.vsn</code> semantics. The terms below describe the <em>intended</em> idiomatic shape of each binding, expressed in terminology natural to that language.</p>
+          <div class="doc-notice">This section is deliberately separate from representation support. A programming language is <strong>not</strong> a VSN representation, and a binding is <strong>not</strong> a different VSN format. All 31 targets read and write one format governed by one specification. Supported representations are <code class="inline-code">DIRECT-1</code> and <code class="inline-code">EXTENTS-1</code>, described in the Representation management section.</div>
+          <div class="grid libraries-grid">
+            <article><h3>C</h3><p class="muted">Native C library + C ABI</p><dl class="lang-detail"><dt>API surface</dt><dd>Handle-based container, file, revision, and object calls</dd><dt>Data &amp; streaming</dt><dd>Buffered and chunked I/O with bounded memory</dd><dt>Validation &amp; recovery</dt><dd>Verify and recover entry points</dd></dl><p><span class="spec-tag">Library-Complete</span></p></article>
+            <article><h3>C#</h3><p class="muted">.NET class library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Stream and async-enumerable I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover APIs</dd></dl><p><span class="spec-tag">Library-Complete</span></p></article>
+            <article><h3>C++</h3><p class="muted">Native C++ library</p><dl class="lang-detail"><dt>API surface</dt><dd>RAII container and object types</dd><dt>Data &amp; streaming</dt><dd>Stream and span-based I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover APIs</dd></dl><p><span class="spec-tag">Library-Complete</span></p></article>
+            <article><h3>Java</h3><p class="muted">Java library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Stream and channel I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover APIs</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Python</h3><p class="muted">Python package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Iterator and generator based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Library-Complete</span></p></article>
+            <article><h3>Rust</h3><p class="muted">Rust crate</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>std::io::Read and Write traits</dd><dt>Validation &amp; recovery</dt><dd>Result-based validate and recover</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Go</h3><p class="muted">Go package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>io.Reader and io.Writer based I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate levels and Recover APIs</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>JavaScript / TypeScript</h3><p class="muted">Node.js package with TypeScript types</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object classes</dd><dt>Data &amp; streaming</dt><dd>Stream and async-iterable I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover methods</dd></dl><p><span class="spec-tag">Library-Complete</span></p></article>
+            <article><h3>Julia</h3><p class="muted">Julia package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Channel and task based streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>R</h3><p class="muted">R package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object objects</dd><dt>Data &amp; streaming</dt><dd>Connection and stream based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Ada</h3><p class="muted">Ada library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object record types</dd><dt>Data &amp; streaming</dt><dd>Stream access and sequential I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover subprograms</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Kotlin</h3><p class="muted">Kotlin/JVM library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Coroutine flow and stream I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover APIs</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Swift</h3><p class="muted">Swift package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Async sequence and stream I/O</dd><dt>Validation &amp; recovery</dt><dd>Throwing validate and recover</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>D</h3><p class="muted">D library</p><dl class="lang-detail"><dt>API surface</dt><dd>Struct-based Container and File types</dd><dt>Data &amp; streaming</dt><dd>Range and iterator streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Zig</h3><p class="muted">Zig package</p><dl class="lang-detail"><dt>API surface</dt><dd>Struct-based Container and File types</dd><dt>Data &amp; streaming</dt><dd>Reader, writer, and allocator-aware I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Fortran</h3><p class="muted">Fortran module</p><dl class="lang-detail"><dt>API surface</dt><dd>Derived-type Container and File</dd><dt>Data &amp; streaming</dt><dd>Stream and array based I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover subroutines</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>COBOL</h3><p class="muted">COBOL program interface</p><dl class="lang-detail"><dt>API surface</dt><dd>Record-based Container and File layout</dd><dt>Data &amp; streaming</dt><dd>Sequential and indexed file access</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover verbs</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Objective-C</h3><p class="muted">Objective-C framework</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object classes</dd><dt>Data &amp; streaming</dt><dd>Stream-based I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover methods</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>PHP</h3><p class="muted">PHP package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object classes</dd><dt>Data &amp; streaming</dt><dd>Resource and generator based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover methods</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Ruby</h3><p class="muted">Ruby gem</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object classes</dd><dt>Data &amp; streaming</dt><dd>IO, Enumerable, and fiber streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover methods</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Dart</h3><p class="muted">Dart package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Stream and controller based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Scala</h3><p class="muted">Scala library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Lazy collection and stream I/O</dd><dt>Validation &amp; recovery</dt><dd>Total-function validate and recover</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Lua</h3><p class="muted">Lua module</p><dl class="lang-detail"><dt>API surface</dt><dd>Table-based Container and File bindings</dd><dt>Data &amp; streaming</dt><dd>File handle and coroutine streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Elixir</h3><p class="muted">Elixir package</p><dl class="lang-detail"><dt>API surface</dt><dd>Struct-based Container and File types</dd><dt>Data &amp; streaming</dt><dd>Stream and task based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Erlang</h3><p class="muted">Erlang application</p><dl class="lang-detail"><dt>API surface</dt><dd>Process-backed container and file types</dd><dt>Data &amp; streaming</dt><dd>Binary and list streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Haskell</h3><p class="muted">Haskell package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container and File operations as values</dd><dt>Data &amp; streaming</dt><dd>Lazy and strict byte-stream I/O</dd><dt>Validation &amp; recovery</dt><dd>Sum-based validate and recover</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>OCaml</h3><p class="muted">OCaml library</p><dl class="lang-detail"><dt>API surface</dt><dd>Module-based Container and File</dd><dt>Data &amp; streaming</dt><dd>Sequence and channel streaming</dd><dt>Validation &amp; recovery</dt><dd>Result-based validate and recover</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>F#</h3><p class="muted">.NET F# library</p><dl class="lang-detail"><dt>API surface</dt><dd>Discriminated-result API surface</dd><dt>Data &amp; streaming</dt><dd>Stream and task based I/O</dd><dt>Validation &amp; recovery</dt><dd>Result-based validate and recover</dd></dl><p><span class="spec-tag">Library-Complete</span></p></article>
+            <article><h3>Nim</h3><p class="muted">Nim library</p><dl class="lang-detail"><dt>API surface</dt><dd>Object-based Container and File types</dd><dt>Data &amp; streaming</dt><dd>Stream, async, and channel I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover procs</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Crystal</h3><p class="muted">Crystal shard</p><dl class="lang-detail"><dt>API surface</dt><dd>Container and File classes</dd><dt>Data &amp; streaming</dt><dd>IO, channel, and fiber streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover methods</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>Perl</h3><p class="muted">Perl distribution</p><dl class="lang-detail"><dt>API surface</dt><dd>Package-based Container and File classes</dd><dt>Data &amp; streaming</dt><dd>Filehandle and iterator streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover subs</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+          </div>
+          <p>Each binding targets the Library API surface documented in the following sections: open and create, read and write, file operations, revision operations, object operations, representation handling, validation, recovery, diff and comparison, import and export, storage management, and diagnostics. Those capabilities are documented once, below, rather than repeated per language.</p>
+          <p><strong>Status.</strong> Python, C#, JavaScript / TypeScript, C, C++, and F# are <strong>Library-Complete</strong> — each has a passing implementation of the full documented library API, frozen-vector protocol conformance, an executed LimitCleanUp history-retention probe, and byte-level cross-language interoperability. The remaining 25 targets are <em>Conformance Partial</em>: all PASS protocol conformance, library tests, and interoperability; LibraryAPI under verification. Command-line tools, workbenches, editor integrations, and diagnostic applications are separate from these language bindings and are not part of this list.</p>
+          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-architecture" aria-labelledby="lib-architecture-title">
+        <div class="container doc">
+          <p class="eyebrow">03</p>
+          <h2 id="lib-architecture-title">Architecture and layering</h2>
+          <p>VSN-1 and the VSN Library are distinct layers. The Library implements the protocol; it does not extend, redefine, or negotiate it.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">layering</span></div>
+            <pre class="mono tree"><code>VSN-1        = canonical file / container protocol
+VSN Library   = implementation + API layer operating on VSN-1
+Application   = consumer of the Library
+
+Library feature  !=  VSN canonical protocol rule</code></pre>
+          </div>
+          <p>A conforming Library MAY provide reading, writing, recovery, validation, revision management, content materialization, diff, merge, checkout, restore, storage optimization, indexing, caching, diagnostics, import and export, concurrency control, resource management, and multi-container management. These are Library capabilities, not parts of the format.</p>
+          <p>The Library MUST NOT cause canonical semantics to depend on anything outside VSN-1 canonical data. Canonical recovery MUST NOT require an index, a cache, a checkpoint, an external database, an external service, an undocumented implementation-private table, a revision outside the accepted state, or an algorithm unavailable to a conforming reader. Derived data MAY be deleted at any time and rebuilt from canonical state.</p>
+          <ul class="check-list">
+            <li>Library APIs are not VSN record types.</li>
+            <li>Library classes and methods are not protocol identifiers.</li>
+            <li>Library indexes and caches are not canonical state.</li>
+            <li>Library storage optimizations are not canonical semantics.</li>
+            <li>Library implementation details do not redefine VSN-1.</li>
+          </ul>
+          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-container" aria-labelledby="lib-container-title">
+        <div class="container doc">
+          <p class="eyebrow">04</p>
+          <h2 id="lib-container-title">Container management</h2>
+          <p>A Library MAY create a <code class="inline-code">.vsn</code>, open one, close it, read and write it, inspect container metadata, detect the Container Format Version, detect the Encoding Version, detect the VSN Mode, enumerate records, recover the accepted state, rewrite or repack where permitted, handle an incomplete tail safely, and preserve unknown data during rewrite.</p>
+          <p><strong>Open and recover are distinct.</strong> <em>Open</em> establishes access to the bytes of a container. <em>Recover</em> determines the accepted canonical state according to frozen CommitMarker semantics: the highest-Generation structurally complete and semantically valid marker. A Library MUST NOT infer accepted state from a heuristic such as the latest record, the largest Generation absent a valid marker, file length, a physical offset, a record position, the largest RevisionId, the largest ObjectSerial, an index, a checkpoint, or a cache.</p>
+          <p>Malformed, truncated, or incomplete data MUST be rejected safely rather than partially accepted. Reopening after an interrupted write recovers the previously accepted state and ignores the incomplete tail.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-files" aria-labelledby="lib-files-title">
+        <div class="container doc">
+          <p class="eyebrow">05</p>
+          <h2 id="lib-files-title">File management</h2>
+          <p>A Library MAY create, read, and modify a logical file; rename and move it; delete it; restore it; represent directories where applicable; and handle PathSnapshot state. It MAY enumerate logical files, find a file by <code class="inline-code">FileId</code> or by path, resolve a path to a <code class="inline-code">FileId</code> and a <code class="inline-code">FileId</code> to its current path, and determine whether a file is <code class="inline-code">PRESENT</code>, <code class="inline-code">DELETED</code>, or a <code class="inline-code">DIRECTORY</code>.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">rename / move</span></div>
+            <pre class="mono tree"><code>Rename / Move changes path state.
+It does not create a new FileId.</code></pre>
+          </div>
+          <p>A PathSnapshot describes path state and is not identity. The Library MUST NOT infer identity from a path or from a content hash. Deletion is expressed through the frozen revision semantics as a tombstone; it is not the physical erasure of historical identity, and a deleted file's identity and history remain intact. Recreating a file at a previously used path does not revive the old <code class="inline-code">FileId</code>.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-revisions" aria-labelledby="lib-revisions-title">
+        <div class="container doc">
+          <p class="eyebrow">06</p>
+          <h2 id="lib-revisions-title">Revision management</h2>
+          <p>A Library MAY create and read revisions, obtain revision history, traverse parent relationships, look up a revision, compare and reconstruct revisions, check out, restore as a new revision, obtain the head, and perform RevisionSet operations. It MAY list all revisions, list the history for a given <code class="inline-code">FileId</code>, traverse parents, find ancestors and a common ancestor, and detect divergent history.</p>
+          <p>A <code class="inline-code">RevisionId</code> is canonical identity. It is never derived from a hash or a physical location, is immutable and persistent, and is never reused. A revision is never edited in place: restoring an older state creates a new revision or a new accepted state rather than mutating historical revision data. Moving a <code class="inline-code">FileHead</code> changes which revision is current and changes no <code class="inline-code">RevisionId</code>. Revision reconstruction walks the frozen resolution chain:</p>
+          <div class="code-card">
+            <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">revision resolution</span></div>
+            <pre class="mono tree"><code>FileId
+  -&gt; RevisionId
+  -&gt; ContentRef
+  -&gt; ObjectSerial</code></pre>
+          </div>
+          <h3 class="subhead">History Retention &mdash; LimitCleanUp</h3>
+          <p><code class="inline-code">LimitCleanUp(fileId, N)</code> is a Library-level history-retention capability. It is <strong>not</strong> part of the VSN-1 wire protocol and introduces no new protocol RecordType, FieldId, representation, error identifier, or canonical binary semantic.</p>
+          <p><strong>Purpose.</strong> Retain exactly the newest N revisions for one specific <code class="inline-code">FileId</code> and remove all older revisions from the Library&rsquo;s accessible revision history. Per-file only: it MUST NOT affect other FileIds.</p>
+          <p><strong>Ordering.</strong> Filter revisions by FileId first, then order by ascending RevisionId. Because VSN-1 RevisionId values are permanently non-recyclable and the Revision record has no parent field, ascending RevisionId represents creation order.</p>
+          <p><strong>Limit rules.</strong> N &ge; 1 is valid. N = 0 is rejected using the existing frozen error <code class="inline-code">0x000C INVALID_CANONICAL_STATE</code>. Where the language supports signed values, negative values are rejected with the same error. C# uses <code class="inline-code">ulong</code>, so negative values are not representable at the API type level.</p>
+          <p><strong>FileHead.</strong> After cleanup, FileHead references the newest retained revision. It never dangles. If one revision remains, FileHead points to it. If no revisions were removed, FileHead remains unchanged.</p>
+          <p><strong>Deleted revisions.</strong> Removed revisions become genuinely unavailable: <code class="inline-code">get_revision()</code>, <code class="inline-code">checkout_revision()</code>, and <code class="inline-code">restore_revision()</code> raise the existing <code class="inline-code">0x0009</code> error. <code class="inline-code">get_object_serial(fileId, deletedRevision)</code> returns <code class="inline-code">None</code>/<code class="inline-code">null</code> and never returns a stale ObjectSerial.</p>
+          <p><strong>Object lifetime.</strong> <em>LimitCleanUp does NOT garbage-collect objects.</em> Removing a revision does not remove its ContentObject. Objects that remain physically present stay materializable. EXTENTS-1 COPY dependencies must not be broken. Canonical object garbage collection (Section 21) is a separate capability: <code class="inline-code">revision deletion &ne; object garbage collection</code>.</p>
+          <p><strong>Persistence and recovery.</strong> Mutates Library state, persisted through the normal commit mechanism. Recovery works from canonical state alone. Indexes and caches remain derived data.</p>
+          <p><strong>Transactions.</strong> Immediate Library mutation, not staged inside a Transaction. A prior LimitCleanUp is not undone by <code class="inline-code">rollback()</code>. <code class="inline-code">ExpectedRevisionId</code> remains a transaction precondition only and is never persisted.</p>
+          <p><strong>Idempotency.</strong> Repeated calls with the same N are idempotent; no additional revisions are removed.</p>
+          <p><strong>Monotonicity.</strong> <code class="inline-code">cleanup(file, 3)</code> then <code class="inline-code">cleanup(file, 5)</code> MUST NOT resurrect deleted history. <code class="inline-code">cleanup(file, 5)</code> then <code class="inline-code">cleanup(file, 3)</code> may remove additional older revisions. Deleted history never returns.</p>
+          <p><strong>APIs.</strong> Python: <code class="inline-code">limit_cleanup(file_id: bytes, limit: int) -&gt; list[int]</code> &middot; C#: <code class="inline-code">List&lt;ulong&gt; LimitCleanUp(byte[] fileId, ulong limit)</code> &middot; TypeScript: <code class="inline-code">number[] limitCleanup(fileId: Buffer, limit: number)</code>. All three implement the same semantic contract despite language-level type differences.</p>
+          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-content-objects" aria-labelledby="lib-content-objects-title">
+        <div class="container doc">
+          <p class="eyebrow">07</p>
+          <h2 id="lib-content-objects-title">Content and object management</h2>
+          <p>A Library MAY store and read canonical content, materialize content, resolve a <code class="inline-code">ContentRef</code>, read an object by <code class="inline-code">ObjectSerial</code>, verify a declared size, verify a content hash where one is present, resolve object dependencies, reconstruct an object, and validate the object graph. It MAY read an ObjectDescriptor, read representation identity and version, enumerate dependencies, detect missing or cyclic references, determine logical and encoded sizes, and compare two objects.</p>
+          <div class="doc-notice"><code class="inline-code">ObjectSerial</code> is identity. It is not a physical offset, and it is not a hash-derived identity.</div>
+          <p>Content hashes are verification and acceleration mechanisms, never identity. A hash match MUST NOT resolve canonical identity, and hash collision MUST NOT be treated as content equality. The hash domain remains the frozen logical-content domain: the hash covers logical content, not an object descriptor, container framing, or a representation payload. The Library MUST NOT redefine it.</p>
+          <p>Because <code class="inline-code">ObjectSerial</code> is container-scoped, it carries no meaning outside the container that assigns it. Compaction MAY move physical bytes without changing any <code class="inline-code">ObjectSerial</code>.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-representations" aria-labelledby="lib-representations-title">
+        <div class="container doc">
+          <p class="eyebrow">08</p>
+          <h2 id="lib-representations-title">Representation management</h2>
+          <p>A Library MAY read the Representation Identity and Representation Version, register a representation, detect support, handle an unsupported representation gracefully, reconstruct a representation, validate representation dependencies, and handle transforms. It MAY inspect a representation payload and validate dependency references.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">representation descriptors</span></div>
+            <pre class="mono tree"><code>ObjectDescriptor
+  |-- Representation Identity
+  |-- Representation Version
+  `-- complete object-specific payload
+
+RepresentationDescriptor
+  |-- Representation Identity
+  |-- Representation Version
+  `-- representation-level metadata</code></pre>
+          </div>
+          <p>A RepresentationDescriptor is a shared declaration, one per Representation Identity and Version, carrying only representation-level values: <code class="inline-code">0x0801</code> Representation Identity, <code class="inline-code">0x0802</code> Representation Version, and optional <code class="inline-code">0x0810</code> representation-level metadata. The ObjectDescriptor is the per-object structure.</p>
+          <div class="doc-notice">The RepresentationDescriptor does not contain per-object reconstruction data. The Library MUST NOT place an ObjectSerial, per-object operands, per-object source references, an EXTENTS operation program, <code class="inline-code">LITERAL</code> or <code class="inline-code">COPY</code> operations, or any object-specific reconstruction state in a RepresentationDescriptor, and MUST NOT treat <code class="inline-code">0x0810</code> as a hidden per-object store. Interpreting an object MUST NOT depend on locating a descriptor; descriptor absence is valid.</div>
+          <p><code class="inline-code">0x0502</code> belongs to the ObjectSection structure and is not a <code class="inline-code">ContentObject</code> field. A Library MUST NOT reinterpret it as a <code class="inline-code">ContentObject</code> record field.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-direct1-extents1" aria-labelledby="lib-direct1-extents1-title">
+        <div class="container doc">
+          <p class="eyebrow">09</p>
+          <h2 id="lib-direct1-extents1-title">DIRECT-1 and EXTENTS-1</h2>
+          <p>Every object payload begins with the universal DR-0 header: the object's own Representation Identity followed by its Representation Version. This header is unconditional and is not conditional on the representation. These are the two currently frozen core representations; the Library documents no others.</p>
+          <h3 class="subhead">DIRECT-1</h3>
+          <p>The Library identifies DIRECT-1, reads its object payload, materializes the logical bytes, and verifies the declared size. The payload is the DR-0 header followed by raw logical content.</p>
+          <h3 class="subhead">EXTENTS-1</h3>
+          <p>The Library identifies EXTENTS-1, parses its canonical operation collection, resolves <code class="inline-code">COPY</code> sources from canonical object content, processes <code class="inline-code">LITERAL</code> data, validates dependencies, detects invalid or cyclic dependencies, and materializes the logical content. The payload is the DR-0 header followed by the canonical operation collection.</p>
+          <p>A reader that does not support a representation still parses it correctly as an opaque, length-delimited payload, and reports it as unsupported rather than invalid.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-transactions" aria-labelledby="lib-transactions-title">
+        <div class="container doc">
+          <p class="eyebrow">10</p>
+          <h2 id="lib-transactions-title">Transactions and commit</h2>
+          <p>A Library MAY begin a transaction, stage changes, create revisions, create a RevisionSet, validate it, commit it, abort it, detect an incomplete transaction, and recover an interrupted commit.</p>
+          <div class="doc-notice">CommitMarker is the sole acceptance authority.</div>
+          <p>Library indexes, caches, timestamps, file length, record position, and the notion of a "latest record" must never replace CommitMarker semantics. A staged or complete-but-uncommitted state MUST NOT become visible as accepted canonical state, and an aborted transaction exposes no staged state through the accepted read path. Identity allocated before a failed commit remains permanently consumed, as frozen.</p>
+          <p><code class="inline-code">ExpectedRevisionId</code> MAY be used by the Library as a concurrency precondition for an optimistic update, but MUST NOT be persisted as canonical revision data.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-recovery" aria-labelledby="lib-recovery-title">
+        <div class="container doc">
+          <p class="eyebrow">11</p>
+          <h2 id="lib-recovery-title">Recovery</h2>
+          <p>A Library MAY open a damaged or incomplete container, scan canonical records, locate the effective CommitMarker, discard an incomplete tail, ignore uncommitted data, preserve the previously accepted state, detect malformed canonical state, rebuild derived indexes and caches, and recover without any external database or service.</p>
+          <p>Sequential scan is the normative recovery method. Indexes and checkpoints are acceleration only and are never an input to acceptance. Identity allocation that occurred before a failed commit remains consumed. A reader-local resource refusal is not canonical invalidity: refusing an expensive reconstruction reports a resource condition, and the same container remains canonically valid for a reader with sufficient resources.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">canonical recovery chain</span></div>
+            <pre class="mono tree"><code>.vsn bytes
+  -&gt; canonical structure
+  -&gt; canonical semantic state
+  -&gt; logical file state
+  -&gt; logical file bytes</code></pre>
+          </div>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-validation" aria-labelledby="lib-validation-title">
+        <div class="container doc">
+          <p class="eyebrow">12</p>
+          <h2 id="lib-validation-title">Validation and verification</h2>
+          <p>A Library MAY validate and verify at several distinct levels. These are Library API selection modes; they are not protocol record types and create no new protocol error identifiers.</p>
+          <table>
+            <thead><tr><th>Level</th><th>Scope</th></tr></thead>
+            <tbody>
+              <tr><td>Structural</td><td>Magic, version words, record and field framing, lengths, uvarint form, field ordering, truncation, malformed records.</td></tr>
+              <tr><td>Canonical</td><td>Canonical state structure, accepted state, reference completeness.</td></tr>
+              <tr><td>Semantic</td><td><code class="inline-code">FileId</code>, <code class="inline-code">RevisionId</code>, <code class="inline-code">ObjectSerial</code>, <code class="inline-code">ContentRef</code>, <code class="inline-code">FileHead</code>, presence rules, revision graph, representation agreement, descriptor agreement.</td></tr>
+              <tr><td>Integrity</td><td>Declared content size, hashes where present, reconstruction against recorded values.</td></tr>
+              <tr><td>Representation</td><td>Representation identity and version, payload framing, dependency validity and cycles.</td></tr>
+              <tr><td>Recovery</td><td>CommitMarker validity, Generation rules, accepted state, historical markers, incomplete tail handling.</td></tr>
+            </tbody>
+          </table>
+          <p>Verification covers framing, lengths, uvarint form, UUIDs, references, <code class="inline-code">ObjectSerial</code>, <code class="inline-code">RevisionId</code>, <code class="inline-code">FileId</code>, content size, representations and their dependencies, hashes, the CommitMarker, and canonical state. Verification unavailability is reported distinctly from a verification mismatch. Integrity verification is not identity.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-diff" aria-labelledby="lib-diff-title">
+        <div class="container doc">
+          <p class="eyebrow">13</p>
+          <h2 id="lib-diff-title">Diff and comparison</h2>
+          <p>A Library MAY compare file against file, revision against revision, revision against workspace state, workspace state against accepted state, and content against content. It MAY produce metadata and path diffs and analyse revision relationships.</p>
+          <p>A Library MAY diff at file level (created, deleted, modified, renamed, moved, unchanged), revision level (added, deleted, modified, renamed or moved, unchanged files), content level (byte, range, and logical comparison), object level (shared ObjectSerials, new ObjectSerials, changed representation, dependency differences), and metadata level (path, revision, head, representation metadata).</p>
+          <div class="doc-notice">Diff artifacts are derived and disposable. They are never canonical state and never a canonical recovery dependency.</div>
+          <p>Diff output is a Library-derived result. It does not redefine VSN identity.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-merge" aria-labelledby="lib-merge-title">
+        <div class="container doc">
+          <p class="eyebrow">14</p>
+          <h2 id="lib-merge-title">Merge</h2>
+          <p>Where the revision graph supports multiple parents, a Library MAY compare revisions, identify common ancestry, detect conflicting changes, produce merged logical content, report conflicts for resolution, and commit the result as a new revision preserving both parent <code class="inline-code">RevisionId</code>s. It MAY locate the merge base, perform a three-way merge, and validate the merged canonical state.</p>
+          <p>A merge always <strong>creates a new revision</strong>. It never modifies an existing one, and it does not redefine VSN revision semantics.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-checkout" aria-labelledby="lib-checkout-title">
+        <div class="container doc">
+          <p class="eyebrow">15</p>
+          <h2 id="lib-checkout-title">Checkout, snapshot, and restore</h2>
+          <p>A Library MAY check out a revision or a RevisionSet, restore a file, a revision, or workspace state, snapshot the accepted state, preview a restore, detect conflicts, and materialize safely.</p>
+          <p>Restoring content normally creates the appropriate new canonical state rather than mutating an immutable revision. Checkout and materialization are Library operations and change no historical revision.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-import-export" aria-labelledby="lib-import-export-title">
+        <div class="container doc">
+          <p class="eyebrow">16</p>
+          <h2 id="lib-import-export-title">Import and export</h2>
+          <p>A Library MAY import ordinary files, export revisions and snapshots, clone or copy containers, migrate compatible representations, verify exported content, and stream import and export. Any conversion MUST preserve the canonical semantics required by VSN-1.</p>
+          <p>Import MUST NOT synthesize identity from external content, and export MUST NOT discard canonical history that a destination model cannot express. External files, an external filesystem, and external databases are never required for canonical reconstruction of a <code class="inline-code">.vsn</code> container.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-streaming" aria-labelledby="lib-streaming-title">
+        <div class="container doc">
+          <p class="eyebrow">17</p>
+          <h2 id="lib-streaming-title">Streaming and large files</h2>
+          <p>A Library MAY provide streaming reads, streaming writes, incremental materialization, large-object handling, bounded-memory operation, and partial diagnostic inspection. Correctness MUST NOT depend on loading an entire container or an entire object into memory.</p>
+          <p>Streaming is an API and implementation concern. It does not alter canonical semantics, and a streamed read MUST produce the same logical bytes as a buffered read.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-modern" aria-labelledby="lib-modern-title">
+        <div class="container doc">
+          <p class="eyebrow">18</p>
+          <h2 id="lib-modern-title">Modern mode</h2>
+          <p>Modern (Vertical) mode MAY expose deduplication, content sharing, compression, chunking, delta and diff, patch-based representations, revision reuse, indexes, caches, storage optimization, and algorithmic reconstruction.</p>
+          <div class="doc-notice">These are implementation and storage strategies. Canonical recovery remains self-contained and deterministic under the frozen VSN rules.</div>
+          <p>No cache, index, checkpoint, external database, external service, or undocumented algorithm may become required canonical state, and no single future-unavailable algorithm may be mandatory for reading accepted state.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-enterprise" aria-labelledby="lib-enterprise-title">
+        <div class="container doc">
+          <p class="eyebrow">19</p>
+          <h2 id="lib-enterprise-title">Enterprise mode</h2>
+          <p>Enterprise (Horizontal) mode exposes the same logical feature set as Modern mode. The difference is the canonical content model, not the Library API surface.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">enterprise invariant</span></div>
+            <pre class="mono tree"><code>EDIT RESULT = FULL COPY</code></pre>
+          </div>
+          <p>The Library MUST preserve this invariant. Enterprise canonical content reconstruction MUST NOT require a previous revision, a delta, a patch, an edit script, a reconstruction chain, or a deduplication algorithm. The Library reads complete logical content, writes complete logical content, and creates a complete canonical content object. Modern optimizations MUST NOT leak into Enterprise semantics, and Enterprise mode is not merely a slower Modern mode.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-storage" aria-labelledby="lib-storage-title">
+        <div class="container doc">
+          <p class="eyebrow">20</p>
+          <h2 id="lib-storage-title">Storage optimization</h2>
+          <p>A Library MAY compact, repack, compress, optimize layout, share objects, deduplicate, rebuild indexes and caches, and report storage statistics.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">storage layers</span></div>
+            <pre class="mono tree"><code>Canonical data
+  !=
+Derived acceleration / storage structures</code></pre>
+          </div>
+          <p>Compaction MAY change physical layout but MUST NOT change canonical identity semantics. <code class="inline-code">ObjectSerial</code>, <code class="inline-code">RevisionId</code>, and <code class="inline-code">FileId</code> never become physical offsets. Storage reporting SHOULD distinguish canonical storage, derived storage, indexes, caches, checkpoints, and temporary workspace.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-gc" aria-labelledby="lib-gc-title">
+        <div class="container doc">
+          <p class="eyebrow">21</p>
+          <h2 id="lib-gc-title">Garbage collection</h2>
+          <p>A Library MAY identify unreachable objects, identify obsolete derived data, purge safely, compact storage, preserve retained revisions, and preserve canonical reconstruction.</p>
+          <div class="doc-notice">Garbage collection MUST NOT delete content still required by a retained or addressable revision.</div>
+          <p>The Library MUST NOT delete canonical data merely because a temporary cache or index does not reference it. Where a representation requires reconstruction from other canonical objects, those sources remain canonical data and are not collectable derived data.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-integrity" aria-labelledby="lib-integrity-title">
+        <div class="container doc">
+          <p class="eyebrow">22</p>
+          <h2 id="lib-integrity-title">Integrity and security</h2>
+          <p>A Library MAY verify hashes, verify sizes, detect corruption, handle malformed input, apply resource limits, guard against decompression and resource amplification, enforce path safety, materialize safely, and handle hostile containers.</p>
+          <div class="doc-notice">Hashes are verification and acceleration mechanisms, not identity.</div>
+          <p>Integrity verification confirms or denies that content matches a recorded value; it never substitutes for <code class="inline-code">FileId</code>, <code class="inline-code">RevisionId</code>, or <code class="inline-code">ObjectSerial</code>. This page defines no signature mechanism: cryptographic signatures are an extension question, not part of VSN-1. A Library MUST reject unsafe output paths during materialization and MUST treat a hostile container as invalid input rather than trusting declared sizes or lengths.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-forward-compat" aria-labelledby="lib-forward-compat-title">
+        <div class="container doc">
+          <p class="eyebrow">23</p>
+          <h2 id="lib-forward-compat-title">Forward compatibility</h2>
+          <p>A Library MAY handle unknown records, unknown fields, unknown extensions, unsupported representations, unsupported transforms, reserved values, and future versions. It skips an unknown field or record by its declared length and preserves it on rewrite where the frozen protocol requires preservation.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">independent capabilities</span></div>
+            <pre class="mono tree"><code>reading support   != writing support
+materialization  != safe rewrite / preservation
+preserving data  != semantically editing data</code></pre>
+          </div>
+          <p>A Library MUST distinguish <em>cannot interpret</em> from <em>data is invalid</em>: an unknown but well-formed record is a forward-compatibility situation, while a malformed one is an error. A Library may be able to preserve a structure it cannot semantically interpret, and MUST NOT silently delete data written by a newer implementation.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-concurrency" aria-labelledby="lib-concurrency-title">
+        <div class="container doc">
+          <p class="eyebrow">24</p>
+          <h2 id="lib-concurrency-title">Concurrency and transaction isolation</h2>
+          <p>A Library MAY admit multiple readers, hold an exclusive writer, use file locking, detect a concurrent writer, detect a stale writer, apply an <code class="inline-code">ExpectedRevisionId</code> precondition, provide transaction isolation, and support safe concurrent access. It MAY provide transaction-local state, a read snapshot, staged changes, atomic multi-file commit, conflict detection, commit retry, abort without exposing staged state, and crash-safe cleanup.</p>
+          <div class="doc-notice"><code class="inline-code">ExpectedRevisionId</code> is a protocol precondition and is never persisted as canonical data.</div>
+          <p>Concurrency control is Library and API behaviour. It introduces no VSN identity mechanism and does not alter acceptance, which remains with the CommitMarker alone. Uncommitted transaction state MUST NOT be presented as accepted VSN state.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-limits" aria-labelledby="lib-limits-title">
+        <div class="container doc">
+          <p class="eyebrow">25</p>
+          <h2 id="lib-limits-title">Resource and safety limits</h2>
+          <p>A Library MAY impose configurable controls: maximum object size, maximum reconstruction depth, maximum dependency count, maximum transaction size, maximum memory usage, maximum decompression expansion, execution time limits, and cancellation.</p>
+          <div class="doc-notice">A reader refusing a resource requirement is a Library decision. It does not mean the container is canonically invalid.</div>
+          <p>The same bytes remain recoverable by a reader with sufficient resources. Resource limits bound this implementation's work; they never redefine canonical validity.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-rewrite" aria-labelledby="lib-rewrite-title">
+        <div class="container doc">
+          <p class="eyebrow">26</p>
+          <h2 id="lib-rewrite-title">Format-preserving rewrite</h2>
+          <p>A Library MAY rewrite a <code class="inline-code">.vsn</code> while preserving canonical semantics, unknown fields, unknown records, extensions, identities, revisions, representations, and required compatibility information. Derived indexes and caches may be regenerated afterwards.</p>
+          <table>
+            <thead><tr><th>Rewrite mode</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td>PreserveCanonical</td><td>Rewrite while preserving canonical semantics exactly.</td></tr>
+              <tr><td>PreserveUnknownData</td><td>Additionally preserve data this Library does not understand where VSN-1 requires preservation.</td></tr>
+              <tr><td>Normalize</td><td>Produce an equivalent canonical representation according to the specification.</td></tr>
+              <tr><td>Compact</td><td>Change physical layout while preserving canonical semantics.</td></tr>
+            </tbody>
+          </table>
+          <p>No mode may change <code class="inline-code">FileId</code>, <code class="inline-code">RevisionId</code>, or <code class="inline-code">ObjectSerial</code> semantics, and none may remove canonical history or accepted state.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-multi-container" aria-labelledby="lib-multi-container-title">
+        <div class="container doc">
+          <p class="eyebrow">27</p>
+          <h2 id="lib-multi-container-title">Multi-container management</h2>
+          <p>A Library MAY open multiple <code class="inline-code">.vsn</code> containers, compare containers, copy revisions, synchronize or copy content, verify relationships, migrate content, and maintain library collections or catalogs. It MAY mount and unmount containers, discover them, query container metadata, and search across containers.</p>
+          <p>These are Library and application facilities, not new VSN protocol semantics. Because <code class="inline-code">ObjectSerial</code> is container-scoped, a cross-container operation MUST NOT assume that an <code class="inline-code">ObjectSerial</code> from one container identifies the same object in another; content is re-established through canonical content and identity allocation in the destination container.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-capability-query" aria-labelledby="lib-capability-query-title">
+        <div class="container doc">
+          <p class="eyebrow">28</p>
+          <h2 id="lib-capability-query-title">Capability and compatibility queries</h2>
+          <p>A Library MAY expose the supported VSN version, Encoding Version, modes, representations, representation versions, transforms, hash algorithms, extensions, and resource limits. It MAY answer, for a given container, whether it can read, recover, materialize, edit, write, or preserve unknown data.</p>
+          <div class="doc-notice">These queries report existing Library behaviour. They MUST NOT invent new protocol registry entries merely for API reporting.</div>
+          <p>The capabilities are independent: the ability to read a container does not imply the ability to rewrite it safely, the ability to identify a representation does not imply the ability to materialize it, and the ability to preserve unknown data does not imply the ability to edit it semantically.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-diagnostics" aria-labelledby="lib-diagnostics-title">
+        <div class="container doc">
+          <p class="eyebrow">29</p>
+          <h2 id="lib-diagnostics-title">Diagnostics and developer APIs</h2>
+          <p>A Library MAY inspect a container, a record, an object, the revision graph, the dependency graph, the recovery state, and a representation; explain a validation failure; support conformance testing and test-vector verification; and report statistics. It MAY offer explanatory operations for a recovery result, a revision, an object, a representation, a dependency graph, a validation failure, or a commit.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">diagnostic resolution chain</span></div>
+            <pre class="mono tree"><code>FileId
+  -&gt; RevisionId
+  -&gt; ContentRef
+  -&gt; ObjectSerial
+  -&gt; Representation
+  -&gt; ObjectDescriptor
+  -&gt; logical bytes</code></pre>
+          </div>
+          <p>These are diagnostic and implementation facilities. They MUST NOT become canonical recovery dependencies. Diagnostic information is derived information and is not canonical identity; a diagnostic byte offset is a diagnostic location only and never participates in canonical resolution.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-observability" aria-labelledby="lib-observability-title">
+        <div class="container doc">
+          <p class="eyebrow">30</p>
+          <h2 id="lib-observability-title">Progress and observability</h2>
+          <p>A Library MAY provide progress reporting, cancellation, operation IDs, structured diagnostics, telemetry hooks, timing, storage statistics, reconstruction statistics, and validation reports.</p>
+          <div class="doc-notice">Telemetry is not part of canonical <code class="inline-code">.vsn</code> semantics and MUST NOT affect canonical state.</div>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-errors" aria-labelledby="lib-errors-title">
+        <div class="container doc">
+          <p class="eyebrow">31</p>
+          <h2 id="lib-errors-title">Error model</h2>
+          <p>A Library API SHOULD return structured errors rather than free-form text alone, corresponding to the frozen VSN error model. A diagnostic record MAY carry an error code, a severity, the record type and field identifier involved, the <code class="inline-code">FileId</code>, <code class="inline-code">RevisionId</code>, <code class="inline-code">ObjectSerial</code>, and <code class="inline-code">Generation</code> in scope, a byte offset, the representation, a description, and an underlying cause.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">error distinctions</span></div>
+            <pre class="mono tree"><code>TRUNCATION
+MALFORMED_CONTAINER
+INVALID_CANONICAL_STATE
+MISSING_CANONICAL_DATA
+UNSUPPORTED_REPRESENTATION
+UNSUPPORTED_TRANSFORM
+VERIFICATION_UNAVAILABLE
+VERIFICATION_MISMATCH
+RESOURCE_REFUSAL</code></pre>
+          </div>
+          <p>A byte offset is a diagnostic location only; it is not identity. The Library MUST NOT add new protocol error identifiers for API convenience. Adding protocol error identifiers would require reopening the specification, which this page does not do.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-matrix" aria-labelledby="lib-matrix-title">
+        <div class="container doc">
+          <p class="eyebrow">32</p>
+          <h2 id="lib-matrix-title">Capability matrix</h2>
+          <p>The table below is the <strong>Library contract</strong> — the normative capability set that every conforming implementation must satisfy. Python, C#, JavaScript / TypeScript, C, C++, and F# are <strong>Library-Complete</strong> against this contract; the remaining 25 targets are <em>Conformance Partial</em>.</p>
+          <table>
+            <thead><tr><th>Capability</th><th>Library contract</th></tr></thead>
+            <tbody>
+              <tr><td>Create .vsn</td><td>Intended capability</td></tr>
+              <tr><td>Open .vsn</td><td>Intended capability</td></tr>
+              <tr><td>Read .vsn</td><td>Intended capability</td></tr>
+              <tr><td>Write .vsn</td><td>Intended capability</td></tr>
+              <tr><td>Recover</td><td>Intended capability</td></tr>
+              <tr><td>Create File</td><td>Intended capability</td></tr>
+              <tr><td>Modify File</td><td>Intended capability</td></tr>
+              <tr><td>Rename / Move</td><td>Intended capability</td></tr>
+              <tr><td>Delete</td><td>Intended capability</td></tr>
+              <tr><td>Restore</td><td>Intended capability</td></tr>
+              <tr><td>Revision History</td><td>Intended capability</td></tr>
+              <tr><td>Revision Reconstruction</td><td>Intended capability</td></tr>
+              <tr><td>LimitCleanUp (history retention)</td><td>Library capability &mdash; retain newest N per FileId; non-GC; implemented in Python, C#, TypeScript</td></tr>
+              <tr><td>Diff</td><td>Intended capability</td></tr>
+              <tr><td>Merge</td><td>Intended capability</td></tr>
+              <tr><td>Checkout</td><td>Intended capability</td></tr>
+              <tr><td>DIRECT-1</td><td>Intended representation</td></tr>
+              <tr><td>EXTENTS-1</td><td>Intended representation</td></tr>
+              <tr><td>Validation</td><td>Intended capability</td></tr>
+              <tr><td>Integrity Verification</td><td>Intended capability</td></tr>
+              <tr><td>Garbage Collection</td><td>Intended capability</td></tr>
+              <tr><td>Compaction</td><td>Intended capability</td></tr>
+              <tr><td>Forward Compatibility</td><td>Intended capability</td></tr>
+              <tr><td>Concurrency</td><td>Library facility</td></tr>
+              <tr><td>Diagnostics</td><td>Library facility</td></tr>
+              <tr><td>Observability</td><td>Library facility</td></tr>
+            </tbody>
+          </table>
+          <p>Every row is a <strong>contract requirement</strong> or a <strong>Library facility</strong>. Python, C#, and JavaScript / TypeScript pass executable conformance gates for all rows above; the remaining 25 targets are <em>Conformance Partial</em>.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-boundary" aria-labelledby="lib-boundary-title">
+        <div class="container doc">
+          <p class="eyebrow">33</p>
+          <h2 id="lib-boundary-title">Protocol and Library boundary</h2>
+          <p>The boundary between VSN-1 and the VSN Library is explicit. <em>Canonical dependency</em> states what a capability relies on to obtain canonical truth.</p>
+          <table>
+            <thead><tr><th>Capability</th><th>Library responsibility</th><th>Canonical VSN dependency</th><th>Derived / operational status</th></tr></thead>
+            <tbody>
+              <tr><td>Recovery</td><td>Scan, locate the effective marker, present the accepted state</td><td>CommitMarker and preceding canonical data only</td><td>Canonical; index and checkpoint are optional acceleration</td></tr>
+              <tr><td>Revision history</td><td>Traverse, list, and present revisions and heads</td><td>Revision records and FileHead</td><td>Canonical data; traversal is a view</td></tr>
+              <tr><td>LimitCleanUp</td><td>Remove oldest revisions per FileId, retaining newest N</td><td>Mutates canonical revision set; FileHead updated</td><td>Library operation; object GC is separate</td></tr>
+              <tr><td>Diff</td><td>Compute and present comparisons</td><td>None; reads canonical content</td><td>Fully derived and disposable</td></tr>
+              <tr><td>Merge</td><td>Compute a merge and create a new revision</td><td>Writes new canonical revision data</td><td>Derived computation, canonical result</td></tr>
+              <tr><td>Index</td><td>Build and query for speed</td><td>Must be rebuildable from canonical state</td><td>Derived acceleration</td></tr>
+              <tr><td>Cache</td><td>Hold recently used decoded data</td><td>Must be discardable at any time</td><td>Derived acceleration</td></tr>
+              <tr><td>Checkpoint</td><td>Record progress for faster restart</td><td>Must never determine acceptance</td><td>Derived acceleration</td></tr>
+              <tr><td>Compression</td><td>Store content compactly</td><td>Logical content unchanged</td><td>Storage optimization</td></tr>
+              <tr><td>Deduplication</td><td>Share canonical objects</td><td>Shares objects by ObjectSerial, not by hash</td><td>Storage optimization</td></tr>
+              <tr><td>Compaction</td><td>Repack bytes and reclaim space</td><td>Must preserve identity semantics and references</td><td>Storage optimization</td></tr>
+              <tr><td>Diagnostics</td><td>Explain structure and failures</td><td>None; observes canonical data</td><td>Derived reporting</td></tr>
+              <tr><td>Resource limits</td><td>Bound work, memory, and time</td><td>None; refusal is not canonical invalidity</td><td>Operational policy</td></tr>
+              <tr><td>Locking</td><td>Serialize writers and admit readers</td><td>None; acceptance is the CommitMarker</td><td>Operational policy</td></tr>
+            </tbody>
+          </table>
+          <p>Nothing on this page alters VSN-1. The canonical semantics of identity, framing, representation, recovery, and error reporting remain exactly as specified in the normative specification.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+      <section class="section" id="lib-status" aria-labelledby="lib-status-title">
+        <div class="container doc">
+          <p class="eyebrow">34</p>
+          <h2 id="lib-status-title">Implementation status</h2>
+          <div class="doc-notice">Six of 31 targets (Python, C#, JavaScript/TypeScript, C, C++, F#) are <strong>Library-Complete</strong> with full library API and all conformance gates passing. The remaining 25 targets are <em>Conformance Partial</em>: all PASS protocol conformance, library tests, and interoperability; LibraryAPI under verification.</div>
+          <h3>Shared conformance corpus</h3>
+          <p>Every target is judged by one shared corpus rather than by each language's own idea of what to test. The corpus is generated once from the frozen Python reference and committed as static data, so conformance is reproducible byte-for-byte and does not depend on which host runs it.</p>
+          <p>Each language supplies one probe program. The shared runner invokes it with the same five subcommands and aggregates the results:</p>
+          <dl class="lang-detail">
+            <dt>Frozen protocol vectors</dt>
+            <dd>All five frozen vectors are checked for byte length and SHA-256 before parsing, then decoded and materialized. A corrupted fixture can therefore never be mistaken for a parser bug.</dd>
+            <dt>Canonical scenarios</dt>
+            <dd>Four scenarios — basic, extents, enterprise, multifile — are read back into a language-neutral canonical interpretation (mode, generation, recovery status, per-file identity, head revision, representation, and base64 content) and compared against the recorded result.</dd>
+            <dt>LimitCleanUp contract</dt>
+            <dd>Executed, not asserted by name: ten-revision history, retention of the newest N, limit 0 rejected with <code class="inline-code">0x000C</code>, unknown FileId with <code class="inline-code">0x0009</code>, FileHead integrity, no object garbage collection, persistence through commit, no resurrection after reopen, idempotency, per-file isolation, and atomicity.</dd>
+            <dt>Malformed and truncated input</dt>
+            <dd>Driven from a real frozen vector: bad magic, bad format version, bad encoding version, and every strict prefix, which must all be rejected. Bytes appended <em>after</em> the trailer are outside the canonical framing and are ignored, matching the reference implementations.</dd>
+            <dt>Interoperability</dt>
+            <dd>Each scenario is regenerated from the language's own builder and compared <strong>byte-for-byte</strong> against the reference-written file. Self-consistency is explicitly not accepted as interoperability evidence.</dd>
+          </dl>
+          <p>The corpus introduces no protocol change: it only fixes the bytes and identifiers that already exist in the frozen specification.</p>
+          <p>The normative Library contract is defined in the <a href="./Libraries/Documentation/library_api_contract.md">library API contract</a>. Every capability on this page is a <strong>frozen Library contract requirement</strong> that each conforming implementation must satisfy. The three completed implementations pass all four independent conformance axes: protocol vectors, library capabilities, LimitCleanUp (executed probe), and byte-level cross-language interop. The normative specification, its frozen rules, and its frozen byte vectors are described in the <a href="./docs.html">protocol specification</a>. This page documents only the implementation and API layer above them.</p>          <p><a href="#top">Back to top</a></p>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div>
+          <p class="footer-brand">BinaryRevisionWithProtocol</p>
+          <p class="muted">Open protocol for binary-safe file revisions.</p>
+        </div>
+        <div class="footer-links">
+          <a href="./index.html">Home</a>
+          <a href="./docs.html">Docs</a>
+          <a href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">&nearr;</span></a>
+        </div>
+        <p class="muted small">&copy; <span id="year">2026</span> BinaryRevisionWithProtocol. Specification in development.</p>
+      </div>
+    </footer>
+    <script src="./script.js" defer></script>
+  </body>
+</html>

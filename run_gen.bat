@@ -1,0 +1,1 @@
+python c:\CampMember\BinaryRevisionWithProtocol\generate_docs.py

@@ -1,0 +1,61 @@
+{
+  "frozen_vectors": [
+    {
+      "bytes": 162,
+      "file": "DIRECT-01.vsn",
+      "name": "DIRECT-01",
+      "sha256": "d4c31c910973577359bbba7f06c71e086bbcae310bef0709667a22deba5f4426"
+    },
+    {
+      "bytes": 414,
+      "file": "DIRECT-02.vsn",
+      "name": "DIRECT-02",
+      "sha256": "1af182c3271b9b40c318c5f9928f23c21684df88e627813460ba98c2a2d08324"
+    },
+    {
+      "bytes": 164,
+      "file": "DIRECT-03.vsn",
+      "name": "DIRECT-03",
+      "sha256": "25f9874796dc04079374f561abf1951d692b0779ecd261a22107f73cea7b66a4"
+    },
+    {
+      "bytes": 184,
+      "file": "EXT-01.vsn",
+      "name": "EXT-01",
+      "sha256": "486fdff3dc19872ff2a0c708f51466ac470d053cbceabb9e36d5f00241cab9c6"
+    },
+    {
+      "bytes": 215,
+      "file": "EXT-02-and-EXT-03.vsn",
+      "name": "EXT-02-and-EXT-03",
+      "sha256": "d1baabce8123f3984c3e7fded6cbc3a386ad9df77ca85e9dd642362a7857be90"
+    }
+  ],
+  "scenarios": [
+    {
+      "bytes": 150,
+      "file": "scenarios/basic.vsn",
+      "name": "basic",
+      "sha256": "831e9ac66ef924648e420267f8349a962e283ea3e83dd65b86bef13b76573f48"
+    },
+    {
+      "bytes": 269,
+      "file": "scenarios/extents.vsn",
+      "name": "extents",
+      "sha256": "7094cadbc274f21eedb13ec43889b55f72149bf2b38d51bdd04261980bc017b5"
+    },
+    {
+      "bytes": 146,
+      "file": "scenarios/enterprise.vsn",
+      "name": "enterprise",
+      "sha256": "be4b38699605be073b758bfa5bd4c0b9219e814f4f782635f55f4a40d745240b"
+    },
+    {
+      "bytes": 372,
+      "file": "scenarios/multifile.vsn",
+      "name": "multifile",
+      "sha256": "ea6137b6d28a0a06200ede5d809ea52c671e24d365295ea7d5255417b982801a"
+    }
+  ],
+  "scenarios_count": 4
+}

@@ -1,0 +1,27 @@
+{
+  "name": "vsn-typescript",
+  "version": "1.0.0",
+  "description": "VSN-1 TypeScript reference library",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run test:protocol && npm run test:library && npm run test:interop",
+    "test:protocol": "tsx tests/test_vsn.ts",
+    "test:library": "tsx tests/test_library.ts",
+    "test:interop": "tsx tests/test_interop.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "vsn",
+    "binary",
+    "revision"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

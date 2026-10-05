@@ -1,0 +1,17 @@
+{
+  "acceptedGeneration": 1,
+  "files": [
+    {
+      "contentBase64": "aGVsbG8gdnNuCg==",
+      "fileId": "01010101010101010101010101010101",
+      "headRevision": 1,
+      "objectSerial": 1,
+      "path": "hello.txt",
+      "repIdentity": 1,
+      "repVersion": 1
+    }
+  ],
+  "generation": 1,
+  "mode": 1,
+  "recoveryStatus": "RECOVERED"
+}

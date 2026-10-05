@@ -1,0 +1,20 @@
+{
+  "name": "scala-cli",
+  "argv": [
+    "/usr/local/bin/scala-cli",
+    "bsp",
+    "--json-options",
+    "/libs/Scala/.scala-build/ide-options-v2.json",
+    "--json-launcher-options",
+    "/libs/Scala/.scala-build/ide-launcher-options.json",
+    "--envs-file",
+    "/libs/Scala/.scala-build/ide-envs.json",
+    "/libs/Scala/test_vsn.scala"
+  ],
+  "version": "1.17.1",
+  "bspVersion": "2.1.1",
+  "languages": [
+    "scala",
+    "java"
+  ]
+}

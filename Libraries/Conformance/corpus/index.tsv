@@ -1,0 +1,12 @@
+# name	file	bytes	sha256
+DIRECT-01	../TestVectors/DIRECT-01.vsn	162	d4c31c910973577359bbba7f06c71e086bbcae310bef0709667a22deba5f4426
+DIRECT-02	../TestVectors/DIRECT-02.vsn	414	1af182c3271b9b40c318c5f9928f23c21684df88e627813460ba98c2a2d08324
+DIRECT-03	../TestVectors/DIRECT-03.vsn	164	25f9874796dc04079374f561abf1951d692b0779ecd261a22107f73cea7b66a4
+EXT-01	../TestVectors/EXT-01.vsn	184	486fdff3dc19872ff2a0c708f51466ac470d053cbceabb9e36d5f00241cab9c6
+EXT-02-and-EXT-03	../TestVectors/EXT-02-and-EXT-03.vsn	215	d1baabce8123f3984c3e7fded6cbc3a386ad9df77ca85e9dd642362a7857be90
+
+# scenarios: name	file	interpretation
+basic	scenarios/basic.vsn	scenarios/basic.json
+extents	scenarios/extents.vsn	scenarios/extents.json
+enterprise	scenarios/enterprise.vsn	scenarios/enterprise.json
+multifile	scenarios/multifile.vsn	scenarios/multifile.json

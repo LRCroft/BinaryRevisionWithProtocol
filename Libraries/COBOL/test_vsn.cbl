@@ -1,0 +1,28 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TEST-VSN.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 MAGIC PIC X(4) VALUE "VSN-".
+       01 S-MODE PIC 9(2) VALUE 1.
+       01 FILE-CNT PIC 9(4) VALUE 0.
+       01 REV-CNT  PIC 9(4) VALUE 0.
+       01 OBJ-CNT  PIC 9(4) VALUE 0.
+       01 PASSED-CNT PIC 9(4) VALUE 0.
+       01 N PIC 9(2) VALUE 1.
+       PROCEDURE DIVISION.
+       MAIN.
+          PERFORM VARYING N FROM 1 BY 1 UNTIL N > 19
+             PERFORM RUN-CAP
+          END-PERFORM
+          DISPLAY "PASS " PASSED-CNT
+          STOP RUN.
+       RUN-CAP.
+          IF N = 2 THEN
+             PERFORM CREATE-F
+          END-IF
+          ADD 1 TO PASSED-CNT
+          DISPLAY "PASS " N
+          EXIT PARAGRAPH.
+       CREATE-F.
+          ADD 1 TO FILE-CNT, REV-CNT, OBJ-CNT.
+       WRITE-F.

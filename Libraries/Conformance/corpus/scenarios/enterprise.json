@@ -1,0 +1,17 @@
+{
+  "acceptedGeneration": 1,
+  "files": [
+    {
+      "contentBase64": "ZW50ZXJwcmlzZQ==",
+      "fileId": "04040404040404040404040404040404",
+      "headRevision": 1,
+      "objectSerial": 1,
+      "path": "e.txt",
+      "repIdentity": 1,
+      "repVersion": 1
+    }
+  ],
+  "generation": 1,
+  "mode": 2,
+  "recoveryStatus": "RECOVERED"
+}

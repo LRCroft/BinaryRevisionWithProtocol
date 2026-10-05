@@ -26,8 +26,9 @@
         <ul>
           <li><a href="#overview">Overview</a></li>
           <li><a href="#protocol">Protocol</a></li>
+          <li><a href="#modes">Modes</a></li>
           <li><a href="#vsn" class="mono">.vsn</a></li>
-          <li><a href="#libraries">Libraries</a></li>
+          <li><a href="./libraries.html">Libraries</a></li>
           <li><a href="./docs.html">Docs</a></li>
           <li><a href="https://github.com/LRCroft/BinaryRevisionWithProtocol" target="_blank" rel="noopener noreferrer">GitHub<span aria-hidden="true" class="ext">&nearr;</span></a></li>
         </ul>
@@ -50,6 +51,7 @@
             <div><dt>Model</dt><dd>File &rarr; Revision &rarr; RevisionSet &rarr; FileHead</dd></div>
             <div><dt>Sidecar</dt><dd class="mono">text.txt + text.txt.vsn</dd></div>
             <div><dt>Requires Git</dt><dd>No</dd></div>
+            <div><dt>Modes</dt><dd><a href="#modes">MODERN</a> Vertical &middot; <a href="#modes">ENTERPRISE</a> Horizontal</dd></div>
           </dl>
         </div>
         <div class="hero-panel" aria-label="Example file and sidecar relationship">
@@ -70,6 +72,66 @@
         </div>
       </div>
     </section>
+    <section class="section modes-intro" id="modes" aria-labelledby="modes-title">
+      <div class="container">
+        <p class="eyebrow">Core architecture &middot; vsn mode</p>
+        <h2 id="modes-title">VSN Mode</h2>
+        <p class="section-lede">A VSN container selects one of exactly two modes: <strong>MODERN</strong> (Vertical Representation) or <strong>ENTERPRISE</strong> (Horizontal Representation). These are operating modes of one VSN library, differing in resource-consumption architecture rather than in capability.</p>
+        <p class="parity-strip" aria-label="Both modes use the same VSN library and the same features"><span>Same VSN library</span><span>Same features</span><span>Different representation</span></p>
+        <div class="mode-grid">
+          <article class="mode-card">
+            <p class="panel-label">vsn mode</p>
+            <h3>MODERN</h3>
+            <p class="mode-sub mono">Vertical representation</p>
+            <p>Computation-oriented representation. The Computation Unit performs content representation and reconstruction work, which may reduce storage consumption.</p>
+            <pre class="mono mode-flow" role="img" aria-label="Modern flow: logical content, computation unit, compact representation, reconstruction, logical content">Logical content
+  &darr;
+Computation Unit
+  &darr;
+Compact representation
+  &darr;
+Reconstruction
+  &darr;
+Logical content</pre>
+            <p class="mode-meter"><span>May reduce storage</span><span>Uses Computation Unit</span></p>
+            <ul class="mode-list">
+              <li>Deduplication, sharing, delta/patch representations permitted</li>
+              <li>Representation-flexible; no algorithm mandated</li>
+              <li>Deterministic recovery through the Computation Unit</li>
+            </ul>
+            <p class="mode-sum mono">computation &rarr; storage</p>
+          </article>
+          <article class="mode-card">
+            <p class="panel-label">vsn mode</p>
+            <h3>ENTERPRISE</h3>
+            <p class="mode-sub mono">Horizontal representation</p>
+            <p>Compatibility-oriented representation. File edits are persisted as pre-materialized full copies, so recovery consumes no Computation Unit.</p>
+            <pre class="mono mode-flow" role="img" aria-label="Enterprise flow: edit, full copy, pre-materialized storage, materialize, logical file">Edit
+  &darr;
+FULL COPY
+  &darr;
+Pre-materialized
+  &darr;
+Materialize
+  &darr;
+Logical file</pre>
+            <p class="mode-meter"><span>Potentially higher storage</span><span>No Computation Unit for recovery</span></p>
+            <ul class="mode-list">
+              <li>Edit result persisted by full copy only</li>
+              <li>Direct, straightforward content recovery</li>
+              <li>Pre-materialized content is canonical, not a cache</li>
+            </ul>
+            <p class="mode-sum mono">storage &rarr; computation</p>
+          </article>
+        </div>
+        <div class="hero-actions modes-cta">
+          <a class="btn btn-primary" href="./docs.html#brp-11">Read the VSN Mode specification</a>
+          <a class="btn btn-secondary" href="./docs.html#modes">Mode comparison table</a>
+        </div>
+        <p class="small muted">The normative definition of both modes lives in Section 11 of the specification; this page is an overview. The modes are not separate products or subscription tiers, neither is universally better, and no performance figures are claimed because no measured benchmark data exists.</p>
+      </div>
+    </section>
+
     <section class="section" id="vsn" aria-labelledby="vsn-title">
       <div class="container split">
         <div>
@@ -212,7 +274,7 @@ RevisionSet
           <li>Diff / restore behavior and GC invariants</li>
           <li>Byte-level conformance vectors</li>
         </ul>
-        <p class="muted">No library needs Git or an external content store to open a <code class="inline-code">.vsn</code> and reconstruct retained revisions. <a href="./docs.html">Full documentation</a></p>
+        <p class="muted">No library needs Git or an external content store to open a <code class="inline-code">.vsn</code> and reconstruct retained revisions. <a href="./libraries.html">VSN Library capability reference</a> &middot; <a href="./docs.html">Full documentation</a></p>
       </div>
     </section>
     <section class="section" id="git" aria-labelledby="git-title">

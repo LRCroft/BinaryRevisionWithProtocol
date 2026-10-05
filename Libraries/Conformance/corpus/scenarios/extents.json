@@ -1,0 +1,26 @@
+{
+  "acceptedGeneration": 2,
+  "files": [
+    {
+      "contentBase64": "aGVsbG8gdnNuCg==",
+      "fileId": "02020202020202020202020202020202",
+      "headRevision": 1,
+      "objectSerial": 1,
+      "path": "a.txt",
+      "repIdentity": 1,
+      "repVersion": 1
+    },
+    {
+      "contentBase64": "aGVsbG8gdnNuCiEh",
+      "fileId": "03030303030303030303030303030303",
+      "headRevision": 2,
+      "objectSerial": 2,
+      "path": "b.txt",
+      "repIdentity": 2,
+      "repVersion": 1
+    }
+  ],
+  "generation": 2,
+  "mode": 1,
+  "recoveryStatus": "RECOVERED"
+}

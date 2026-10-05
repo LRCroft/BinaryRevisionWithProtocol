@@ -1,0 +1,65 @@
+# Build artifacts
+*.o
+*.obj
+*.exe
+*.so
+*.dll
+*.dylib
+*.pdb
+*.ilk
+*.lib
+*.a
+*.class
+*.pyc
+*.pyo
+*.swp
+*.swo
+*~
+*.jar
+*.wasm
+*.pcm
+*.swiftmodule
+*.emit-module.d
+*.podfile.lock
+node_modules/
+.build/
+.target/
+.PHONY/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build output
+bin/
+obj/
+Debug/
+Release/
+out/
+
+# Lock files (reproducible)
+package-lock.json
+yarn.lock
+Cargo.lock
+pubspec.lock
+
+# Logs
+*.log
+log.txt
+log2.txt
+log3.txt
+
+# Results (generated)
+_results.json
+_final_results.json
+_baseline.json
+status.txt
+status_after_patches.txt
+status_final.txt
+current_status.txt
+PROGRESS.md

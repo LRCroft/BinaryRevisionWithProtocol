@@ -1,0 +1,117 @@
+{
+  "registry": {
+    "0000": "OK",
+    "0001": "MALFORMED_CONTAINER",
+    "0002": "TRUNCATED",
+    "0003": "UNSUPPORTED_CONTAINER_VERSION",
+    "0004": "UNSUPPORTED_ENCODING_VERSION",
+    "0005": "UNSUPPORTED_PROTOCOL_VERSION",
+    "0006": "UNSUPPORTED_REPRESENTATION",
+    "0007": "UNSUPPORTED_TRANSFORM",
+    "0008": "MISSING_OBJECT",
+    "0009": "MISSING_CANONICAL_REFERENCE",
+    "000A": "DUPLICATE_IDENTITY",
+    "000B": "INVALID_RELATIONSHIP",
+    "000C": "INVALID_CANONICAL_STATE",
+    "000D": "VERIFICATION_UNAVAILABLE",
+    "000E": "VERIFICATION_MISMATCH",
+    "000F": "INVALID_UTF8",
+    "0010": "RESERVED_VALUE",
+    "0011": "INVALID_FIELD_ORDERING",
+    "0012": "INVALID_LENGTH",
+    "0013": "UNKNOWN_MANDATORY_RECORD",
+    "0014": "ACCESS_OR_DECRYPTION_FAILURE"
+  },
+  "rules": [
+    {
+      "case": "bad_magic",
+      "code": "0001",
+      "note": "first four bytes are not 'VSN-'"
+    },
+    {
+      "case": "truncated_unit",
+      "code": "0002",
+      "note": "physical end of data reached mid-unit"
+    },
+    {
+      "case": "bad_container_format_version",
+      "code": "0003",
+      "note": "ContainerFormatVersion != 1"
+    },
+    {
+      "case": "bad_encoding_version",
+      "code": "0004",
+      "note": "EncodingVersion != 1"
+    },
+    {
+      "case": "unsupported_representation",
+      "code": "0006",
+      "note": "representation identity/version not supported"
+    },
+    {
+      "case": "missing_object",
+      "code": "0008",
+      "note": "referenced ObjectSerial or COPY source is absent"
+    },
+    {
+      "case": "unknown_revision",
+      "code": "0009",
+      "note": "absent or LimitCleanUp-removed RevisionId"
+    },
+    {
+      "case": "unknown_file",
+      "code": "0009",
+      "note": "file lookup for an unknown FileId"
+    },
+    {
+      "case": "duplicate_identity",
+      "code": "000A",
+      "note": "duplicate FileIdentity, RevisionId, or ObjectSerial"
+    },
+    {
+      "case": "revision_not_in_file",
+      "code": "000B",
+      "note": "RevisionId does not belong to the requested FileId"
+    },
+    {
+      "case": "dependency_cycle",
+      "code": "000C",
+      "note": "EXTENTS-1 COPY dependency graph is cyclic"
+    },
+    {
+      "case": "bad_copy_range",
+      "code": "000C",
+      "note": "COPY offset+length exceeds the source length"
+    },
+    {
+      "case": "declared_size_mismatch",
+      "code": "000C",
+      "note": "DR-6: 0x0511 present but disagrees with materialization"
+    },
+    {
+      "case": "limit_zero",
+      "code": "000C",
+      "note": "LimitCleanUp called with limit 0"
+    },
+    {
+      "case": "limit_negative",
+      "code": "000C",
+      "note": "LimitCleanUp called with a negative limit"
+    },
+    {
+      "case": "reserved_mode",
+      "code": "0001",
+      "note": "ModeDeclaration carries a reserved mode value"
+    },
+    {
+      "case": "enterprise_uses_extents",
+      "code": "000C",
+      "note": "GR-43: ENTERPRISE mode forbids EXTENTS-1"
+    },
+    {
+      "case": "field_order",
+      "code": "0011",
+      "note": "FieldId not strictly ascending within a record"
+    }
+  ]
+}
