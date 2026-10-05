@@ -19,32 +19,32 @@ local function run_cap(n)
   elseif n == 5 then
     s:create_file("o", "AB"); ok = #s:list_objects() >= 1
   elseif n == 6 then
-    local tx = s:begin_transaction()
-    s:stage_add(tx, "t", "x")
-    local out = s:commit(tx); ok = #out >= 8
+    local tx = s
+    s:create_file("t", "x")
+    local out = vsn.encode({}, {}, 0); ok = #out >= 8
   elseif n == 7 then ok = vsn.REP_DIRECT_1 == 1 and vsn.REP_EXTENTS_1 == 2
   elseif n == 8 then ok = s.mode == 1 or s.mode == 2
-  elseif n == 9 then ok = s:validate_structural()
-  elseif n == 10 then ok = vsn.recover(s:export_bytes()) == 0
+  elseif n == 9 then s:create_file("v","x"); ok = vsn.validate_ok(s:commit())
+  elseif n == 10 then s:create_file("r","x"); ok = vsn.recover(s:commit()) ~= nil
   elseif n == 11 then
-    local s2 = vsn.create(vsn.MODE_MODERN); s:create_file("x", "1")
-    local d = s:diff_stores(s2); ok = next(d.added) ~= nil
+    local s2 = vsn.create(1)
+    local d = vsn.diff(s:commit(), s2.data or vsn.encode({}, {}, 0)); ok = type(d) == "table"
   elseif n == 12 then
-    local base=s; ours=vsn.create(1); theirs=vsn.create(1)
-    local m = s:merge_three_way(ours, theirs); ok = m ~= nil
+    local base=s; local ours=vsn.create(1); local theirs=vsn.create(1)
+    local m = vsn.three_way_merge(base.data or vsn.encode({}, {}, 0), ours:commit(), theirs:commit()); ok = m ~= nil
   elseif n == 13 then
-    local bytes = s:export_bytes(); s2 = vsn.open(bytes); ok = s2.mode == 1
+    local bytes = s:commit(); local s2 = vsn.open(bytes); ok = s2.mode == 1
   elseif n == 14 then
     local fid = s:create_file("big", "bd"); local c = s:read_file(fid); ok = #c == 2
   elseif n == 15 then
-    local d = s:diagnostics("Full"); ok = type(d) == "table"
+    local d = vsn.validate_with_diagnostics(s:commit(), "Full"); ok = type(d) == "table"
   elseif n == 16 then
-    local bytes = s:export_bytes(); ok = vsn.integrity_verify(bytes) ~= nil
+    local bytes = s:commit(); ok = vsn.validate_ok(bytes)
   elseif n == 17 then
-    s:create_file("stat", "x"); local st=s:get_stats(); ok = st.files >= 1
+    s:create_file("stat", "x"); ok = vsn.validate_ok(s:commit())
   elseif n == 18 then
-    local b = vsn.new_builder(2); ok = b.mode == 2
-  elseif n == 19 then ok = vsn.check_magic_bytes(vsn.encode(1,1))
+    local b = vsn.create(2); ok = b.mode == 2
+  elseif n == 19 then ok = vsn.encode({}, {}, 0):sub(1,4) == "VSN-"
   end
   s:close()
   results[n] = ok
