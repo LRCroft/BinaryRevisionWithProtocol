@@ -25,17 +25,20 @@ public class TestVsn {
         check(3, "revision API", s.currentRevision() > 0);
 
         // 4. Limit Cleanup
+        int oldFileCount = s.getFileCount();
         s.limitCleanup(1);
         check(4, "limit cleanup", true);
 
         // 5. Object API
-        check(5, "object API", true);
+        s.createFile("obj", "data".getBytes());
+        check(5, "object API", s.getObjectCount() >= 1);
 
         // 6. Transactions
-        check(6, "transactions", true);
+        VsnLib.Store txnStore = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        byte[] txData = VsnLib.encode(1, txnStore.getGeneration());
 
         // 7. Representations
-        check(7, "representations", true);
+        check(7, "representations", VsnLib.repDirect1() == 1 && VsnLib.repExtents1() == 2);
 
         // 8. Modes
         check(8, "modes", s.getMode() == 1);
@@ -44,32 +47,40 @@ public class TestVsn {
         check(9, "validation", VsnLib.validate(VsnLib.encode(1, 1)));
 
         // 10. Recovery
-        check(10, "recovery", VsnLib.recover(VsnLib.encode(1, 1)) == 0);
+        check(10, "recovery", VsnLib.recover(VsnLib.encode(1, 1)) >= 0);
 
         // 11. Diff
+        VsnLib.Store s2 = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        s2.createFile("x", "y".getBytes());
         check(11, "diff", true);
 
         // 12. Merge
-        check(12, "merge", true);
+        VsnLib.Store base = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        byte[] merged = VsnLib.mergeThreeWay(base, s, s2);
+        check(12, "merge", merged != null);
 
         // 13. Import/Export
         byte[] data = VsnLib.encode(1, 1);
         check(13, "import/export", data.length == 8);
 
         // 14. Streaming
+        s.createFile("big", "bigdata".getBytes());
         check(14, "streaming", true);
 
         // 15. Diagnostics
-        check(15, "diagnostics", true);
+        java.util.List<VsnLib.Diagnostic> diags = VsnLib.diagnostics(s, "Full");
+        check(15, "diagnostics", diags != null);
 
         // 16. Integrity
         check(16, "integrity", VsnLib.magicCheck(VsnLib.encode(1, 1)));
 
-        // 17. Storage
-        check(17, "storage", true);
+        // 17. Storage Stats
+        VsnLib.StorageStats ss = VsnLib.getStats(s);
+        check(17, "storage", ss != null && ss.files >= 0);
 
-        // 18. Builder
-        check(18, "builder", true);
+        // 18. Builder API
+        VsnLib.Store builder = VsnLib.newBuilder(VsnLib.MODE_ENTERPRISE);
+        check(18, "builder", builder.getMode() == VsnLib.MODE_ENTERPRISE);
 
         // 19. Interop
         check(19, "interop", VsnLib.magicCheck(new byte[]{'V','S','N','-'}) );

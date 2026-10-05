@@ -9,9 +9,101 @@ defmodule VSNTest do
       Task.async(fn ->
         s = S.new(1)
         ok = case n do
-          2 -> {f, s2} = S.create_file(s, "a", "hello"); S.read_file(s2, f) == "hello"
-          8 -> S.get_mode(s) in [1, 2]
-          _ -> true
+          1 -> S.get_mode(s) in [VSN.mode_modern()]
+          2 ->
+            try do
+              {fid, s2} = S.create_file(s, "a", <<1,2,3>>)
+              content = S.read_file(s2, fid)
+              content == <<1,2,3>>
+            rescue _ -> false
+          3 ->
+            try do
+              {f, s2} = S.create_file(s, "r", <<1>>)
+              s3 = S.write_file(s2, f, <<2>>)
+              s4 = S.write_file(s3, f, <<3>>)
+              revs = S.list_revisions(s4, f)
+              length(revs) >= 3
+            rescue _ -> false
+          4 ->
+            try do
+              {f, s2} = S.create_file(s, "lc", <<1>>)
+              s3 = Enum.reduce(1..5, s2, fn i, acc -> S.write_file(acc, f, <<i>>) end)
+              {dropped, s4} = S.limit_clean_up(s3, f, 3)
+              length(dropped) == 2
+            rescue _ -> false
+          5 ->
+            try do
+              S.create_file(s, "o", <<1,2>>)
+              objs = S.list_objects(s)
+              length(objs) >= 1
+            rescue _ -> false
+          6 ->
+            try do
+              t = S.begin_transaction(s)
+              st = S.stage_add(t, "t", [1])
+              {bytes, s2} = S.commit(st)
+              byte_size(bytes) >= 8
+            rescue _ -> false
+          7 -> VSN.rep_direct_1() == 1 and VSN.rep_extents_1() == 2
+          8 -> S.get_mode(s) in [VSN.mode_modern(), VSN.mode_enterprise()]
+          9 -> S.validate_structural(s)
+          10 ->
+            try do
+              bytes = S.export_bytes(s)
+              rc = VSN.recover(bytes)
+              rc == 0
+            rescue _ -> false
+          11 ->
+            try do
+              s2 = S.create(VSN.mode_modern())
+              S.create_file(s, "x", <<1>>)
+              diff = S.diff_stores(s, s2)
+              Map.has_key?(diff, :added)
+            rescue _ -> false
+          12 ->
+            try do
+              s2 = S.create(VSN.mode_modern())
+              S.create_file(s, "a", [1,2])
+              s3 = S.create(VSN.mode_modern())
+              S.create_file(s2, "b", [3,4])
+              m = S.merge_three_way(s2, s, s3)
+              Map.has_key?(m, :merged)
+            rescue _ -> false
+          13 ->
+            try do
+              bytes = S.export_bytes(s)
+              s2 = S.open(bytes)
+              S.get_mode(s2) == VSN.mode_modern()
+            rescue _ -> false
+          14 ->
+            try do
+              {fid, s2} = S.create_file(s, "big", <<1,2,3,4,5>>)
+              content = S.read_file(s2, fid)
+              byte_size(content) == 5
+            rescue _ -> false
+          15 ->
+            try do
+              bytes = S.export_bytes(s)
+              diags = S.diagnostics(s, "Full")
+              is_list(diags)
+            rescue _ -> false
+          16 ->
+            try do
+              bytes = S.export_bytes(s)
+              ok = S.integrity_verify_raw(bytes)
+              ok
+            rescue _ -> false
+          17 ->
+            try do
+              S.create_file(s, "stat", <<1>>)
+              stats = S.get_stats(s)
+              Map.has_key?(stats, :files) and stats.files >= 1
+            rescue _ -> false
+          18 -> true
+          19 ->
+            bytes = VSN.encode(VSN.mode_modern(), 0)
+            S.check_magic_bytes(bytes)
+          _ -> false
         end
         S.close(s)
         if ok do IO.puts("PASS #{n}")
