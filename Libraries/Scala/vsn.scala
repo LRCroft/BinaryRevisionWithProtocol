@@ -48,7 +48,7 @@ class MutableStore(var mode: Int = Constants.MODE_MODERN) {
     generation += 1; VsnApi.encode(mode, generation)
   }
   def diffCount(other: MutableStore): Int = math.abs(fileCount - other.fileCount)
-  def mergeOk(): Boolean = true
+  def mergeOk(): Boolean = mode >= Constants.MODE_MODERN && mode <= Constants.MODE_ENTERPRISE
   def importBytes(data: Array[Byte]): Boolean = {
     if (data.length < 8 || new String(data, 0, 4) != "VSN-") throw new RuntimeException("bad")
     true
