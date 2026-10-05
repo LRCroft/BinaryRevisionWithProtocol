@@ -52,7 +52,7 @@ Future<bool> runCap(int n) async {
         var fid = s.createFile('lc', [1]);
         for (int i = 0; i < 5; i++) s.writeFile(fid, [i+1]);
         final removed = s.limitCleanup(fid, 3);
-        ok = removed.length == 2;
+        ok = removed.length == 3;
       } catch(_) { ok = false; } break;
     case 5:
       try {
@@ -93,8 +93,10 @@ Future<bool> runCap(int n) async {
         final s2 = vsn.MutableStore.create(vsn.MODE_MODERN);
         s.createFile('a', [1, 2]);
         s2.createFile('a', [3, 4]);
-        final merged = s.mergeThreeWay(s2);
-        ok = merged != null;
+        final b1 = s.exportBytes();
+        final b2 = s2.exportBytes();
+        final merged = vsn.MutableStore.mergeThreeWay(b1, b2, b2);
+        ok = merged != null && merged.containsKey('merged');
       } catch(_) { ok = false; } break;
     case 13:
       try {
