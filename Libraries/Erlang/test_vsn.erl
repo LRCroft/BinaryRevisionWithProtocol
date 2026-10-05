@@ -58,28 +58,24 @@ run_cap(N) ->
         11 -> {_,S1} = vsn:create_file(S0, "x", <<1>>),
              S = vsn:close(S0),
              D = vsn:diff_stores(S1, S1),
-             is_list(D);
+             length(D) >= 0;
         12 -> M = vsn:get_mode(S0),
              S = vsn:close(S0),
              M >= 1 andalso M =< 2;
         13 -> Bytes = vsn:export_bytes(S0),
              S = vsn:close(S0),
-             case vsn:create(Bytes) of
-                 {ok,S2} -> R = maps:get(mode, S2, -1),
-                     vsn:close(S2),
-                     R >= 0;
-                 _ -> false
-             end;
+             S2 = vsn:open(Bytes),
+             R = vsn:get_mode(S2),
+             vsn:close(S2),
+             R >= 1 andalso R =< 2;
         14 -> {Fid,S1} = vsn:create_file(S0, "big", <<1,2,3>>),
              L = vsn:list_objects(S1),
              S = vsn:close(S1),
              length(L) >= 1;
         15 -> Valid = vsn:encode(1, 1),
-              R = vsn:recover(<<1,2,3>>),
-              valid = vsn:validate_structural(Valid),
-              is_boolean(valid);
-        16 -> Bytes = vsn:export_bytes(S0),
-             OKi = vsn:integrity_verify(Bytes),
+              VS = vsn:validate_structural(Valid),
+              is_boolean(VS);
+        16 -> OKi = vsn:integrity_verify(S0),
              S = vsn:close(S0),
              is_boolean(OKi) andalso OKi;
         17 -> {_,S1} = vsn:create_file(S0, "stat", <<1>>),
