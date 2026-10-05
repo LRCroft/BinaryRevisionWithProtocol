@@ -18,6 +18,8 @@ ALL_LANGUAGES = [
     "Dart",                          # dart:3-sdk (~300MB)
     "Ruby",                          # ruby:3.3 (~70MB)
     "PHP",                           # php:8.3-cli (~80MB)
+    "Python",                        # vsn-deb:latest (py3.11)
+    "R",                             # r-base:latest
     "Ada", "C", "COBOL", "Cpp",      # vsn-deb/vsn-legacy (custom, local)
     "Crystal", "D",                  # crystallang/vsn-d (custom, local)
     "Elixir", "Erlang",              # vsn-deb:latest (single image)
