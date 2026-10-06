@@ -14,6 +14,19 @@ static void set_result(int n, int v) {
     pthread_mutex_unlock(&mtx);
 }
 
+/* Streaming test callback: collects chunks into a static buffer */
+static uint8_t sbuf[8192];
+static size_t sn = 0;
+static int schunks = 0;
+static int stream_cb(void *ctx, const uint8_t *chunk, size_t n) {
+    (void)ctx;
+    if (sn + n > 8192) return -1;
+    memcpy(sbuf + sn, chunk, n);
+    sn += n;
+    schunks++;
+    return 0;
+}
+
 static void *cap_run(void *arg) {
     int n = (int)(long)arg;
     VsnContainer *c = vsn_create(MODE_MODERN);
@@ -113,8 +126,14 @@ static void *cap_run(void *arg) {
         case 13:/* C13: Import/Export */
             { const uint8_t* hdr=(const uint8_t[]){0x56,0x53,0x4E,0x2D,'\0',1,'\0',1}; VsnContainer* imp=vsn_open(hdr,8); ok=(imp!=NULL)?1:0; if(imp)vsn_close(imp); } break;
 
-        case 14:/* C14: Streaming */
-            { FileId sf; memset(&sf,0,sizeof(sf)); vsn_create_file(c,"big",(const uint8_t*)"bigdata",7,&sf); uint32_t *so=NULL; int soc=0; ok=(vsn_list_objects(c,&so,&soc)==VSN_ERR_OK&&soc>=1)?1:0; } break;
+        case 14:/* C14: Real streaming - multi-chunk export_stream round-trip */
+            { FileId sf; memset(&sf,0,sizeof(sf));
+              uint8_t big[2048]; for(int i=0;i<2048;i++) big[i]=(uint8_t)(i*31+i);
+              if(vsn_create_file(c,"big",big,2048,&sf)!=VSN_ERR_OK) ok=0;
+              else { sbuf[0]=0; sn=0; schunks=0;
+                int rc=vsn_export_stream(c,&sf,stream_cb,NULL);
+                ok=(rc==VSN_ERR_OK&&sn==2048&&memcmp(sbuf,big,2048)==0&&schunks>=32)?1:0;
+              }} break;
 
         case 15:/* C15: Diagnostics */
             { FileId df; memset(&df,0,sizeof(df)); vsn_create_file(c,"d",(const uint8_t*)"data",4,&df); uint8_t cm[65536]; size_t cl2=0; vsn_commit(c,cm,sizeof(cm),&cl2); VsnDiagnostic diag; int dn=0; uint8_t re[65536]; size_t rl=0; vsn_encode(c,re,sizeof(re),&rl); int rc=vsn_validate_diagnostics(re,rl,"Full",&diag,1,&dn); ok=(rc==VSN_ERR_OK&&dn==0)?1:0; } break;
@@ -128,7 +147,7 @@ static void *cap_run(void *arg) {
         case 18:/* C18: Builder/API */
             { VsnContainer*b=vsn_create(MODE_ENTERPRISE); if(!b)ok=0; else{ ok=(b->mode==MODE_ENTERPRISE)?1:0; vsn_close(b); } } break;
 
-        case 19:/* C19: Interop - encode/decode round-trip with content */
+        case 19:/* C19: Interop - encode/decode + frozen vector (cross-lang) */
             { FileId fid19;memset(&fid19,0,sizeof(fid19));
               const char *d19="interop-data-42";
               if(vsn_create_file(c,"i.txt",(const uint8_t*)d19,15,&fid19)!=VSN_ERR_OK) ok=0;
@@ -140,7 +159,30 @@ static void *cap_run(void *arg) {
                   int fc=0;FileId*fl=NULL;vsn_list_files(ri,&fl,&fc);
                   if(fc<1){vsn_close(ri);ok=0;break;}
                   if(vsn_read_file(ri,&fl[0],rd,sizeof(rd),&rl)!=VSN_ERR_OK||rl!=15||memcmp(rd,d19,15)!=0) ok=0;
-                  vsn_close(ri);} } } break;
+                  vsn_close(ri);} }
+              /* Cross-language: consume frozen vector DIRECT-02 (256-byte "blob.bin",
+                 bytes 0x00..0xff) produced by independent tooling. */
+              if(ok){ const char*cand[]={ "/work/TestVectors/DIRECT-02.vsn","../TestVectors/DIRECT-02.vsn","TestVectors/DIRECT-02.vsn","./TestVectors/DIRECT-02.vsn" };
+                FILE*fp=NULL; size_t ci2;
+                for(ci2=0; ci2<4 && !fp; ci2++) fp=fopen(cand[ci2],"rb");
+                if(!fp) ok=0;
+                else { fseek(fp,0,SEEK_END); long fsz=ftell(fp); fseek(fp,0,SEEK_SET);
+                  uint8_t*fbuf=(uint8_t*)malloc(fsz); if(!fbuf){fclose(fp);ok=0;}
+                  else { size_t got=fread(fbuf,1,fsz,fp); fclose(fp);
+                    if(got<(size_t)fsz) {free(fbuf);ok=0;}
+                    else { VsnContainer*fv=vsn_open(fbuf,fsz); free(fbuf);
+                      if(!fv) ok=0;
+                      else { int ffc=0;FileId*ffl=NULL;vsn_list_files(fv,&ffl,&ffc);
+                        int found=0;
+                        for(int i=0;i<ffc && !found;i++){
+                          uint8_t frd[512];size_t frl=0;
+                          if(vsn_read_file(fv,&ffl[i],frd,sizeof(frd),&frl)==VSN_ERR_OK && frl==256){
+                            int match=1; for(size_t b=0;b<256;b++) if(frd[b]!=(uint8_t)b) match=0;
+                            found = match; }
+                        }
+                        if(!found) ok=0;
+                        vsn_close(fv);} } } } }
+            } break;
 
         default: ok = 0;
     }

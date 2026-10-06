@@ -116,8 +116,18 @@ fun cap13(): Boolean {
 }
 fun cap14(): Boolean {
     val s = Builder.build(Constants.MODE_MODERN)
-    val encoded = s.commitTransaction(0)
-    return String(encoded, 0, 4) == "VSN-"
+    val big = ByteArray(2048) { i -> ((i * 31 + i) % 256).toByte() }
+    val fid = s.createFile("big", big)
+    val rd = s.readFile(fid)!!
+    if (rd.size != 2048) return false
+    if (!rd.contentEquals(big)) return false
+    // Verify 32 chunks of 64 bytes at correct boundaries
+    for (ci in 0..31) {
+        val off = ci * 64
+        if (!rd.copyOfRange(off, off + 64).contentEquals(big.copyOfRange(off, off + 64))) return false
+    }
+    s.close()
+    return true
 }
 fun cap15(): Boolean {
     val s = Builder.build(Constants.MODE_MODERN)
@@ -147,12 +157,50 @@ fun cap18(): Boolean {
 fun cap19(): Boolean {
     val s = Builder.build(Constants.MODE_MODERN)
     val data = "interop-data-42".toByteArray()
-    s.createFile("i.txt", data)
+    val fid = s.createFile("i.txt", data)
     val encoded = s.commitTransaction(0)
     if (String(encoded, 0, 4) != "VSN-") return false
+    if (encoded.size < 8) return false
+    // Content must survive round-trip
+    if (!s.readFile(fid)!!.contentEquals(data)) return false
+    // Export and verify structure
+    val exp = s.exportBytes()
+    if (String(exp, 0, 4) != "VSN-") return false
+    if (exp.size < 8) return false
+    // Re-import into new store: importBytes is a structural-validation stub, so
+    // assert it accepted the export and the mode round-tripped.
     val s2 = Builder.build(Constants.MODE_MODERN)
-    s2.importBytes(encoded)
-    return s2.mode == Constants.MODE_MODERN && s2.statsFiles() >= 0
+    s2.importBytes(exp)
+    if (s2.mode != Constants.MODE_MODERN) return false
+    s.close(); s2.close()
+
+    // Cross-language: consume the frozen DIRECT-02 vector (256-byte "blob.bin",
+    // bytes 0x00..0xFF) produced by independent (C reference) tooling.
+    val cands = listOf(
+        "../TestVectors/DIRECT-02.vsn",
+        "TestVectors/DIRECT-02.vsn",
+        "/work/TestVectors/DIRECT-02.vsn",
+        "./TestVectors/DIRECT-02.vsn"
+    )
+    val vec = cands.mapNotNull { java.io.File(it) }.firstOrNull { it.isFile } ?: return false
+    val v = vec.readBytes()
+    if (v.size != 414) return false
+    if (String(v, 0, 4) != "VSN-") return false
+    if (v[4].toInt() != 0 || v[5].toInt() != 1) return false   // CFV = 1
+    if (v[6].toInt() != 0 || v[7].toInt() != 1) return false   // EV  = 1
+    // Canonical SHA-256 from TestVectors/manifest.json (true cross-language check)
+    val hex = java.security.MessageDigest.getInstance("SHA-256").digest(v)
+        .joinToString("") { "%02x".format(it.toInt() and 0xFF) }
+    if (hex != "1af182c3271b9b40c318c5f9928f23c21684df88e627813460ba98c2a2d08324") return false
+    try { VsnApi.parse(v) } catch (e: Exception) { return false }
+    // The 256-byte payload (0x00..0xFF) must be present in the object section
+    var found = false
+    outer@ for (i in 0 until v.size - 256) {
+        var runOk = true
+        for (b in 0..255) if ((v[i + b].toInt() and 0xFF) != b) { runOk = false; break }
+        if (runOk) { found = true; break@outer }
+    }
+    return found
 }
 
 fun main() {

@@ -36,14 +36,20 @@ object TestVSN {
             s.createFile("x", Array[Byte](1))
             val s2 = new MutableStore(Constants.MODE_MODERN)
             s.diffCount(s2) == 1 && s.diffCount(s) == 0
-          case 12 => val b12 = new MutableStore(Constants.MODE_MODERN); val o12 = new MutableStore(Constants.MODE_MODERN); val t12 = new MutableStore(Constants.MODE_MODERN); val fb = b12.createFile("f","base".getBytes); val fo = o12.createFile("f","ours".getBytes); val ft = t12.createFile("f","theirs".getBytes); b12.fileExists(fb) && o12.fileExists(fo) && t12.fileExists(ft) && b12.readFile(fb).sameElements("base".getBytes) && o12.readFile(fo).sameElements("ours".getBytes) && t12.readFile(ft).sameElements("theirs".getBytes)
+          case 12 =>
+            def mk = new MutableStore(Constants.MODE_MODERN)
+            def mm(b: Char, o: Char, t: Char) = { val bs = mk; val os = mk; val ts = mk
+              bs.createFile("f", b.toString.getBytes); os.createFile("f", o.toString.getBytes); ts.createFile("f", t.toString.getBytes)
+              Merge.threeWay(bs, os, ts, "f") }
+            val c1 = mm('A','A','A'); val c2 = mm('A','B','A'); val c3 = mm('A','A','B'); val c4 = mm('A','B','B'); val c5 = mm('A','B','C')
+            (c1._2 == false && c1._1 == "A") && (c2._2 == false && c2._1 == "B") && (c3._2 == false && c3._1 == "B") && (c4._2 == false && c4._1 == "B") && (c5._2 == true)
           case 13 =>
             val bytes = s.exportBytes(); val s2 = new MutableStore(); s2.importBytes(bytes)
             s2.mode == s.mode && s2.generation == s.generation
           case 14 =>
             val fid = s.createFile("big", Array[Byte](1, 2, 3))
-            s.readFile(fid).length == 3
-          case 15 => s.statsRevs() >= 0 && s.statsFiles() >= 0
+            s.readFile(fid).sameElements(Array[Byte](1, 2, 3))
+          case 15 => s.createFile("diag", Array[Byte](1, 2, 3)); s.statsFiles() >= 1 && s.statsRevs() >= 1
           case 16 => s.integrityOk()
           case 17 =>
             s.createFile("stat", Array[Byte](1)); s.statsFiles() == 1 && s.statsRevs() >= 1

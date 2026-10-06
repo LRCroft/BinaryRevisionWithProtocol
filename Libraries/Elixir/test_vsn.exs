@@ -79,7 +79,7 @@ defmodule VSNTest do
               s3 = S.create(VSN.mode_modern())
               S.create_file(s2, "b", [3,4])
               m = S.merge_three_way(s2, s, s3)
-              Map.has_key?(m, :merged)
+              Map.has_key?(m, :merged) and m[:merged] == s
             rescue _ -> false
             end
           13 ->
@@ -91,9 +91,9 @@ defmodule VSNTest do
             end
           14 ->
             try do
-              {fid, s2} = S.create_file(s, "big", <<1,2,3,4,5>>)
+              {fid, s2} = S.create_file(s, "big", <<1,2,3,4,5,6,7,8>>)
               content = S.read_file(s2, fid)
-              byte_size(content) == 5
+              byte_size(content) == 8 and content == <<1,2,3,4,5,6,7,8>>
             rescue _ -> false
             end
           15 ->

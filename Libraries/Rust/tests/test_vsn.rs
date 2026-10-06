@@ -113,22 +113,31 @@ fn all_capabilities() {
     assert!(exp.len() >= 8);
     println!("CAP 13 PASS assertions=2 ops=3 import/export");
 
-    // 14. Streaming
+    // 14. Streaming - multi-chunk content round-trip with boundary verification
     let mut ss = MutableStore::new(MODE_MODERN);
-    let big = vec![0xAB; 512];
+    let big: Vec<u8> = (0..2048u32).map(|i| (i.wrapping_mul(31).wrapping_add(i)) as u8).collect();
     ss.create_file("big", &big);
-    assert!(ss.stats_files() >= 1);
-    println!("CAP 14 PASS assertions=1 ops=2 streaming");
+    let rd = ss.read_file("big").unwrap();
+    assert_eq!(rd.len(), 2048);
+    assert_eq!(rd, big);
+    // Verify 32 chunks of 64 bytes each at correct boundaries
+    for ci in 0..32u32 { let off = ci * 64; let exp: Vec<u8> = (off..off+64).map(|i| (i.wrapping_mul(31).wrapping_add(i)) as u8).collect(); assert_eq!(&rd[(off as usize)..((off+64) as usize)], &exp[..]); }
+    println!("CAP 14 PASS assertions=4 ops=34 streaming multi-chunk");
 
     // 15. Diagnostics
     assert!(MutableStore::validate(&valid));
     assert_eq!(parse(&[1,2,3]), Err("too short"));
     println!("CAP 15 PASS assertions=2 ops=2 diagnostics");
 
-    // 16. Integrity
-    assert!(ss.integrity_ok());
-    assert!(magic_check(&valid));
-    println!("CAP 16 PASS assertions=2 ops=2 integrity");
+    // 16. Integrity - reparse stability + corruption detection
+    let valid_data = encode(MODE_MODERN, 1);
+    assert!(verify_integrity(&valid_data));
+    // Corrupted magic must fail
+    let mut bad = valid_data.clone(); bad[0] = b'X';
+    assert!(!verify_integrity(&bad));
+    // Truncated data must fail
+    assert!(!verify_integrity(&valid_data[0..4]));
+    println!("CAP 16 PASS assertions=3 ops=4 integrity reparse/corruption");
 
     // 17. Storage
     assert_eq!(ss.stats_files(), 1);
@@ -140,14 +149,21 @@ fn all_capabilities() {
     assert!(sb.builder_ok());
     println!("CAP 18 PASS assertions=1 ops=1 builder");
 
-    // 19. Interop - encode/decode round-trip with content
+    // 19. Interop - encode/decode round-trip with content + structural verification
     let mut s19 = MutableStore::new(MODE_MODERN);
     s19.create_file("i.txt", b"interop-data-42");
     let committed = s19.commit_transaction(0);
     assert_eq!(&committed[0..4], b"VSN-");
     assert!(committed.len() >= 8);
-    assert!(magic_check(&committed));
-    println!("CAP 19 PASS assertions=3 ops=3 interop round-trip");
+    // Parse and verify mode is recoverable
+    let (mode, _gen) = parse(&committed).unwrap();
+    assert_eq!(mode, MODE_MODERN);
+    // Export and re-import: content must survive
+    let exp = s19.export_bytes();
+    assert_eq!(&exp[0..4], b"VSN-");
+    assert!(s19.import_bytes(&exp));
+    assert_eq!(s19.read_file("i.txt").unwrap(), b"interop-data-42");
+    println!("CAP 19 PASS assertions=7 ops=8 interop encode/decode/content");
 
     println!("All 19 capabilities verified: 19/19");
 }

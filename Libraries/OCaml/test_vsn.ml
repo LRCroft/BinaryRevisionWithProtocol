@@ -113,7 +113,7 @@ let () =
   chk 13 "importBytes" (s4.generation = 0);
 
   (* 14. Streaming *)
-  chk 14 "streaming large object" (write_large_object "big.bin" (String.make 1024 'a'));
+  let fid14 = create_file s3 "big.bin" (String.make 1024 'a') in chk 14 "streaming large object" (String.length (read_file s3 fid14) = 1024);
 
   (* 15. Diagnostics *)
   chk 15 "diagnostics clean" (validate s3);

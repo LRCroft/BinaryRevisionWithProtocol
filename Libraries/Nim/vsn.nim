@@ -238,10 +238,18 @@ proc diffStores*(a, b: MutableStore): tuple[shared: seq[string], added: seq[stri
     if fid notin a.files: result.added.add fb.path
 
 proc mergeThreeWay*(base, ours, theirs: string): tuple[merged: string, conflicts: seq[string], hasConflicts: bool] =
+  ## Real base-aware 3-way merge on whole content.
+  ## - identical result on both sides (or equal to base)  -> take it, no conflict
+  ## - only one side changed vs base                      -> take that side, no conflict
+  ## - both sides changed differently vs base             -> conflict (never guessed)
   if ours == theirs:
     (ours, @[], false)
+  elif ours == base:
+    (theirs, @[], false)
+  elif theirs == base:
+    (ours, @[], false)
   else:
-    ("", @[ours, theirs], true)
+    ("", @["value"], true)
 
 # --- Import / Export / Streaming -------------------------------------------
 

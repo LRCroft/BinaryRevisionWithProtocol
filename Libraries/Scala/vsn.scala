@@ -60,3 +60,14 @@ class MutableStore(var mode: Int = Constants.MODE_MODERN) {
   def builderOk(): Boolean = mode >= 1 && mode <= 2
 }
 object Builder { def build(mode: Int): MutableStore = new MutableStore(mode) }
+object Merge {
+  def eq(x: Array[Byte], y: Array[Byte]): Boolean =
+    (x.length == y.length) && x.zip(y).forall(p => p._1 == p._2)
+  def threeWay(base: MutableStore, ours: MutableStore, theirs: MutableStore, path: String): (String, Boolean) = {
+    val b = base.readFile(path); val o = ours.readFile(path); val t = theirs.readFile(path)
+    if (eq(o, t)) (new String(o), false)
+    else if (eq(o, b)) (new String(t), false)
+    else if (eq(t, b)) (new String(o), false)
+    else ("", true)
+  }
+}

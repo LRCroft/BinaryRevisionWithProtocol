@@ -53,10 +53,17 @@ proc runCap(n: int): bool =
     except: ok = false
   of 12:
     try:
-      let base=create(MODE_MODERN)
-      let ours=create(MODE_MODERN)
-      let theirs=create(MODE_MODERN)
-      let m=mergeThreeWay(exportBytes(base),exportBytes(ours),exportBytes(theirs)); ok = not m.hasConflicts
+      # Real 3-way merge (5 cases): identical / ours-only / theirs-only / both-identical / divergent-conflict
+      let c1 = mergeThreeWay("A", "A", "A")
+      let c2 = mergeThreeWay("A", "B", "A")
+      let c3 = mergeThreeWay("A", "A", "B")
+      let c4 = mergeThreeWay("A", "B", "B")
+      let c5 = mergeThreeWay("A", "B", "C")
+      ok = (not c1.hasConflicts and c1.merged == "A") and
+           (not c2.hasConflicts and c2.merged == "B") and
+           (not c3.hasConflicts and c3.merged == "B") and
+           (not c4.hasConflicts and c4.merged == "B") and
+           (c5.hasConflicts)
     except: ok = false
   of 13:
     try:
@@ -66,7 +73,7 @@ proc runCap(n: int): bool =
   of 14:
     try:
       let fid=createFile(s, "big", "bd")
-      let c=readFile(s, fid); ok = c.len == 2
+      let c=readFile(s, fid); ok = (c.len == 2 and c == "bd")
     except: ok = false
   of 15:
     try:

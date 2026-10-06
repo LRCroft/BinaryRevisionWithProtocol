@@ -51,8 +51,8 @@ D s-stratt.ads		20220819080952 f7dfd786 system.stream_attributes%s
 D s-traent.ads		20220819080952 c81cbf8c system.traceback_entries%s
 D s-unstyp.ads		20220819080952 fa2a7f59 system.unsigned_types%s
 D unchconv.ads		20220819080952 ca2f9e18 unchecked_conversion%s
-D vsn.ads		20261005083148 c02769d8 vsn%s
-D vsn.adb		20261004203029 a88d2849 vsn%b
+D vsn.ads		20261005171046 c02769d8 vsn%s
+D vsn.adb		20261005171046 a88d2849 vsn%b
 G a e
 G c Z s b [parse vsn 16 13 none]
 G c Z s b [encode vsn 17 13 none]

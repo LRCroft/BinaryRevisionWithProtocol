@@ -40,7 +40,7 @@ run_cap <- function(n) {
   } else if (n == 13) {
     bytes <- export_bytes(s); s2 <- open_store(bytes); ok <- get_mode(s2) == MODE_MODERN; close_store(s2)
   } else if (n == 14) {
-    fid <- create_file(s, "big", charToRaw("bd")); cc <- read_file(s, fid); ok <- length(cc) > 0
+    fid <- create_file(s, "big", charToRaw("bd")); cc <- read_file(s, fid); ok <- identical(cc, charToRaw("bd"))
   } else if (n == 15) {
     d <- diagnostics(s); ok <- is.list(d)
   } else if (n == 16) ok <- isTRUE(integrity_verify(s))

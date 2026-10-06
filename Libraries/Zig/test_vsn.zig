@@ -54,7 +54,7 @@ pub fn main() void {
 
     var s7 = vsn.MutableStore.init(1);
     s7.createFile();
-    var ok7: [2]bool = .{ s7.readFileLen() >= 0, s7.fileExists() };
+    var ok7: [2]bool = .{ s7.readFileLen() == 3, s7.fileExists() };
     cap(7, &ok7);
 
     var sm8 = vsn.MutableStore.init(1); var se8 = vsn.MutableStore.init(2);

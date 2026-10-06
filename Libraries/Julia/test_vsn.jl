@@ -58,7 +58,7 @@ function runcap(n::Int)::Bool
             return s2.mode == s.mode
         elseif n == 14
             fid = VSN.write_large_object!(s, "big", UInt8[0x62,0x64])
-            return length(fid) >= 8
+            return VSN.read_file(s, fid) == UInt8[0x62,0x64]
         elseif n == 15
             return VSN.diagnostics(s, :structural) isa Vector
         elseif n == 16

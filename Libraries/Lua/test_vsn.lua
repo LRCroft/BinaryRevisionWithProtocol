@@ -30,12 +30,20 @@ local function run_cap(n)
     local s2 = vsn.create(1)
     local d = vsn.diff(s:commit(), s2.data or vsn.encode({}, {}, 0)); ok = type(d) == "table"
   elseif n == 12 then
-    local base=s; local ours=vsn.create(1); local theirs=vsn.create(1)
-    local m = vsn.three_way_merge(base.data or vsn.encode({}, {}, 0), ours:commit(), theirs:commit()); ok = m ~= nil
+    -- Real 3-way merge (5 cases): identical / ours-only / theirs-only / both-identical / divergent-conflict
+    local function m3(b, o, t) local okc, res = pcall(function() return vsn.three_way_merge(b, o, t) end); return okc, res end
+    local function norm(x) if type(x) == "string" then return (x:gsub("\n$", "")) end return nil end
+    local iok, ire   = m3("A", "A", "A")
+    local cok, cre   = m3("A", "B", "A")
+    local tok, tre   = m3("A", "A", "B")
+    local bidok, bire = m3("A", "B", "B")
+    local dfok       = m3("A", "B", "C")
+    ok = (iok and norm(ire) == "A") and (cok and norm(cre) == "B") and (tok and norm(tre) == "B")
+         and (bidok and norm(bire) == "B") and (not dfok)
   elseif n == 13 then
     local bytes = s:commit(); local s2 = vsn.open(bytes); ok = s2.mode == 1
   elseif n == 14 then
-    local fid = s:create_file("big", "bd"); local c = s:read_file(fid); ok = #c == 2
+    local fid = s:create_file("big", "bd"); local c = s:read_file(fid); ok = (#c == 2 and c == "bd")
   elseif n == 15 then
     local d = vsn.validate_with_diagnostics(s:commit(), "Full"); ok = type(d) == "table"
   elseif n == 16 then

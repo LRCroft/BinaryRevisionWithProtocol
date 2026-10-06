@@ -46,14 +46,14 @@ void main() {
     da.createFile("x", [1]);
     auto db = MutableStore.create(MODE_MODERN);
     cap(11, "diff", [da.diffCount(db) == 1], 1, 4);
-    auto b12 = MutableStore.create(MODE_MODERN); auto o12 = MutableStore.create(MODE_MODERN); auto t12 = MutableStore.create(MODE_MODERN); b12.createFile("f", [98,97]); o12.createFile("f", [111,117]); t12.createFile("f", [116,104]); cap(12, "merge three-way", [b12.fileExists("f"), o12.fileExists("f"), t12.fileExists("f")], 3, 3);
+    auto b12 = MutableStore.create(MODE_MODERN); auto o12 = MutableStore.create(MODE_MODERN); auto t12 = MutableStore.create(MODE_MODERN); b12.createFile("f", [98,97]); o12.createFile("f", [111,117]); t12.createFile("f", [116,104]); cap(12, "merge three-way", [b12.mergeOk(), o12.mergeOk(), t12.mergeOk(), b12.readFileLen("f") == 2], 4, 3);
     auto impOk = s6.importBytes(valid);
     auto exp = s6.exportBytes();
     cap(13, "import/export", [impOk, exp.length >= 8], 2, 3);
     ubyte[512] big; big[] = 0xAB;
     auto ss = MutableStore.create(MODE_MODERN);
     ss.createFile("big", big);
-    cap(14, "streaming", [ss.listObjects() >= 1], 1, 3);
+    cap(14, "streaming", [ss.readFileLen("big") == 512, ss.readFileContent("big").length == 512], 2, 3);
     cap(15, "diagnostics", [validate(valid), recover([1,2,3]) == -1], 2, 3);
     cap(16, "integrity", [ss.integrityOk(), magicCheck(valid)], 2, 3);
     cap(17, "storage", [ss.statsFiles() == 1, ss.statsRevs() >= 1], 2, 2);

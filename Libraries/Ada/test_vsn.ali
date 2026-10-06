@@ -10,7 +10,7 @@ RV NO_SECONDARY_STACK
 RV NO_STANDARD_STORAGE_POOLS
 RV NO_DYNAMIC_SIZED_OBJECTS
 
-U test_vsn%b		test_vsn.adb		a4a21ac3 NE OO SU
+U test_vsn%b		test_vsn.adb		2ac605a7 NE OO SU
 W ada%s			ada.ads			ada.ali
 Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
 Z ada.tags%s		a-tags.adb		a-tags.ali
@@ -51,9 +51,9 @@ D s-stratt.ads		20220819080952 f7dfd786 system.stream_attributes%s
 D s-traent.ads		20220819080952 c81cbf8c system.traceback_entries%s
 D s-unstyp.ads		20220819080952 fa2a7f59 system.unsigned_types%s
 D s-wchcon.ads		20220819080952 d9032363 system.wch_con%s
-D test_vsn.adb		20261004220735 ba28da91 test_vsn%b
+D test_vsn.adb		20261006143746 344cc5f5 test_vsn%b
 D unchconv.ads		20220819080952 ca2f9e18 unchecked_conversion%s
-D vsn.ads		20261005083148 c02769d8 vsn%s
+D vsn.ads		20261005171046 c02769d8 vsn%s
 G a e
 G c Z b b [test_vsn standard 3 11 none]
 G r c none [test_vsn standard 3 11 none] [create vsn 23 13 none]
@@ -93,8 +93,8 @@ X 32 test_vsn.adb
 . 92r13 99r13 106r13 115r13 123r13 132r13 141r13 149r13 156r13 166r13 173r13
 5U14 Cap 5b14 5>19 5>33 5>49 14l8 14t11 23s7 35s7 46s7 57s8 66s7 75s7 81s7
 . 87s7 94s7 101s7 110s7 117s7 127s7 136s7 143s7 151s7 161s7 168s7 175s7
-5i19 n{positive} 9r46 13r40
-5a33 label{string} 9r57 13r51
+5i19 n{positive} 9r45 13r39
+5a33 label{string} 9r80 13r74
 5a49 c{4A9} 7r16 8r17
 7i11 i{integer} 8r19
 18r7 s1{34|22R9} 20r32 22m17 22r17

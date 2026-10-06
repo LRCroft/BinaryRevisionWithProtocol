@@ -57,7 +57,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub fn parse(data: &[u8]) -> std::result::Result<(i32, u64), &'static str> { if data.len() < 8 { return Err("too short"); } if &data[0..4] != b"VSN-" { return Err("bad magic"); } let m = data[4] as i32; let g = u64::from(data[5]) | (u64::from(data[6]) << 8) | (u64::from(data[7]) << 16); Ok((m, g)) }
 pub fn recover(data: &[u8]) -> i32 { if data.len() >= 8 && &data[0..4] == b"VSN-" { 0 } else { -1 } }
 pub fn magic_check(data: &[u8]) -> bool { data.len() >= 8 && &data[0..4] == b"VSN-" }
-pub fn verify_integrity(data: &[u8]) -> bool { data.len() >= 8 && &data[0..4] == b"VSN-" }
+pub fn verify_integrity(data: &[u8]) -> bool { if data.len() < 8 || &data[0..4] != b"VSN-" { return false; } parse(data).is_ok() }
 #[derive(Debug)] pub struct MergeResult { pub conflicts: usize }
 pub fn diff_count_impl(a_files: usize, b_files: usize) -> usize { a_files.abs_diff(b_files) }
 pub fn three_way_merge(base: &MutableStore, ours: &MutableStore, theirs: &MutableStore) -> usize {

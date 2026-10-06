@@ -46,10 +46,10 @@ run_cap(N) ->
              R = vsn:limit_cleanup(S5, Fid, 3),
              S = vsn:close(S5),
              is_list(R) orelse is_map(R);
-        5 -> {_,S1} = vsn:create_file(S0, "o", <<"AB">>),
-             L = vsn:list_objects(S1),
+        5 -> {Fid,S1} = vsn:create_file(S0, "o", <<"AB">>),
+             R5 = vsn:read_file(S1, Fid),
              S = vsn:close(S1),
-             length(L) >= 1;
+             R5 =:= <<"AB">> andalso byte_size(R5) =:= 2;
         6 -> T0 = vsn:begin_transaction(S0),
              T1 = vsn:stage_add(T0, "t", <<1>>),
              SC = vsn:commit(T1, undefined),
@@ -83,20 +83,20 @@ run_cap(N) ->
               {Fb,B2} = vsn:create_file(B, "f", <<"base">>),
               {Fo,O2} = vsn:create_file(O, "f", <<"ours2">>),
               {Ft,T2} = vsn:create_file(T, "f", <<"theirs">>),
-              Bb = vsn:export_bytes(B2), Ob = vsn:export_bytes(O2), Tb = vsn:export_bytes(T2),
-              _SB = vsn:close(B2), _SO = vsn:close(O2), _ST = vsn:close(T2),
-              is_binary(Bb) andalso is_binary(Ob) andalso is_binary(Tb)
-                andalso Bb =/= Ob andalso Ob =/= Tb;
+              Rb = vsn:read_file(B2, Fb), Ro = vsn:read_file(O2, Fo), Rt = vsn:read_file(T2, Ft),
+              vsn:close(B2), vsn:close(O2), vsn:close(T2),
+              Rb =/= Ro andalso Ro =/= Rt
+                andalso byte_size(Rb) >= 4;
         13 -> Bytes = vsn:export_bytes(S0),
              S = vsn:close(S0),
              S2 = vsn:open(Bytes),
              R = vsn:get_mode(S2),
              vsn:close(S2),
              R >= 1 andalso R =< 2;
-        14 -> {Fid,S1} = vsn:create_file(S0, "big", <<1,2,3>>),
-             L = vsn:list_objects(S1),
+        14 -> {Fid,S1} = vsn:create_file(S0, "big", <<1,2,3,4,5,6,7,8>>),
+             R14 = vsn:read_file(S1, Fid),
              S = vsn:close(S1),
-             length(L) >= 1;
+             R14 =:= <<1,2,3,4,5,6,7,8>>;
         15 -> Valid = vsn:encode(1, 1),
               VS = vsn:validate_structural(Valid),
               is_boolean(VS);
