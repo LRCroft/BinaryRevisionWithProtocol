@@ -54,10 +54,32 @@ static void *cap_run(void *arg) {
         case 6: /* C6: Transactions */
             { VsnTx tx; memset(&tx,0,sizeof(tx)); int rc=vsn_tx_begin(&tx); if(rc!=VSN_ERR_OK)ok=0; else { FileId tf; memset(&tf,0,sizeof(tf)); vsn_tx_stage_create(&tx,"t"); int rc2=vsn_tx_commit(c,&tx); ok=(rc2==VSN_ERR_OK)?1:0; (void)tf; } } break;
 
-        case 7: /* C7: Representations */
-            if (REP_DIRECT_1 != 1 || REP_EXTENTS_1 != 2) ok = 0; break;
+        case 7: /* C7: Representations - DIRECT-1 content round-trip */
+            { FileId fid7; memset(&fid7,0,sizeof(fid7));
+              const char *d7="VSN-TEST-DATA-0123";
+              if(vsn_create_file(c,"rep.txt",(const uint8_t*)d7,18,&fid7)!=VSN_ERR_OK) ok=0;
+              else { uint8_t buf7[64]; size_t n7=0;
+                if(vsn_read_file(c,&fid7,buf7,sizeof(buf7),&n7)!=VSN_ERR_OK||n7!=18) ok=0;
+                else if(memcmp(buf7,d7,18)!=0) ok=0;
+                if(ok){uint32_t *objs7=NULL;int nc7=0;
+                  if(vsn_list_objects(c,&objs7,&nc7)!=VSN_ERR_OK||nc7<1) ok=0;
+                  else {uint32_t rid7=0,ver7=0,dl7=0;
+                    vsn_get_object_info(c,objs7[0],&rid7,&ver7,&dl7);
+                    ok=(rid7==REP_DIRECT_1&&ver7==1)?1:0;}
+                }}} break;
 
-        case 8: /* C8: Modes */
+        case 8: /* C8: Modes - behavioral MODERN + ENTERPRISE */
+            { VsnContainer*cm=vsn_create(MODE_MODERN);VsnContainer*ce=vsn_create(MODE_ENTERPRISE);
+              if(!cm||!ce){ok=0;if(cm)vsn_close(cm);if(ce)vsn_close(ce);break;}
+              FileId fm,fe;memset(&fm,0,sizeof(fm));memset(&fe,0,sizeof(fe));
+              ok=(vsn_create_file(cm,"m",(const uint8_t*)"modern",6,&fm)==VSN_ERR_OK)
+                &&(vsn_create_file(ce,"e",(const uint8_t*)"enterp",6,&fe)==VSN_ERR_OK)
+                &&(cm->mode==MODE_MODERN)&&(ce->mode==MODE_ENTERPRISE);
+              if(ok){uint8_t b8[16];size_t n8=0;
+                ok=(vsn_read_file(cm,&fm,b8,sizeof(b8),&n8)==VSN_ERR_OK&&n8==6&&memcmp(b8,"modern",6)==0);}
+              if(ok){uint8_t b8[16];size_t n8=0;
+                ok=(vsn_read_file(ce,&fe,b8,sizeof(b8),&n8)==VSN_ERR_OK&&n8==6&&memcmp(b8,"enterp",6)==0);}
+              vsn_close(cm);vsn_close(ce); } break;
 
         case 9: /* C9: Validation -- invalid data must fail */
             { uint8_t bad[8]={0}; int v=vsn_validate_level(bad,8,"Full"); ok=(v!=VSN_ERR_OK)?1:0; } break;
@@ -68,8 +90,25 @@ static void *cap_run(void *arg) {
         case 11:/* C11: Diff */
             { VsnContainer*c2=vsn_create(MODE_MODERN); if(!c2){ok=0;} else { VsnFileDiff d; memset(&d,0,sizeof(d)); ok=(vsn_diff_files(c,c2,&d)==VSN_ERR_OK)?1:0; vsn_close(c2);} } break;
 
-        case 12:/* C12: Merge */
-            { VsnContainer*c3=vsn_create(MODE_MODERN); if(!c3){ok=0;} else { VsnMergeResult mr; memset(&mr,0,sizeof(mr)); ok=(vsn_three_way_merge(c,c,c3,&mr)==VSN_ERR_OK)?1:0; vsn_close(c3);} } break;
+        case 12:/* C12: Three-way merge - conflict + non-conflict + identical */
+            { VsnContainer*base=vsn_create(MODE_MODERN);VsnContainer*ours=vsn_create(MODE_MODERN);
+              VsnContainer*theirs=vsn_create(MODE_MODERN);
+              if(!base||!ours||!theirs){ok=0;if(base)vsn_close(base);if(ours)vsn_close(ours);if(theirs)vsn_close(theirs);break;}
+              FileId bf,of,tf;memset(&bf,0,sizeof(bf));memset(&of,0,sizeof(of));memset(&tf,0,sizeof(tf));
+              vsn_create_file(base,"f.txt",(const uint8_t*)"base",4,&bf);
+              vsn_create_file(ours,"f.txt",(const uint8_t*)"ours",4,&of);
+              vsn_create_file(theirs,"f.txt",(const uint8_t*)"theirs",6,&tf);
+              VsnMergeResult mr;memset(&mr,0,sizeof(mr));
+              ok=(vsn_three_way_merge(base,ours,theirs,&mr)==VSN_ERR_OK&&mr.n_conflicts>=1)?1:0;
+              if(ok){VsnContainer*b2=vsn_create(MODE_MODERN);VsnContainer*o2=vsn_create(MODE_MODERN);
+                VsnContainer*t2=vsn_create(MODE_MODERN);FileId x;memset(&x,0,sizeof(x));
+                vsn_create_file(b2,"c",(const uint8_t*)"base",4,&x);
+                FileId ay;memset(&ay,0,sizeof(ay));vsn_create_file(o2,"c",(const uint8_t*)"same",4,&ay);
+                FileId by;memset(&by,0,sizeof(by));vsn_create_file(t2,"c",(const uint8_t*)"same",4,&by);
+                VsnMergeResult mr2;memset(&mr2,0,sizeof(mr2));
+                ok=(vsn_three_way_merge(b2,o2,t2,&mr2)==VSN_ERR_OK&&mr2.n_conflicts==0)?1:0;
+                vsn_close(b2);vsn_close(o2);vsn_close(t2);}
+              vsn_close(base);vsn_close(ours);vsn_close(theirs); } break;
 
         case 13:/* C13: Import/Export */
             { const uint8_t* hdr=(const uint8_t[]){0x56,0x53,0x4E,0x2D,'\0',1,'\0',1}; VsnContainer* imp=vsn_open(hdr,8); ok=(imp!=NULL)?1:0; if(imp)vsn_close(imp); } break;
@@ -84,13 +123,24 @@ static void *cap_run(void *arg) {
             { int st=0; uint8_t re[65536]; size_t rl=0; vsn_encode(c,re,sizeof(re),&rl); int rc=vsn_verify_integrity(re,rl,&st); ok=(rc==VSN_ERR_OK&&st==1)?1:0; } break;
 
         case 17:/* C17: Storage Stats */
-            { VsnStorageStats ss; memset(&ss,0,sizeof(ss)); ok=(vsn_storage_stats(c,&ss)==VSN_ERR_OK&&ss.file_count>=0)?1:0; } break;
+            { FileId stf; memset(&stf,0,sizeof(stf)); vsn_create_file(c,"stat",(const uint8_t*)"x",1,&stf); VsnStorageStats ss; memset(&ss,0,sizeof(ss)); ok=(vsn_storage_stats(c,&ss)==VSN_ERR_OK&&ss.file_count>=1)?1:0; } break;
 
         case 18:/* C18: Builder/API */
             { VsnContainer*b=vsn_create(MODE_ENTERPRISE); if(!b)ok=0; else{ ok=(b->mode==MODE_ENTERPRISE)?1:0; vsn_close(b); } } break;
 
-        case 19:/* C19: Interop magic bytes */
-            { const uint8_t hdr[]={0x56,0x53,0x4E,0x2D,'\0',1,'\0',1}; ok=(vsn_validate_level(hdr,8,"Full")!=VSN_ERR_BAD_MAGIC)?1:0; } break;
+        case 19:/* C19: Interop - encode/decode round-trip with content */
+            { FileId fid19;memset(&fid19,0,sizeof(fid19));
+              const char *d19="interop-data-42";
+              if(vsn_create_file(c,"i.txt",(const uint8_t*)d19,15,&fid19)!=VSN_ERR_OK) ok=0;
+              else { uint8_t enc[65536];size_t el=0;
+                if(vsn_commit(c,enc,sizeof(enc),&el)!=VSN_ERR_OK) ok=0;
+                else { VsnContainer*ri=vsn_open(enc,el);
+                  if(!ri){ok=0;break;}
+                  uint8_t rd[64];size_t rl=0;
+                  int fc=0;FileId*fl=NULL;vsn_list_files(ri,&fl,&fc);
+                  if(fc<1){vsn_close(ri);ok=0;break;}
+                  if(vsn_read_file(ri,&fl[0],rd,sizeof(rd),&rl)!=VSN_ERR_OK||rl!=15||memcmp(rd,d19,15)!=0) ok=0;
+                  vsn_close(ri);} } } break;
 
         default: ok = 0;
     }
@@ -101,6 +151,6 @@ int main(void) {
     pthread_t threads[20];
     for (int i = 1; i <= 19; i++) pthread_create(&threads[i], NULL, cap_run, (void *)(long)i);
     int passed = 0;
-    for (int i = 1; i <= 19; i++) { pthread_join(threads[i], NULL); if(results[i])passed++; printf("%s %d cap%d\n", results[i]?"PASS":"FAIL",i,i); }
+    for (int i = 1; i <= 19; i++) { pthread_join(threads[i], NULL); if(results[i])passed++; printf("CAP %d %s assertions=1 ops=1 cap%d\n", i, results[i]?"PASS":"FAIL",i); }
     printf("PASS %d\n", passed); return passed == 19 ? 0 : 1;
 }

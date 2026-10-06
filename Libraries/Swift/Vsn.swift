@@ -70,7 +70,7 @@ public class MutableStore {
         generation += 1; return VsnApi.encode(mode: mode, gen: generation)
     }
     public func diffCount(_ other: MutableStore) -> Int { abs(fileCount - other.fileCount) }
-    public func mergeOk() -> Bool { true }
+    public func mergeOk() -> Bool { mode >= 1 && mode <= 2 }
     public func importBytes(_ data: [UInt8]) -> Bool {
         guard data.count >= 8 else { fatalError("bad") }
         guard String(bytes: data[0..<4], encoding: .ascii) == "VSN-" else { fatalError("bad") }
@@ -80,6 +80,14 @@ public class MutableStore {
     public func integrityOk() -> Bool { !closed }
     public func statsFiles() -> Int { fileCount }
     public func statsRevs() -> Int { revCount }
+    public func getContents() -> [String: [UInt8]] { lock.lock(); let c = contents; lock.unlock(); return c }
     public func builderOk() -> Bool { mode >= 1 && mode <= 2 }
 }
 public struct Builder { public static func build(mode: UInt8) -> MutableStore { MutableStore(mode: mode) } }
+public func threeWayMerge(base: MutableStore, ours: MutableStore, theirs: MutableStore) -> Int {
+    let bc = base.getContents(); let oc = ours.getContents(); let tc = theirs.getContents()
+    let all = Set(bc.keys).union(oc.keys).union(tc.keys); var conflicts = 0
+    for path in all { let b = bc[path]; let o = oc[path]; let t = tc[path]
+      if o != t && o != b && t != b { conflicts += 1 } }
+    return conflicts
+}

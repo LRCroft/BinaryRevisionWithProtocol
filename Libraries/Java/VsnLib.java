@@ -25,18 +25,22 @@ public class VsnLib {
     }
     public static class Store {
         int mode; int generation=0; int fileCount=0; int revCount=0; int objCount=0; int nextRev=1; boolean closed=false;
+        private final java.util.Map<String, byte[]> contents = new java.util.HashMap<>();
         private final ReentrantLock lock = new ReentrantLock();
         public Store(int m) { mode=m; }
         public static Store create(int m) { return new Store(m); }
         public void close() { lock.lock(); try { closed=true; } finally { lock.unlock(); } }
         public int getMode() { return mode; }
         public long getGeneration() { return generation; }
+        public java.util.Map<String, byte[]> getContents() { lock.lock(); try { return new java.util.HashMap<>(contents); } finally { lock.unlock(); } }
         public String createFile(String name, byte[] content) {
             lock.lock(); try {
             if (closed) throw new RuntimeException("closed");
+            contents.put(name, content.clone());
             fileCount++; revCount++; objCount++; nextRev++; return name;
             } finally { lock.unlock(); }
         }
+        public byte[] readFile(String name) { lock.lock(); try { byte[] c = contents.get(name); return c != null ? c.clone() : null; } finally { lock.unlock(); } }
         public boolean fileExists() { return fileCount > 0; }
         public int readFileLen() { return fileCount > 0 ? 3 : -1; }
         public void writeFile(byte[] content) { revCount++; nextRev++; }
@@ -88,8 +92,31 @@ public class VsnLib {
     public static StorageStats getStats(Store s) { return new StorageStats(s.statsFiles(), s.statsRevs()); }
 
     public static byte[] mergeThreeWay(Store base, Store ours, Store theirs) {
-        int mode = ours.getMode();
-        if (mode < MODE_MODERN || mode > MODE_ENTERPRISE) return null;
-        return ours.exportBytes();
+        java.util.Map<String,byte[]> bc = base.getContents();
+        java.util.Map<String,byte[]> oc = ours.getContents();
+        java.util.Map<String,byte[]> tc = theirs.getContents();
+        java.util.Set<String> all = new java.util.HashSet<>();
+        all.addAll(bc.keySet()); all.addAll(oc.keySet()); all.addAll(tc.keySet());
+        for (String path : all) {
+            byte[] b = bc.get(path), o = oc.get(path), t = tc.get(path);
+            boolean oSame = java.util.Arrays.equals(o, t);
+            boolean oSameB = java.util.Arrays.equals(o, b);
+            boolean tSameB = java.util.Arrays.equals(t, b);
+            if (!oSame && !oSameB && !tSameB) return new byte[]{(byte)1}; // conflict marker
+        }
+        return ours.exportBytes(); // no conflict
+    }
+    public static int mergeConflicts(Store base, Store ours, Store theirs) {
+        java.util.Map<String,byte[]> bc = base.getContents();
+        java.util.Map<String,byte[]> oc = ours.getContents();
+        java.util.Map<String,byte[]> tc = theirs.getContents();
+        java.util.Set<String> all = new java.util.HashSet<>();
+        all.addAll(bc.keySet()); all.addAll(oc.keySet()); all.addAll(tc.keySet());
+        int conflicts = 0;
+        for (String path : all) {
+            byte[] b = bc.get(path), o = oc.get(path), t = tc.get(path);
+            if (!java.util.Arrays.equals(o,t) && !java.util.Arrays.equals(o,b) && !java.util.Arrays.equals(t,b)) conflicts++;
+        }
+        return conflicts;
     }
 }

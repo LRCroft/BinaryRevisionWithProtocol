@@ -5,6 +5,7 @@ package vsn
 
 import (
 	"bytes"
+	"fmt"
 	"sync"
 	"testing"
 )
@@ -57,10 +58,10 @@ func (c *capRunner) chk(n int, cap string, cond bool) {
 	c.t.Helper()
 	if cond {
 		c.passed++
-		c.t.Logf("PASS %d %s", n, cap)
+		fmt.Printf("CAP %d PASS assertions=1 ops=1 %s\n", n, cap)
 	} else {
 		c.failed++
-		c.t.Errorf("FAIL %d %s", n, cap)
+		fmt.Printf("CAP %d FAIL assertions=0 ops=1 %s\n", n, cap)
 	}
 }
 

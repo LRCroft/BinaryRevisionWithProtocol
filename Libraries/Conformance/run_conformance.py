@@ -26,7 +26,7 @@ ALL_LANGUAGES = [
     "Fortran", "Haskell",            # vsn-deb:latest
     "Lua", "Nim",                    # vsn-deb:latest
     "OCaml", "Perl",                 # vsn-deb:latest
-    "Objective-C",                   # vsn-objc:latest (custom)
+    "Objective-C",                   # ubuntu:24.04 (gcc with ObjC support built-in)
     "Zig"                            # vsn-zig:latest (custom)
 ]
 
@@ -44,7 +44,8 @@ PINNED = {
     "vsn-d":      None,
     "vsn-jvm":    None,
     "vsn-lua":    None,
-    "vsn-objc":   None,
+    "vsn-objc":   None,          # v2: built from Libraries/Objective-C/Dockerfile (gobjc + libobjc)
+    "ubuntu:24.04":        None,
     "vsn-zig":    None,
     # Official images: version-pinned
     "gcc:13":                     "gcc@sha256:d947520d1c11f1b2a18e9e8d3a0a4c1b9e8f7c6d5e4f3a2b1c0d9e8f7a6b5c4",
@@ -114,13 +115,13 @@ LANG_SPECS["JavaScript-TypeScript"] = LangSpec("JavaScript-TypeScript", "node:20
 LANG_SPECS["Julia"] = LangSpec("Julia", "julia:latest", "Julia",
     "julia test_vsn.jl")
 LANG_SPECS["Kotlin"] = LangSpec("Kotlin", "vsn-jvm:latest", "Kotlin",
-    "java -jar test.jar")
+    """mkdir -p /tmp/classes && kotlinc -d /tmp/classes Vsn.kt test_vsn.kt 2>&1 && java -cp /tmp/classes:/opt/kotlinc/lib/kotlin-stdlib.jar vsn.Test_vsnKt""")
 LANG_SPECS["Lua"] = LangSpec("Lua", "vsn-deb:latest", "Lua",
     "LUA_PATH='./?.lua;;' lua test_vsn.lua")
 LANG_SPECS["Nim"] = LangSpec("Nim", "vsn-deb:latest", "Nim",
     "nim c -o:/tmp/t test_vsn.nim && /tmp/t")
 LANG_SPECS["Objective-C"] = LangSpec("Objective-C", "vsn-objc:latest", "Objective-C",
-    "gcc-11 -x objective-c -o /tmp/t test_vsn.m -lobjc -lpthread && /tmp/t")
+    "gcc -x objective-c -o /tmp/t test_vsn.m -lobjc -lpthread && /tmp/t")
 LANG_SPECS["OCaml"] = LangSpec("OCaml", "vsn-deb:latest", "OCaml",
     "ocamlc -o /tmp/t vsn.ml test_vsn.ml && /tmp/t")
 LANG_SPECS["Perl"] = LangSpec("Perl", "vsn-deb:latest", "Perl",
@@ -174,8 +175,15 @@ def parse_caps(output):
         if m:
             n = int(m.group(1))
             if 1 <= n <= 19:
-                if n in caps:
-                    caps[n] = "DUP"
+                if n in caps and not weak.get(n):
+                    # Multiple strong lines for same cap: FAIL overrides PASS
+                    if m.group(2).upper() == "FAIL":
+                        caps[n] = "FAIL"
+                    # else keep existing (PASS stays PASS)
+                elif n in caps and weak.get(n):
+                    # Strong CAP overrides weak PASS
+                    caps[n] = "PASS" if m.group(2).upper() == "PASS" else "FAIL"
+                    weak[n] = False
                 else:
                     caps[n] = "PASS" if m.group(2).upper() == "PASS" else "FAIL"
                     weak[n] = False

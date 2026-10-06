@@ -33,6 +33,7 @@ class MutableStore {
     int fileCount = 0, revCount = 0, objCount = 0, nextRev = 1;
     bool closed = false;
     string[] paths;
+    ubyte[][] contents;
     
     this(int m) { mode = m; }
     static MutableStore create(int m) { return new MutableStore(m); }
@@ -42,6 +43,7 @@ class MutableStore {
         lockGuard();
         if (closed) throw new Exception("closed");
         paths ~= name;
+        contents ~= content.dup;
         fileCount++; revCount++; objCount++; nextRev++;
         unlockGuard();
         return name;
@@ -52,7 +54,18 @@ class MutableStore {
         unlockGuard();
         return false;
     }
-    int readFileLen(string fid) { return fileExists(fid) ? 3 : -1; }
+    int readFileLen(string fid) {
+        lockGuard();
+        foreach (i, p; paths) if (p == fid) { unlockGuard(); return cast(int)contents[i].length; }
+        unlockGuard();
+        return -1;
+    }
+    ubyte[] readFileContent(string fid) {
+        lockGuard();
+        foreach (i, p; paths) if (p == fid) { unlockGuard(); return contents[i].dup; }
+        unlockGuard();
+        return null;
+    }
     void writeFile(string fid, ubyte[] content) { lockGuard(); revCount++; nextRev++; unlockGuard(); }
     void deleteFile(string fid) {
         lockGuard();

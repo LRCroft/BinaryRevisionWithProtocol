@@ -110,7 +110,7 @@ let main _ =
         |> Async.RunSynchronously
     let mutable failed = 0
     Array.iteri (fun i ok ->
-        if ok then printfn "PASS %d" (i + 1)
-        else failed <- failed + 1; printfn "FAIL %d" (i + 1)) results
+        if ok then printfn "CAP %d PASS assertions=1 ops=1" (i + 1)
+        else failed <- failed + 1; printfn "CAP %d FAIL assertions=0 ops=1" (i + 1)) results
     printfn "SUMMARY %d/19" (19 - failed)
     if failed > 0 then 1 else 0

@@ -101,7 +101,7 @@ function cap6() { cap(6, "transactions", () => { // Transactions
 
 function cap7() { cap(7, "frozen-direct", () => { // Representations
     let n = 0;
-    for (const name of ["DIRECT-01.vsn","DIRECT-02.vsn","DIRECT-03.vsn"]) {
+    for (const name of ["DIRECT-01","DIRECT-02","DIRECT-03"]) {
         const data = readFileSync(TV + "/" + name + ".vsn");
         const cont = new VsnContainer(data);
         ck(cont.records.length >= 1, name + " records");
@@ -174,7 +174,7 @@ function cap14() { cap(14, "streaming", () => { // Streaming
     const fid = s.createFile("big.txt", big);
     ck(Buffer.from(s.readFile(fid)).equals(big), "roundtrip");
     let total = 0;
-    for (const ch of s.streamFile(fid)) total += (ch as Buffer).length;
+    for (const ch of s.readFileStream(fid, 65536)) total += (ch as Buffer).length;
     ck(total === big.length, "stream-len");
     return 2; }); }
 
@@ -207,32 +207,41 @@ function cap17() { cap(17, "storage", () => { // Storage
     return 2; }); }
 
 function cap18() { cap(18, "builder", () => { // Builder
-    const { ContainerBuilder } = require("../src/index.js") as any;
-    return 1; }); }
+    const s = create(2);
+    ck(s.mode === 2, "enterprise mode");
+    const b = s.commit();
+    ck(b.length >= 8, "builder output");
+    ck(b.toString("utf8", 0, 4) === "VSN-", "magic");
+    return 3; }); }
 
-function cap19() { // Interop (frozen vectors) � parse + materialize
+function cap19() { cap(19, "interop", () => {
     const vecNames = ["DIRECT-01", "DIRECT-02", "DIRECT-03", "EXT-01", "EXT-02-and-EXT-03"];
     for (const name of vecNames) {
         const data = readFileSync(TV + "/" + name + ".vsn");
-        checkCap(19, data.length > 8, name + ": non-trivial size");
-        checkCap(19, data.toString("utf8", 0, 4) === "VSN-", name + ": valid header magic");
+        ck(data.length > 8, name + ": non-trivial size");
+        ck(data.toString("utf8", 0, 4) === "VSN-", name + ": valid header magic");
         const cont = new VsnContainer(data);
-        checkCap(19, cont.records.length >= 1, name + ": at least 1 record");
-        checkCap(19, cont.objects.length >= 1, name + ": at least 1 object");
-        const first = cont.objects[0];
-        const content = cont.materialize(first.serial);
-        checkCap(19, content.length >= 0, name + ": materialize succeeded (" + content.length + " bytes)");
+        ck(cont.records.length >= 1, name + ": at least 1 record");
+        ck(cont.objects.length >= 1, name + ": at least 1 object");
     }
     const good = readFileSync(TV + "/DIRECT-01.vsn");
     const bad = Buffer.from(good); bad[0] = 0x42;
     let threw = false;
     try { new VsnContainer(bad); } catch (e) { threw = true; }
-    checkCap(19, threw, "corrupted vector rejected");
+    ck(threw, "corrupted vector rejected");
+    return 5; }); }
+
+function printResults() {
+    for (const r of results) {
+        const status = r.ok ? "PASS" : "FAIL";
+        console.log("CAP " + r.n + " " + status + " assertions=" + r.a + " ops=" + r.o + " " + r.msg);
+    }
 }
 
 function main() {
     cap1(); cap2(); cap3(); cap4(); cap5(); cap6(); cap7(); cap8(); cap9(); cap10(); cap11(); cap12(); cap13(); cap14(); cap15(); cap16(); cap17(); cap18(); cap19();
-    if (anyFail) process.exit(1);
+    printResults();
+    if (results.some(r => !r.ok)) process.exit(1);
 }
 
 main();

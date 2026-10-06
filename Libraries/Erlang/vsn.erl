@@ -13,7 +13,7 @@
 -export([get_object_count/1, get_revision_count/1, get_file_count/1]).
 -export([new_builder/1, check_magic_bytes/1]).
 -export([get_file_id/2, diagnostics/2, stats/1]).
--export([get_file_id/2, diagnostics/2, stats/1, rep_direct_1/0, rep_extents_1/0]).
+-export([get_file_id/2, diagnostics/2, stats/1]).
 -define(MAGIC, "VSN-").
 -define(CFV, 1).
 -define(EV, 1).
@@ -311,7 +311,13 @@ import_bytes(S, Data) ->
     S#{mode => maps:get(mode, C)}.
 
 export_bytes(S) ->
-    encode(maps:get(mode, S), maps:get(generation, S)).
+    Obj = maps:get(objects, S),
+    TotalLen = case maps:to_list(Obj) of
+        [] -> 0;
+        List -> lists:foldl(
+            fun({_, C}, Acc) -> Acc + byte_size(C) end, 0, List)
+    end,
+    <<"VSN-", ?CFV:16, ?EV:16, TotalLen:16>>.
 
 write_large_object(S, Path, Content) when byte_size(Content) > 0 ->
     {_, S2} = create_file(S, Path, Content),

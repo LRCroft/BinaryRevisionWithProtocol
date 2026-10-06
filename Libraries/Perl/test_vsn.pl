@@ -28,10 +28,10 @@ sub run_cap {
     elsif ($n == 16) { $ok = (VSN::integrity_verify($s)) ? 1 : 0; VSN::close_store($s); }
     elsif ($n == 17) { VSN::create_file($s,"stat","x"); my $st=VSN::get_stats($s); $ok=($st->{files}>=1)?1:0; VSN::close_store($s); }
     elsif ($n == 18) { my $b=VSN::new_builder(2); $ok=($b->{mode}==2)?1:0; VSN::close_store($b); }
-    elsif ($n == 19) { $ok = (VSN::check_magic_bytes(VSN::encode(1,1))) ? 1 : 0; }
+    elsif ($n == 19) { my $fid19=VSN::create_file($s,"i","interop-data-42"); my $b19=VSN::export_bytes($s); $ok=(VSN::read_file($s,$fid19) eq "interop-data-42" and length($b19)>=8 and substr($b19,0,4) eq "VSN-")?1:0; }
     VSN::close_store($s);
-    if ($ok) { $PASSED++; print "PASS $n\n"; }
-    else { $FAILED++; print "FAIL $n\n"; }
+    if ($ok) { $PASSED++; print "CAP $n PASS assertions=1 ops=1\n"; }
+    else { $FAILED++; print "CAP $n FAIL assertions=0 ops=1\n"; }
 }
 
 for my $n (1..19) { run_cap($n); }

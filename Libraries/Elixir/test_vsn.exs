@@ -49,8 +49,8 @@ defmodule VSNTest do
               byte_size(bytes) >= 8
             rescue _ -> false
             end
-          7 -> VSN.rep_direct_1() == 1 and VSN.rep_extents_1() == 2
-          8 -> S.get_mode(s) in [VSN.mode_modern(), VSN.mode_enterprise()]
+          7 -> try do {fid7, s7} = S.create_file(s, "rep", <<86,83,78,45,84,69,83,84>>); S.read_file(s7, fid7) == <<86,83,78,45,84,69,83,84>> rescue _ -> false end
+          8 -> sm8 = S.new(1); se8 = S.new(2); {fm8, sm8b} = S.create_file(sm8, "m", <<109,111,100>>); {fe8, se8b} = S.create_file(se8, "e", <<101,110,116>>); S.get_mode(sm8b) == 1 and S.get_mode(se8b) == 2 and S.read_file(sm8b, fm8) == <<109,111,100>> and S.read_file(se8b, fe8) == <<101,110,116>>
           9 ->
             try do
               bytes = S.export_bytes(s)
@@ -127,10 +127,10 @@ defmodule VSNTest do
         end
         S.close(s)
         if ok do
-          IO.puts("PASS #{n}")
+          IO.puts("CAP #{n} PASS assertions=1 ops=1")
           1
         else
-          IO.puts("FAIL #{n}")
+          IO.puts("CAP #{n} FAIL assertions=0 ops=1")
           0
         end
       end)

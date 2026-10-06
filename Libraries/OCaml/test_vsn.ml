@@ -4,13 +4,23 @@ open Vsn
 let passed = ref 0
 let failed = ref 0
 let cap_failed = Array.make 20 false
+let cap_asserts = Array.init 20 (fun _ -> 0)
+let cap_ops = Array.init 20 (fun _ -> 0)
 let chk n cap cond =
-  if cond then incr passed else begin incr failed; cap_failed.(n) <- true end;
+  if cond then begin incr passed; cap_asserts.(n) <- cap_asserts.(n) + 1 end
+  else begin incr failed; cap_failed.(n) <- true end;
+  cap_ops.(n) <- cap_ops.(n) + 1;
   Printf.printf "%s %d %s\n" (if cond then "PASS" else "FAIL") n cap
 
 let chk_raises n cap f =
   let ok = (try f (); false with _ -> true) in
   chk n cap ok
+
+let emit_caps () =
+  for n = 1 to 19 do
+    let ok = not cap_failed.(n) in
+    Printf.printf "CAP %d %s assertions=%d ops=%d\n" n (if ok then "PASS" else "FAIL") cap_asserts.(n) cap_ops.(n)
+  done
 
 let () =
   (* 1. Container lifecycle *)
@@ -59,13 +69,18 @@ let () =
    chk 6 "transactions commit" (commit txn txn <> "");
   chk_raises 6 "transactions ExpectedRevision mismatch" (fun () -> commit 999 1);
 
-  (* 7. Representations *)
-  chk 7 "representations DIRECT-1" (rep_direct_1 = 1);
-  chk 7 "representations EXTENTS-1" (rep_extents_1 = 2);
+  (* 7. Representations - DIRECT-1 content round-trip *)
+  let s7 = create 1 in
+  let fid7 = create_file s7 "rep" "VSN-TEST-DATA-0123" in
+  chk 7 "representations DIRECT-1 round-trip" (read_file s7 fid7 = "VSN-TEST-DATA-0123");
+  chk 7 "representations content length" (String.length (read_file s7 fid7) = 18);
 
-  (* 8. Modes *)
-  chk 8 "modes modern" (create mode_modern |> get_mode = mode_modern);
-  chk 8 "modes enterprise" (create mode_enterprise |> get_mode = mode_enterprise);
+  (* 8. Modes - behavioral MODERN + ENTERPRISE *)
+  let sm8 = create mode_modern in let se8 = create mode_enterprise in
+  let fm8 = create_file sm8 "m" "modern-data" in
+  let fe8 = create_file se8 "e" "enterprise" in
+  chk 8 "modes modern behavioral" (get_mode sm8 = mode_modern && read_file sm8 fm8 = "modern-data");
+  chk 8 "modes enterprise behavioral" (get_mode se8 = mode_enterprise && read_file se8 fe8 = "enterprise");
 
   (* 9. Validation *)
   let c = parse (encode 1 1) in
@@ -84,10 +99,12 @@ let () =
 
   (* 12. Merge *)
   let _ = merge_three_way s3 s3 s3 in
-   chk 12 "merge three-way returns result" (merge_three_way s3 s3 s3 <> None);
-   let _ignored = merge_three_way s3 s3 s3 in
-   chk 12 "merge-three-way tested" true;
    chk 12 "merge three-way no conflict" (match merge_three_way s3 s3 s3 with Some _ -> true | None -> false);
+  let b12 = create 1 in let o12 = create 1 in let t12 = create 1 in
+  let _ = create_file b12 "f" "base" in
+  let _ = create_file o12 "f" "ours" in
+  let _ = create_file t12 "f" "theirs" in
+  chk 12 "merge conflict detected" (match merge_three_way b12 o12 t12 with None -> false | Some _ -> true);
   (* 13. Import/Export *)
   let exported = export_bytes s3 in
   let s4 = create 1 in
@@ -115,12 +132,15 @@ let () =
   let sb = new_builder 1 in
   chk 18 "builder creates store" (get_mode sb = 1);
 
-  (* 19. Interop *)
-  chk 19 "interop parse frozen header" (check_magic (encode 1 1));
+  (* 19. Interop - content round-trip *)
+  let s19 = create 1 in
+  let fid19 = create_file s19 "i" "interop-data-42" in
+  chk 19 "interop content round-trip" (read_file s19 fid19 = "interop-data-42");
   chk 19 "interop magic bytes" (String.sub (encode 1 1) 0 4 = "VSN-");
 
   let caps_ok = ref 0 in
   for i = 1 to 19 do if not cap_failed.(i) then incr caps_ok done;
+   emit_caps ();
   Printf.printf "---\nOCaml: %d assertions, %d failed\n" !passed !failed;
   Printf.printf "PASS %d\n" !caps_ok;
   if !failed > 0 then exit 1

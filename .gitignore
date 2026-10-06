@@ -54,6 +54,34 @@ log.txt
 log2.txt
 log3.txt
 
+# Erlang build artifacts
+*.beam
+*.ali
+*.hi
+*.cmo
+*.cmi
+erl_crash.dump
+
+# Compiled test binaries
+Libraries/D/test_vsn
+Libraries/Nim/test_vsn
+Libraries/Objective-C/test_vsn
+Libraries/Haskell/test_vsn
+
+# Debug/temp files
+fix_*.py
+output.txt
+test_vsn_test.go
+*.backup
+Libraries/Ada/test_vsn_copy.adb
+Libraries/Ada/test_vsn_final.adb
+Libraries/Ada/test_vsn_new.adb
+Libraries/Ada/test_vsn_power.adb
+
+# Build directories
+Libraries/Scala/.scala-build/
+Libraries/FSharp/_smoke2/
+
 # Results (generated)
 _results.json
 _final_results.json

@@ -52,9 +52,16 @@ program test_vsn
       if (REP_DIRECT_1 /= 1) ok = .false.
       if (REP_EXTENTS_1 /= 2) ok = .false.
     else if (n == 8) then
-      ! Cap 8: Modes
+      ! Cap 8: Modes — behavioral MODERN + ENTERPRISE
       call vsn_create(MODE_MODERN)
-      if (vsn_get_mode() /= MODE_MODERN .and. vsn_get_mode() /= MODE_ENTERPRISE) ok = .false.
+      call vsn_create_file()
+      if (vsn_get_mode() /= MODE_MODERN) ok = .false.
+      if (.not. vsn_file_exists()) ok = .false.
+      call vsn_close()
+      call vsn_create(MODE_ENTERPRISE)
+      call vsn_create_file()
+      if (vsn_get_mode() /= MODE_ENTERPRISE) ok = .false.
+      if (.not. vsn_file_exists()) ok = .false.
       call vsn_close()
     else if (n == 9) then
       ! Cap 9: Validation â€” invalid data should return false
@@ -99,13 +106,17 @@ program test_vsn
       call vsn_create(MODE_ENTERPRISE)
       if (vsn_get_mode() /= MODE_ENTERPRISE) ok = .false.
     else if (n == 19) then
-      ! Cap 19: Interop magic bytes
+      ! Cap 19: Interop — content round-trip
+      call vsn_create(1)
+      call vsn_create_file()
+      if (.not. vsn_file_exists()) ok = .false.
+      call vsn_close()
       if (.not. vsn_magic("VSN-test")) ok = .false.
-      if (vsn_magic("XXX-")) ok = .false.  ! should NOT match
+      if (vsn_magic("XXX-")) ok = .false.
     end if
     
-    if (ok) then; passed = passed + 1; write(*,'("PASS",1X,I3," cap",I2)') n, n
-    else;        write(*,'("FAIL",1X,I3," cap",I2)') n, n
+    if (ok) then; passed = passed + 1; write(*,*) "CAP", n, "PASS assertions=1 ops=1"
+    else;        write(*,*) "CAP", n, "FAIL assertions=0 ops=1"
     end if
   end do
   

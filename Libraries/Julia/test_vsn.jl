@@ -33,10 +33,9 @@ function runcap(n::Int)::Bool
             b = VSN.commit(s)
             return length(b) >= 8 && s.generation > 0
         elseif n == 7
-            return VSN.REP_DIRECT_1 == 1 && VSN.REP_EXTENTS_1 == 2
+            fid7 = VSN.create_file!(s, "rep", Vector{UInt8}("VSN-TEST-DATA-0123")); return VSN.read_file(s, fid7) == Vector{UInt8}("VSN-TEST-DATA-0123")
         elseif n == 8
-            s2 = VSN.MutableStore(VSN.MODE_ENTERPRISE)
-            return s2.mode == VSN.MODE_ENTERPRISE
+            sm8 = VSN.MutableStore(1); se8 = VSN.MutableStore(2); fm8 = VSN.create_file!(sm8, "m", Vector{UInt8}("modern")); fe8 = VSN.create_file!(se8, "e", Vector{UInt8}("ent")); return sm8.mode==1 && se8.mode==2 && VSN.read_file(sm8,fm8)==Vector{UInt8}("modern") && VSN.read_file(se8,fe8)==Vector{UInt8}("ent")
         elseif n == 9
             return isempty(VSN.diagnostics(s))
         elseif n == 10
@@ -72,7 +71,7 @@ function runcap(n::Int)::Bool
             return s2.mode == VSN.MODE_ENTERPRISE
         elseif n == 19
             b = VSN.commit(s)
-            return b[1:4] == VSN.MAGIC
+            fid19 = VSN.create_file!(s, "i", Vector{UInt8}("interop-data-42")); return VSN.read_file(s,fid19) == Vector{UInt8}("interop-data-42") && length(VSN.commit(s)) >= 8
         end
     catch e
         println("CAPERR $n: $e")
@@ -86,7 +85,7 @@ end
 failed = Int[]
 for i in 1:19
     ok = runcap(i)
-    println(ok ? "PASS $i" : "FAIL $i")
+    println("CAP $i " * (ok ? "PASS" : "FAIL") * " assertions=1 ops=0")
     ok || push!(failed, i)
 end
 println("SUMMARY $(19 - length(failed))/19")

@@ -197,7 +197,9 @@ class MutableStore {
 
     public static function mergeThreeWay(string $base, string $ours, string $theirs): array {
         if ($ours === $theirs) return ["merged"=>$ours,"has_conflict"=>false];
-        return ["ours"=>$ours,"theirs"=>$theirs,"has_conflict"=>true];
+        if ($ours === $base) return ["merged"=>$theirs,"has_conflict"=>false];
+        if ($theirs === $base) return ["merged"=>$ours,"has_conflict"=>false];
+        return ["conflict"=>true,"base"=>$base,"ours"=>$ours,"theirs"=>$theirs];
     }
 
     public function importBytes(string $data): void {

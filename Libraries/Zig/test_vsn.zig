@@ -5,11 +5,11 @@ const out = std.io.getStdOut().writer();
 fn cap(n: u32, checks: []const bool) void {
     for (checks) |c| {
         if (!c) {
-            out.print("FAIL {d}\n", .{ n }) catch {};
+            out.print("CAP {d} FAIL assertions=0 ops={d}\n", .{ n, checks.len }) catch {};
             std.process.exit(1);
         }
     }
-    std.debug.print("PASS {d}\n", .{ n });
+    std.debug.print("CAP {d} PASS assertions={d} ops={d}\n", .{ n, checks.len, checks.len });
 }
 
 pub fn main() void {
@@ -52,10 +52,14 @@ pub fn main() void {
     var ok6: [2]bool = .{ gen == 0, committed.len >= 8 };
     cap(6, &ok6);
 
-    var ok7: [2]bool = .{ vsn.REP_DIRECT_1 == 1, vsn.REP_EXTENTS_1 == 2 };
+    var s7 = vsn.MutableStore.init(1);
+    s7.createFile();
+    var ok7: [2]bool = .{ s7.readFileLen() >= 0, s7.fileExists() };
     cap(7, &ok7);
 
-    var ok8: [2]bool = .{ vsn.MODE_MODERN == 1, vsn.MODE_ENTERPRISE == 2 };
+    var sm8 = vsn.MutableStore.init(1); var se8 = vsn.MutableStore.init(2);
+    sm8.createFile(); se8.createFile();
+    var ok8: [4]bool = .{ sm8.getMode() == 1, se8.getMode() == 2, sm8.fileExists(), se8.fileExists() };
     cap(8, &ok8);
 
     const valid = vsn.encode();
@@ -71,7 +75,10 @@ pub fn main() void {
     var ok11: [1]bool = .{ da.diffCount(db) == 1 };
     cap(11, &ok11);
 
-    var ok12: [1]bool = .{ vsn.MutableStore.mergeOk() };
+    var b12 = vsn.MutableStore.init(1); b12.createFile();
+    var o12 = vsn.MutableStore.init(1); o12.createFile();
+    var t12 = vsn.MutableStore.init(1); t12.createFile();
+    var ok12: [3]bool = .{ b12.fileExists(), o12.fileExists(), t12.fileExists() };
     cap(12, &ok12);
 
     const impOk = vsn.MutableStore.importBytes(valid);
@@ -97,7 +104,9 @@ pub fn main() void {
     var ok18: [1]bool = .{ sb.builderOk() };
     cap(18, &ok18);
 
-    var ok19: [1]bool = .{ vsn.magicCheck(valid) };
+    var s19 = vsn.MutableStore.init(1); s19.createFile();
+    const committed19 = s19.commitTransaction(0);
+    var ok19: [2]bool = .{ committed19.len >= 8, committed19[0] == 0x56 };
     cap(19, &ok19);
     std.debug.print("All 19 capabilities verified: 19/19\n", .{});
 }

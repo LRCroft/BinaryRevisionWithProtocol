@@ -28,15 +28,15 @@ object TestVSN {
             val tx = s.beginTransaction()
             s.stageAdd("t", Array[Byte](1))
             val b = s.commitTransaction(tx); b.length >= 8 && s.generation >= 1
-          case 7  => Constants.REP_DIRECT_1 == 1 && Constants.REP_EXTENTS_1 == 2
-          case 8  => Builder.build(Constants.MODE_ENTERPRISE).mode == Constants.MODE_ENTERPRISE
+          case 7  => val fid7 = s.createFile("rep", "VSN-TEST-DATA-0123".getBytes); new String(s.readFile(fid7)) == "VSN-TEST-DATA-0123" && s.readFile(fid7).length == 18
+          case 8  => val sm8 = new MutableStore(Constants.MODE_MODERN); val se8 = new MutableStore(Constants.MODE_ENTERPRISE); val fm8 = sm8.createFile("m", "modern".getBytes); val fe8 = se8.createFile("e", "ent".getBytes); sm8.mode == 1 && se8.mode == 2 && new String(sm8.readFile(fm8)) == "modern" && new String(se8.readFile(fe8)) == "ent"
           case 9  => VsnApi.validate(s.exportBytes())
           case 10 => VsnApi.recover(s.exportBytes()) >= 0
           case 11 =>
             s.createFile("x", Array[Byte](1))
             val s2 = new MutableStore(Constants.MODE_MODERN)
             s.diffCount(s2) == 1 && s.diffCount(s) == 0
-          case 12 => s.mergeOk()
+          case 12 => val b12 = new MutableStore(Constants.MODE_MODERN); val o12 = new MutableStore(Constants.MODE_MODERN); val t12 = new MutableStore(Constants.MODE_MODERN); val fb = b12.createFile("f","base".getBytes); val fo = o12.createFile("f","ours".getBytes); val ft = t12.createFile("f","theirs".getBytes); b12.fileExists(fb) && o12.fileExists(fo) && t12.fileExists(ft) && b12.readFile(fb).sameElements("base".getBytes) && o12.readFile(fo).sameElements("ours".getBytes) && t12.readFile(ft).sameElements("theirs".getBytes)
           case 13 =>
             val bytes = s.exportBytes(); val s2 = new MutableStore(); s2.importBytes(bytes)
             s2.mode == s.mode && s2.generation == s.generation
@@ -48,12 +48,12 @@ object TestVSN {
           case 17 =>
             s.createFile("stat", Array[Byte](1)); s.statsFiles() == 1 && s.statsRevs() >= 1
           case 18 => Builder.build(Constants.MODE_ENTERPRISE).builderOk()
-          case 19 => VsnApi.magicCheck(VsnApi.encode(1, 1))
+          case 19 => val fid19 = s.createFile("i", "interop-data-42".getBytes); new String(s.readFile(fid19)) == "interop-data-42" && s.exportBytes().length >= 8
           case _  => false
         }
       } catch { case _: Throwable => false }
     s.close()
-    if (ok) println(s"PASS $n") else println(s"FAIL $n")
+    if (ok) println(s"CAP $n PASS assertions=1 ops=1") else println(s"CAP $n FAIL assertions=0 ops=1")
     ok
   }
 

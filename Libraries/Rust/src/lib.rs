@@ -36,6 +36,8 @@ impl MutableStore {
     pub fn integrity_ok(&self) -> bool { !self.inner.lock().unwrap().closed }
     pub fn stats_files(&self) -> usize { self.inner.lock().unwrap().file_count }
     pub fn stats_revs(&self) -> usize { self.inner.lock().unwrap().rev_count }
+    pub fn read_file(&self, n: &str) -> Option<Vec<u8>> { let s = self.inner.lock().unwrap(); s.files.get(n).cloned() }
+    pub fn get_contents(&self) -> HashMap<String, Vec<u8>> { let s = self.inner.lock().unwrap(); s.files.clone() }
     pub fn builder_ok(&self) -> bool { let s = self.inner.lock().unwrap(); s.mode >= 1 && s.mode <= 2 }
 }
 
@@ -58,4 +60,14 @@ pub fn magic_check(data: &[u8]) -> bool { data.len() >= 8 && &data[0..4] == b"VS
 pub fn verify_integrity(data: &[u8]) -> bool { data.len() >= 8 && &data[0..4] == b"VSN-" }
 #[derive(Debug)] pub struct MergeResult { pub conflicts: usize }
 pub fn diff_count_impl(a_files: usize, b_files: usize) -> usize { a_files.abs_diff(b_files) }
+pub fn three_way_merge(base: &MutableStore, ours: &MutableStore, theirs: &MutableStore) -> usize {
+    let bc = base.get_contents(); let oc = ours.get_contents(); let tc = theirs.get_contents();
+    let all: Vec<String> = bc.keys().chain(oc.keys()).chain(tc.keys()).cloned().collect();
+    let mut conflicts = 0;
+    for path in &all {
+        let b = bc.get(path); let o = oc.get(path); let t = tc.get(path);
+        if o != t && o != b && t != b { conflicts += 1; }
+    }
+    conflicts
+}
 

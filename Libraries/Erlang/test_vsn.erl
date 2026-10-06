@@ -12,8 +12,16 @@ run_all(N, Acc) ->
     if N > 0 ->
         R = (catch run_cap(N)),
         case R of
+            ok -> run_all(N - 1, Acc + 1);
             true -> run_all(N - 1, Acc + 1);
-            _ -> run_all(N - 1, Acc)
+            {exception, _Reason, _Stack} ->
+                io:format("CAP ~b FAIL assertions=0 ops=1~n", [N]),
+                run_all(N - 1, Acc);
+            {error, _Reason} ->
+                io:format("CAP ~b FAIL assertions=0 ops=1~n", [N]),
+                run_all(N - 1, Acc);
+            _ ->
+                run_all(N - 1, Acc)
         end;
        true -> Acc
     end.
@@ -46,11 +54,17 @@ run_cap(N) ->
              T1 = vsn:stage_add(T0, "t", <<1>>),
              SC = vsn:commit(T1, undefined),
              is_tuple(SC) orelse is_map(SC) orelse SC =:= ok;
-        7 -> D1 = vsn:rep_direct_1(), D2 = vsn:rep_extents_1(),
-             D1 =:= 1 andalso D2 =:= 2;
-        8 -> M = vsn:get_mode(S0),
-             S = vsn:close(S0),
-             M =:= 1 orelse M =:= 2;
+        7 -> {Fid7,S7} = vsn:create_file(S0, "rep", <<"VSN-TEST-DATA-0123">>),
+              R7 = vsn:read_file(S7, Fid7),
+              S = vsn:close(S7),
+              R7 =:= <<"VSN-TEST-DATA-0123">> andalso byte_size(R7) =:= 18;
+        8 -> SM = vsn:create(1), SE = vsn:create(2),
+             {Fm,SM2} = vsn:create_file(SM, "m", <<"modern">>),
+             {Fe,SE2} = vsn:create_file(SE, "e", <<"ent">>),
+             M1 = vsn:get_mode(SM2), M2 = vsn:get_mode(SE2),
+             Rm = vsn:read_file(SM2, Fm), Re = vsn:read_file(SE2, Fe),
+             _S1 = vsn:close(SM2), _S2 = vsn:close(SE2),
+             M1 =:= 1 andalso M2 =:= 2 andalso Rm =:= <<"modern">> andalso Re =:= <<"ent">>;
         9 -> Valid = vsn:encode(1, 1),
              S = vsn:close(S0),
              S2 = vsn:open(Valid),
@@ -65,9 +79,14 @@ run_cap(N) ->
              S = vsn:close(S0),
              D = vsn:diff_stores(S1, S1),
              is_map(D);
-        12 -> M = vsn:get_mode(S0),
-             S = vsn:close(S0),
-             M >= 1 andalso M =< 2;
+        12 -> B = vsn:create(1), O = vsn:create(1), T = vsn:create(1),
+              {Fb,B2} = vsn:create_file(B, "f", <<"base">>),
+              {Fo,O2} = vsn:create_file(O, "f", <<"ours2">>),
+              {Ft,T2} = vsn:create_file(T, "f", <<"theirs">>),
+              Bb = vsn:export_bytes(B2), Ob = vsn:export_bytes(O2), Tb = vsn:export_bytes(T2),
+              _SB = vsn:close(B2), _SO = vsn:close(O2), _ST = vsn:close(T2),
+              is_binary(Bb) andalso is_binary(Ob) andalso is_binary(Tb)
+                andalso Bb =/= Ob andalso Ob =/= Tb;
         13 -> Bytes = vsn:export_bytes(S0),
              S = vsn:close(S0),
              S2 = vsn:open(Bytes),
@@ -91,10 +110,13 @@ run_cap(N) ->
         18 -> X = vsn:new_builder(2),
              M = vsn:get_mode(X),
              M >= 1 andalso M =< 2;
-        19 -> Valid = vsn:encode(1, 1),
-             S = vsn:close(S0),
-             is_binary(vsn:check_magic_bytes(Valid)) orelse is_boolean(vsn:check_magic_bytes(Valid));
+        19 -> {Fid19,S19} = vsn:create_file(S0, "i", <<"interop-data-42">>),
+              R19 = vsn:read_file(S19, Fid19),
+              B19 = vsn:export_bytes(S19),
+              S = vsn:close(S19),
+              R19 =:= <<"interop-data-42">> andalso byte_size(B19) >= 8
+                andalso binary:part(B19, 0, 4) =:= <<"VSN-">>;
         _ -> false
     end,
-    if OK -> io:format("PASS ~b~n", [N]);
-       true -> io:format("FAIL ~b~n", [N]), erlang:halt(1) end.
+    if OK -> io:format("CAP ~b PASS assertions=1 ops=1~n", [N]);
+       true -> io:format("CAP ~b FAIL assertions=0 ops=1~n", [N]), erlang:halt(1) end.

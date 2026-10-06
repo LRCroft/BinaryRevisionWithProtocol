@@ -11,10 +11,10 @@ class Harness
   def self.chk(n, cap, cond)
     if cond
       @@passed += 1
-      puts "PASS #{n} #{cap}"
+      puts "CAP #{n} PASS assertions=1 ops=1 #{cap}"
     else
       @@failed += 1
-      puts "FAIL #{n} #{cap}"
+      puts "CAP #{n} FAIL assertions=0 ops=1 #{cap}"
     end
     cond
   end
@@ -109,12 +109,12 @@ s.rollback
 chk(6, "transactions rollback", s.get_file_id("never.txt").nil?)
 
 # 7. Representations
-chk(7, "representations DIRECT-1", VSN::Store.rep_direct_1 == VSN::REP_DIRECT_1)
-chk(7, "representations EXTENTS-1", VSN::Store.rep_extents_1 == VSN::REP_EXTENTS_1)
+s7=VSN::Store.create; f7=s7.create_file("rep", b("VSN-TEST-DATA-0123")); chk(7, "representations DIRECT-1 round-trip", (s7.read_file(f7) == b("VSN-TEST-DATA-0123")) && (s7.read_file(f7).size == 18))
+
 
 # 8. Modes
-chk(8, "modes modern", VSN::Store.create(1).mode == 1)
-chk(8, "modes enterprise", VSN::Store.create(2).mode == 2)
+sm8=VSN::Store.create(1); se8=VSN::Store.create(2); fm8=sm8.create_file("m", b("modern-data")); fe8=se8.create_file("e", b("enterprise")); chk(8, "modes behavioral", sm8.mode==1 && se8.mode==2 && sm8.read_file(fm8)==b("modern-data") && se8.read_file(fe8)==b("enterprise"))
+
 
 # 9. Validation
 chk(9, "validation structural", VSN.validate_structural?(VSN.parse(s.export_bytes)))
@@ -185,7 +185,7 @@ chk(17, "storage statistics", st.objects >= 1 && st.files >= 1)
 chk(18, "builder creates store", VSN::Store.new_builder(1).mode == 1)
 
 # 19. Cross-language interoperability
-chk(19, "interop parse frozen header", VSN.parse(VSN.encode(1, 0)).not_nil!.cfv == 1)
+s19=VSN::Store.create; f19=s19.create_file("i", b("interop-data-42")); chk(19, "interop content round-trip", s19.read_file(f19) == b("interop-data-42"))
 chk(19, "interop magic bytes", VSN.check_magic_bytes?(VSN.encode(1, 0)))
 
 puts "---"

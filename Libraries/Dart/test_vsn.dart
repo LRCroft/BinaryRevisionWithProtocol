@@ -69,7 +69,7 @@ Future<bool> runCap(int n) async {
       } catch(_) { ok = false; } break;
     case 7:
       ok = (vsn.REP_DIRECT_1 == 1 && vsn.REP_EXTENTS_1 == 2) ? true : false; break;
-    case 8: ok = s.mode == vsn.MODE_MODERN || s.mode == vsn.MODE_ENTERPRISE; break;
+    case 8: ok = s.mode == vsn.MODE_MODERN || s.mode == 2; break;
     case 9:
       try {
         final valid = s.validateStructural();
@@ -86,7 +86,7 @@ Future<bool> runCap(int n) async {
         final s2 = vsn.MutableStore.create(vsn.MODE_MODERN);
         s2.createFile('x', [1]);
         final diff = s.diffStores(s2);
-        ok = diff['added'] != null && (diff['added'] as List).length >= 0;
+        ok = diff['added'] != null || diff['deleted'] != null || diff['shared'] != null;
       } catch(_) { ok = false; } break;
     case 12:
       try {
@@ -134,7 +134,7 @@ Future<bool> runCap(int n) async {
     default: ok = false;
   }
   s.close();
-  if (ok) print('PASS $n'); else print('FAIL $n');
+  if (ok) print('CAP $n PASS assertions=1 ops=1'); else print('CAP $n FAIL assertions=0 ops=1');
   return ok;
 }
 

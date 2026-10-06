@@ -4,8 +4,8 @@
 public class TestVsn {
     static int passed = 0, failed = 0;
     static void check(int n, String label, boolean cond) {
-        if (cond) { passed++; System.out.println("PASS " + n + ": " + label); }
-        else { failed++; System.out.println("FAIL " + n + ": " + label); }
+        if (cond) { passed++; System.out.println("CAP " + n + " PASS assertions=1 ops=1 " + label); }
+        else { failed++; System.out.println("CAP " + n + " FAIL assertions=0 ops=1 " + label); }
     }
 
     public static void main(String[] args) {
@@ -37,11 +37,23 @@ public class TestVsn {
         byte[] txData = txnStore.commitTransaction(txnStore.getGeneration());
         check(6, "transactions", txData != null && txData.length >= 8);
 
-        // 7. Representations
-        check(7, "representations", VsnLib.repDirect1() == 1 && VsnLib.repExtents1() == 2);
+        // 7. Representations - DIRECT-1 content round-trip
+        VsnLib.Store s7 = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        byte[] d7 = "VSN-TEST-DATA-0123".getBytes();
+        s7.createFile("rep.txt", d7);
+        byte[] rd7 = s7.readFile("rep.txt");
+        check(7, "representations DIRECT-1 round-trip",
+            rd7 != null && java.util.Arrays.equals(rd7, d7) && rd7.length == 18);
 
-        // 8. Modes
-        check(8, "modes", s.getMode() == 1);
+        // 8. Modes - behavioral MODERN + ENTERPRISE
+        VsnLib.Store sm = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        VsnLib.Store se = VsnLib.Store.create(VsnLib.MODE_ENTERPRISE);
+        byte[] dm = "modern-data".getBytes(); byte[] de = "enterprise".getBytes();
+        sm.createFile("m.txt", dm); se.createFile("e.txt", de);
+        check(8, "modes behavioral",
+            sm.getMode()==1 && se.getMode()==2
+            && java.util.Arrays.equals(sm.readFile("m.txt"), dm)
+            && java.util.Arrays.equals(se.readFile("e.txt"), de));
 
         // 9. Validation
         check(9, "validation", VsnLib.validate(VsnLib.encode(1, 1)));
@@ -50,15 +62,26 @@ public class TestVsn {
         check(10, "recovery", VsnLib.recover(VsnLib.encode(1, 1)) >= 0);
 
         // 11. Diff
-        VsnLib.Store sm = VsnLib.Store.create(VsnLib.MODE_MODERN);
-        sm.createFile("x", "y".getBytes());
-        check(11, "diff", sm.diffCount(s) >= 1);
+        VsnLib.Store sm11 = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        sm11.createFile("x", "y".getBytes());
+        check(11, "diff", sm11.diffCount(s) >= 1);
 
-        // 12. Merge
-        VsnLib.Store base = VsnLib.Store.create(VsnLib.MODE_MODERN);
-        VsnLib.Store s2 = sm;
-        byte[] merged = VsnLib.mergeThreeWay(base, s, s2);
-        check(12, "merge", merged != null);
+        // 12. Merge - real three-way merge with conflict + non-conflict
+        VsnLib.Store base12 = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        VsnLib.Store ours12 = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        VsnLib.Store theirs12 = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        base12.createFile("f.txt", "base-content".getBytes());
+        ours12.createFile("f.txt", "ours-content".getBytes());
+        theirs12.createFile("f.txt", "theirs-content".getBytes());
+        int conflicts = VsnLib.mergeConflicts(base12, ours12, theirs12);
+        VsnLib.Store b2 = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        VsnLib.Store o2 = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        VsnLib.Store t2 = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        b2.createFile("c.txt", "base".getBytes());
+        o2.createFile("c.txt", "same".getBytes());
+        t2.createFile("c.txt", "same".getBytes());
+        int noConf = VsnLib.mergeConflicts(b2, o2, t2);
+        check(12, "merge three-way", conflicts >= 1 && noConf == 0);
 
         // 13. Import/Export
         byte[] data = VsnLib.encode(1, 1);
@@ -77,14 +100,21 @@ public class TestVsn {
 
         // 17. Storage Stats
         VsnLib.StorageStats ss = VsnLib.getStats(s);
-        check(17, "storage", ss != null && ss.files >= 0);
+        check(17, "storage", ss != null && ss.files >= 1);
 
         // 18. Builder API
         VsnLib.Store builder = VsnLib.newBuilder(VsnLib.MODE_ENTERPRISE);
         check(18, "builder", builder.getMode() == VsnLib.MODE_ENTERPRISE);
 
-        // 19. Interop
-        check(19, "interop", VsnLib.magicCheck(new byte[]{'V','S','N','-'}) );
+        // 19. Interop - encode/commit round-trip with content
+        VsnLib.Store s19 = VsnLib.Store.create(VsnLib.MODE_MODERN);
+        byte[] d19 = "interop-data-42".getBytes();
+        s19.createFile("i.txt", d19);
+        byte[] committed19 = s19.commitTransaction(0);
+        check(19, "interop round-trip",
+            committed19 != null && committed19.length >= 8
+            && committed19[0]==(byte)'V' && committed19[1]==(byte)'S'
+            && committed19[2]==(byte)'N' && committed19[3]==(byte)'-');
 
         System.out.println("---");
         System.out.println("Java capabilities: " + passed + " passed, " + failed + " failed");

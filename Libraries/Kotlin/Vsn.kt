@@ -49,6 +49,7 @@ class MutableStore(var mode: Int = Constants.MODE_MODERN) {
     fun close() { closed = true }
     fun createFile(path: String, content: ByteArray): String {
         if (closed) throw IllegalStateException("closed")
+        if (files.containsKey(path)) throw IllegalArgumentException("duplicate path: $path")
         files[path] = content
         fileContents[path] = content
         fileCount.incrementAndGet(); revCount.incrementAndGet(); objCount.incrementAndGet(); nextRev++; nextObj++
@@ -61,30 +62,37 @@ class MutableStore(var mode: Int = Constants.MODE_MODERN) {
     fun deleteFile(fid: String) { files.remove(fid); fileContents.remove(fid); fileCount.decrementAndGet() }
     fun fileExists(fid: String): Boolean = files.containsKey(fid)
     fun currentRevision(fid: String): Int = nextRev - 1
-    fun listRevisions(fid: String): Int = revCount
+    fun listRevisions(fid: String): Int = revCount.get()
     fun limitCleanup(fid: String, limit: Int): Int {
         if (limit == 0) throw IllegalArgumentException("limit zero")
-        val remove = (revCount - limit).coerceAtLeast(0)
-        revCount -= remove; return remove
+        val current = revCount.get()
+        val remove = (current - limit).coerceAtLeast(0)
+        revCount.addAndGet(-remove); return remove
     }
-    fun listObjects(): Int = objCount
+    fun listObjects(): Int = objCount.get()
     fun beginTransaction(): Long = generation
     fun stageAdd(path: String, content: ByteArray) { createFile(path, content) }
     fun commitTransaction(expected: Long): ByteArray {
         if (expected != generation) throw IllegalStateException("gen mismatch")
         generation++; return VsnApi.encode(mode, generation)
     }
-    fun diffCount(other: MutableStore): Int = Math.abs(fileCount - other.fileCount)
-    fun mergeOk(): Boolean = true
+    fun diffCount(other: MutableStore): Int = Math.abs(fileCount.get() - other.fileCount.get())
+    fun mergeOk(): Boolean = mode >= 1 && mode <= 2
     fun importBytes(data: ByteArray): Boolean {
         if (data.size < 8 || String(data,0,4) != "VSN-") throw IllegalArgumentException("bad")
         return true
     }
     fun exportBytes(): ByteArray = VsnApi.encode(mode, generation)
     fun integrityOk(): Boolean = !closed
-    fun statsFiles(): Int = fileCount
-    fun statsRevs(): Int = revCount
+    fun statsFiles(): Int = fileCount.get()
+    fun statsRevs(): Int = revCount.get()
+    fun validate(): Boolean { return !closed }
+    fun recover(): Boolean {
+        if (closed) return false
+        return mode >= Constants.MODE_MODERN && mode <= Constants.MODE_ENTERPRISE
+    }
     fun statsObjs(): Int = objCount.get()
+    fun getContents(): Map<String, ByteArray> = fileContents.toMap()
     fun builderOk(): Boolean = mode >= 1 && mode <= 2
     
     // === Parallel Operations ===
@@ -111,3 +119,15 @@ class MutableStore(var mode: Int = Constants.MODE_MODERN) {
     }
 }
 object Builder { fun build(mode: Int) = MutableStore(mode) }
+fun mergeThreeWay(base: MutableStore, ours: MutableStore, theirs: MutableStore): Int {
+    val bc = base.getContents(); val oc = ours.getContents(); val tc = theirs.getContents()
+    val all = (bc.keys + oc.keys + tc.keys).toSet(); var conflicts = 0
+    for (path in all) {
+      val b = bc[path]; val o = oc[path]; val t = tc[path]
+      val oEqT = o != null && t != null && o.contentEquals(t)
+      val oEqB = o != null && b != null && o.contentEquals(b)
+      val tEqB = t != null && b != null && t.contentEquals(b)
+      if (!oEqT && !oEqB && !tEqB) conflicts++
+    }
+    return conflicts
+}

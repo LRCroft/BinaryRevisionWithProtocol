@@ -49,6 +49,7 @@ but the implementation is functionally complete.
 | Rust | 19/19 | `cargo test` — all capabilities verified via Docker |
 | Ada | 19/19 | Docker/GNAT compilation and execution |
 | COBOL | 19/19 | Docker/gnucobol execution |
+| Objective-C | 19/19 | Docker/ubuntu:24.04 (gcc with -x objective-c) |
 
 ### Remaining Not Verified (7/31)
 
@@ -57,7 +58,6 @@ but the implementation is functionally complete.
 | JavaScript-TypeScript | node:20-slim not locally available; requires `npx tsx` execution |
 | Kotlin | `assertFailsWith` unresolved — needs kotlin-test dependency |
 | Scala | Compilation failed on Scala 3.9.0 / JVM 21 — API incompatibility |
-| Objective-C | No clang available in vsn-legacy:latest base image |
 | Swift | Library compiles; test file has XCTest integration issues |
 | Zig | build.zig needs refactoring for zig 0.13+ API changes |
 | OCaml | Syntax error in match expression at line 87 of test suite |

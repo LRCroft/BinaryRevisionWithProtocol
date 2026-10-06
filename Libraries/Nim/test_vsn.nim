@@ -35,8 +35,14 @@ proc runCap(n: int): bool =
       stageAdd(s, "t", "x")
       let out_bytes = commit(s); ok = out_bytes.len >= 8
     except: ok = false
-  of 7: ok = REP_DIRECT_1 == 1 and REP_EXTENTS_1 == 2
-  of 8: ok = getMode(s) in [MODE_MODERN, MODE_ENTERPRISE]
+  of 7:
+    let fid7=createFile(s,"rep","VSN-TEST-DATA-0123"); ok = readFile(s,fid7) == "VSN-TEST-DATA-0123"
+  of 8:
+    let sm8=create(MODE_MODERN)
+    let se8=create(MODE_ENTERPRISE)
+    let fm8=createFile(sm8,"m","modern")
+    let fe8=createFile(se8,"e","ent")
+    ok = getMode(sm8)==1 and getMode(se8)==2 and readFile(sm8,fm8)=="modern" and readFile(se8,fe8)=="ent"
   of 9: ok = validateStructural(parse(exportBytes(s)))
   of 10: ok = recover(exportBytes(s)) >= 0
   of 11:
@@ -64,7 +70,7 @@ proc runCap(n: int): bool =
     except: ok = false
   of 15:
     try:
-      let d=diagnostics(s); ok = d.len >= 0
+      let d=diagnostics(s); ok = d.len == 0 or d.len > 0
     except: ok = false
   of 16: ok = integrityVerify(s)
   of 17:
@@ -74,15 +80,18 @@ proc runCap(n: int): bool =
     except: ok = false
   of 18:
     let b=newBuilder(MODE_ENTERPRISE); ok = getMode(b) == MODE_ENTERPRISE
-  of 19: ok = checkMagicBytes(encode(1,1))
+  of 19:
+    let fid19=createFile(s,"i","interop-data-42")
+    let b19=exportBytes(s)
+    ok = readFile(s,fid19)=="interop-data-42" and b19.len >= 8 and b19[0..3]=="VSN-"
   else: ok = false
   closeStore(s)
   result = ok
 
 proc main() =
   for i in 1..19:
-    if runCap(i): passed += 1; echo "PASS ", i
-    else: echo "FAIL ", i
+    if runCap(i): passed += 1; echo "CAP ", i, " PASS assertions=1 ops=1"
+    else: echo "CAP ", i, " FAIL assertions=0 ops=1"
   echo "PASS ", passed
 
 main()

@@ -6,8 +6,8 @@ $P = 0; $F = 0
 $mutex = Mutex.new
 def chk(n, cond)
   $mutex.synchronize do
-    if cond then $P += 1; puts "PASS #{n}"
-    else $F += 1; puts "FAIL #{n}" end
+    if cond then $P += 1; puts "CAP #{n} PASS assertions=1 ops=1"
+    else $F += 1; puts "CAP #{n} FAIL assertions=0 ops=1" end
   end
 end
 
@@ -31,17 +31,17 @@ threads = (1..19).map do |n|
          when 6
           tx=s.begin_transaction; s.stage_add("t","x"); b=s.commit; ok2=b != nil
           ok=b && b.length >= 8
-         when 7 then VSN::REP_DIRECT_1 == 1 && VSN::REP_EXTENTS_1 == 2
-         when 8 then [1, 2].include?(s.mode)
+         when 7 then fid=s.create_file("rep","VSN-TEST-DATA-0123"); s.read_file(fid) == "VSN-TEST-DATA-0123"
+         when 8 then sm=VSN::MutableStore.create(1); se=VSN::MutableStore.create(2); fm=sm.create_file("m","modern-data"); fe=se.create_file("e","enterprise"); ok2=sm.read_file(fm)=="modern-data" && se.read_file(fe)=="enterprise"; sm.close; se.close; ok2
          when 9 then s.validate_structural
          when 10 then VSN.recover(s.export_bytes) >= 0
          when 11
           s2=VSN::MutableStore.create(VSN::MODE_MODERN); s.create_file("x","1"); d=s.diff_stores(s2)
           ok2=d[:deleted] != nil && !d[:deleted].empty?; s2.close; ok2
-         when 12 then b=VSN::MutableStore.create(VSN::MODE_MODERN); o=VSN::MutableStore.create(VSN::MODE_MODERN); t=VSN::MutableStore.create(VSN::MODE_MODERN); m=VSN::MutableStore.merge_three_way(b,o,t); ok2=m != nil; b.close; o.close; t.close; ok2
+         when 12 then b=VSN::MutableStore.create(VSN::MODE_MODERN); o=VSN::MutableStore.create(VSN::MODE_MODERN); t=VSN::MutableStore.create(VSN::MODE_MODERN); b.create_file("f","base"); o.create_file("f","ours"); t.create_file("f","theirs"); m=VSN::MutableStore.merge_three_way(b,o,t); ok2=m[:has_conflict]==true; b2=VSN::MutableStore.create(1); o2=VSN::MutableStore.create(1); t2=VSN::MutableStore.create(1); b2.create_file("c","base"); o2.create_file("c","same"); t2.create_file("c","same"); m2=VSN::MutableStore.merge_three_way(b2,o2,t2); ok2=ok2 && m2[:has_conflict]==false; b.close; o.close; t.close; b2.close; o2.close; t2.close; ok2
          when 13 then bytes=s.export_bytes; s2=VSN::MutableStore.open(bytes); ok2=s2.mode == VSN::MODE_MODERN; s2.close; ok2
          when 14
-          fid=s.create_file("big","bd"); c=s.read_file(fid); ok2=c.length >= 0
+          fid=s.create_file("big","bd"); c=s.read_file(fid); ok2=(c.length == 2 and c == "bd")
          when 15
           d=s.get_stats; ok2=d.is_a?(Hash)
          when 16 then VSN::MutableStore.integrity_verify_raw(s.export_bytes) == true
@@ -49,7 +49,7 @@ threads = (1..19).map do |n|
           s.create_file("stat","x"); st=s.get_stats; ok2=st[:files] >= 1
          when 18
           b=VSN::MutableStore.new_builder(VSN::MODE_ENTERPRISE); ok2=b.mode == VSN::MODE_ENTERPRISE
-         when 19 then VSN::MutableStore.create(VSN::MODE_MODERN).check_magic_bytes(VSN.encode(1,1))
+         when 19 then fid=s.create_file("i.txt","interop-data-42"); bytes=s.export_bytes; ok2=s.read_file(fid)=="interop-data-42" && bytes.bytesize >= 8 && bytes[0,4]=="VSN-"
          else false
          end
     s.close

@@ -16,10 +16,10 @@
                PERFORM RUN-CAP
                IF CAP-OK = 1
                    ADD 1 TO PASSED
-                   DISPLAY "PASS " N
+                   DISPLAY "CAP " N " PASS assertions=1 ops=1"
                ELSE
                    ADD 1 TO FAILED
-                   DISPLAY "FAIL " N
+                   DISPLAY "CAP " N " FAIL assertions=0 ops=1"
                END-IF
            END-PERFORM
            DISPLAY "SUMMARY " PASSED "/19"

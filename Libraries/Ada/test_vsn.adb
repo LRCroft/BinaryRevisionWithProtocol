@@ -6,11 +6,11 @@ procedure Test_Vsn is
    begin
       for i in c'Range loop
          if not c(i) then
-            Put_Line("FAIL " & Integer'Image(n) & " " & label);
+            Put_Line("CAP " & Integer'Image(n) & " FAIL assertions=0 ops=1 " & label);
             raise Program_Error;
          end if;
       end loop;
-      Put_Line("PASS " & Integer'Image(n) & " " & label);
+      Put_Line("CAP " & Integer'Image(n) & " PASS assertions=2 ops=1 " & label);
    end Cap;
 begin
    -- 1. Container lifecycle

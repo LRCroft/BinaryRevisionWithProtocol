@@ -193,8 +193,38 @@ module VSN
       { shared: shared, added: added, deleted: deleted, modified: modified }
     end
     def self.merge_three_way(base, ours, theirs)
-      return { merged: ours, has_conflict: false } if ours == theirs
-      { ours: ours, theirs: theirs, has_conflict: true }
+      base_c = base_files(base); ours_c = base_files(ours); theirs_c = base_files(theirs)
+      all_paths = (base_c.keys | ours_c.keys | theirs_c.keys)
+      conflicts = []
+      merged = {}
+      all_paths.each do |path|
+        b = base_c[path]; o = ours_c[path]; t = theirs_c[path]
+        if o == t
+          merged[path] = o if o
+        elsif o == b
+          merged[path] = t if t
+        elsif t == b
+          merged[path] = o if o
+        else
+          conflicts << path
+        end
+      end
+      if conflicts.empty?
+        { merged: merged, has_conflict: false }
+      else
+        { conflicts: conflicts, has_conflict: true }
+      end
+    end
+    def self.base_files(store)
+      result = {}
+      store.instance_variable_get(:@files).each do |fid, path|
+        begin
+          result[path] = store.read_file(fid)
+        rescue
+          next
+        end
+      end
+      result
     end
 
     def import_bytes(data)

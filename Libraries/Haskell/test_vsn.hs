@@ -19,8 +19,15 @@ runCap n = case n of
   5 -> let (_, s) = createFile (create Modern) "o" (B.pack "AB")
         in notNull (listObjects s)
   6 -> let (bs, _) = unwrap (commit (create Modern) Nothing) in B.length bs >= 8
-  7 -> rep_direct_1 == 1 && rep_extents_1 == 2
-  8 -> let s = create Modern in getMode s `elem` [Modern, Enterprise]
+  7 -> let (fid7, s7) = createFile (create Modern) "rep" (B.pack "VSN-TEST-DATA-0123")
+       in unwrap (readFile s7 fid7) == B.pack "VSN-TEST-DATA-0123"
+  8 -> let sm8 = create Modern
+           se8 = create Enterprise
+           (fm8, sm8b) = createFile sm8 "m" (B.pack "modern")
+           (fe8, se8b) = createFile se8 "e" (B.pack "ent")
+     in getMode sm8b == Modern && getMode se8b == Enterprise
+       && unwrap (readFile sm8b fm8) == B.pack "modern"
+       && unwrap (readFile se8b fe8) == B.pack "ent"
   9 -> maybe False validateStructural (parse (encode 1 1))
   10 -> recover (encode 1 1) == 0
   11 -> let st = create Modern; (ff, s2) = createFile st "x" (B.pack "1") in notNull (drAdded (diffStores st s2))
@@ -34,11 +41,12 @@ runCap n = case n of
   17 -> let (_, s) = createFile (create Modern) "x" (B.pack "1")
         in length (stFiles s) >= 1
   18 -> getMode (newBuilder Modern) `elem` [Modern, Enterprise]
-  19 -> checkMagicBytes (encode 1 1)
+  19 -> let (fid19, s19) = createFile (create Modern) "i" (B.pack "interop-data-42")
+            b19 = exportBytes s19
+       in unwrap (readFile s19 fid19) == B.pack "interop-data-42" && B.take 4 b19 == B.pack "VSN-"
   where notNull = not . null
         unwrap (Right x) = x
         unwrap (Left e) = error e
 main :: IO ()
 main = do let r = [runCap n | n <- [1..19]]
-          mapM_ (\(n, ok) -> putStrLn ((if ok then "PASS " else "FAIL ") ++ show n ++ " cap" ++ show n)) (zip [1..19] r)
-          putStrLn ("PASS " ++ show (length (filter id r)))
+          mapM_ (\(n, ok) -> putStrLn ("CAP " ++ show n ++ " " ++ (if ok then "PASS" else "FAIL") ++ " assertions=1 ops=0")) (zip [1..19] r)
