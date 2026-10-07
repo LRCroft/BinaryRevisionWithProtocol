@@ -1,4 +1,4 @@
-# VSN-1 Library — 31-Language Completion Progress
+﻿# VSN-1 Library — 31-Language Completion Progress
 
 ## Verification Standard (executable evidence only)
 
@@ -29,7 +29,7 @@ but the implementation is functionally complete.
 | C | 19/19 | native executable suite (40 tests incl frozen vectors) |
 | C# (.NET) | Library-complete | native executable suite (133 tests) |
 | C++ | 19/19 | native executable suite (20 tests incl frozen vectors) |
-| Python | 19/19+ | native unittest suite (7 test files all PASS) |
+| Python | 19/19+ | native unittest suite (189 tests all PASS) |
 | JavaScript/TypeScript | 19/19 | tsx direct execution — all 19 caps verified with real assertions |
 | F# | Library-complete | dotnet test (exit code 0) |
 | Dart | 19/19 | `dart run test_vsn.dart` — 37 assertions |
@@ -179,8 +179,11 @@ record/field framing, DIRECT-1 and EXTENTS-1 materialization, marker-based
 recovery, validation layers, container builder, and the frozen error registry.
 Additionally provides full library API: VsnStore, transactions, diagnostics,
 diff, merge, import/export, streaming, storage management, and top-level
-convenience API. Passes 70 tests (frozen vectors + negatives + writer round-trip +
-field ID + trailer semantics + ENTERPRISE validation + full library workflow tests).
+convenience API. Passes 189 tests (frozen vectors + negatives + writer round-trip +
+field ID + trailer semantics + ENTERPRISE validation + full library workflow tests.
+Writer Storage Policy: StoragePolicy enum, WriterOptions, OptimizationConfiguration;
+deterministic policy-to-wire-mode mapping per the frozen Library API Contract.
+
 
 ### C# (`CSharp/`)
 **Library-Complete.** Targets .NET 10. Parsing, DIRECT-1/EXTENTS-1 materialization,
@@ -202,7 +205,7 @@ byte-level cross-language interop.
 
 | Language | Status | Tests | Notes |
 |---|---|---|---|
-| Python | **Library-Complete** | 152 | Reference; full library API (all discrepancies repaired) |
+| Python | **Library-Complete** | 189 | Reference + Writer Storage Policy (37 CAP tests) + full library API
 | CSharp | **Library-Complete** | 133 | .NET 10; full library API + interop |
 | JavaScript-TypeScript | **Library-Complete** | 108 | Node 24; full library API + interop |
 | Go | **Conformance Partial** | 440 | All PASS protocol, tests, interop; LibraryAPI PARTIAL (source-inspect fallback) |
@@ -405,6 +408,9 @@ Full library API surface for production use:
 - Container Store: VsnStore with create/open/close/commit/reopen
 - File API: create/read/write/delete/rename/list files
 - Revision API: list/checkout/restore revisions
+- Writer Storage Policy: HIGHLY_Vertical, VERTICAL, HORIZONTAL, HIGHLY_Horizontal (informative profiles)
+  - WireMode mapping is deterministic; incompatible combinations are rejected
+  - See `Documentation/VSN1_Library_Storage_Policy_API_Contract.md` for full API contract and conformance tests
 - Object API: list/info/materialize objects
 - Transactions: staging, rollback, commit with ExpectedRevisionId precondition
 - Diagnostics: structured validation diagnostics
@@ -422,7 +428,7 @@ Derived data management (never canonical authority):
 
 ### Implementation Status
 
-- **Python:** Library-Complete (152 tests, full library API)
+- **Python:** Library-Complete (189 tests + Writer Storage Policy API + 12 storage-policy capability tests)
 - **C#:** Library-Complete (133 tests, full library API + interop)
 - **JavaScript/TypeScript:** Library-Complete (108 tests, full library API + interop)
 - **C:** Library-Complete (80 tests, full library API + interop)
@@ -460,10 +466,11 @@ canonical state (DR-6).
 
 ```
 Conformance/          shared conformance runner (3 independent status axes)
+Corpus/               canonical conformance corpus (frozen vectors + storage-policy fixtures)
 TestVectors/          frozen byte vectors (immutable) + manifest
 Documentation/        spec mapping + library API contract
 Interoperability/     byte-level cross-language interoperability driver
-Python/               reference implementation (88 tests, Library-Complete)
+Python/               reference implementation (189 tests, Library-Complete)
 CSharp/               .NET 10 implementation (90 tests, Library-Complete)
 JavaScript-TypeScript/ Node 24 implementation (79 tests, Library-Complete)
 <lang>/               one directory per language target (planned)
@@ -479,8 +486,9 @@ Individual suites:
 
 ```
 cd Python && python -m unittest tests.test_vsn
-cd Python && python -m unittest discover -s tests -p "test_library*.py"
+cd Python && python -m unittest discover -s tests (189 tests)
 cd CSharp && dotnet test Vsn.slnx
 cd JavaScript-TypeScript && npm test
 cd Interoperability && python run_interop.py
+cd Conformance/corpus/storage_policy && python run_corpus.py (12 storage-policy capability tests)
 ```

@@ -1,0 +1,109 @@
+{
+  "corpus_version": "1.0",
+  "description": "Machine-readable conformance fixture definitions for Writer Storage Policy capabilities (P01–P12). Each capability defines the input, expected semantics, and wire constraints.",
+  "capabilities": [
+    {
+      "id": "P01",
+      "name": "policy_enumeration",
+      "level": "API",
+      "description": "StoragePolicy type exposes exactly four values: HIGHLY_VERTICAL(1), VERTICAL(2), HORIZONTAL(3), HIGHLY_HORIZONTAL(4). No additional values permitted.",
+      "expected_semantics": {
+        "count": 4,
+        "values": [1, 2, 3, 4],
+        "names": ["HIGHLY_VERTICAL", "VERTICAL", "HORIZONTAL", "HIGHLY_HORIZONTAL"],
+        "no_extra_values": true,
+        "distinct_from_wir_mode": true
+      },
+      "test_pattern": "verify enum has exactly 4 members; all map to int 1-4"
+    },
+    {
+      "id": "P02",
+      "name": "policy_to_wire_mode",
+      "level": "API",
+      "description": "Each policy deterministically resolves to a single wire mode via effective_wire_mode / resolve_wire_mode.",
+      "mappings": {
+        "HIGHLY_VERTICAL": {"wire_mode": "MODERN", "byte": 1},
+        "VERTICAL":        {"wire_mode": "MODERN", "byte": 1},
+        "HORIZONTAL":      {"wire_mode": "ENTERPRISE", "byte": 2},
+        "HIGHLY_HORIZONTAL": {"wire_mode": "ENTERPRISE", "byte": 2}
+      },
+      "expected_semantics": {
+        "none_returns_none": true,
+        "explicit_constraint_matching": true,
+        "conflict_detection": true
+      },
+      "test_pattern": "WriterOptions(storage_policy=X).effective_wire_mode == expected_byte"
+    },
+    {
+      "id": "P03",
+      "name": "mode_declaration_bytes",
+      "level": "WIRE",
+      "description": "Actual VSN containers produced under each policy carry the correct ModeDeclaration (ModeDeclaration record with FID_MODE=0x0701 value).",
+      "fixture_prefix": "policy-",
+      "expected_semantics": {
+        "mode_field_present": true,
+        "mode_fid": 2817,
+        "allowed_mode_values": [1, 2],
+        "no_reserved_values_in_wire": [0, 3, 4]
+      },
+      "wire_constraints": [
+        {"policy": "HIGHLY_VERTICAL",   "expected_mode": 1, "fixture": "policy-highly_vertical.vsn"},
+        {"policy": "VERTICAL",          "expected_mode": 1, "fixture": "policy-vertical.vsn"},
+        {"policy": "HORIZONTAL",        "expected_mode": 2, "fixture": "policy-horizontal.vsn"},
+        {"policy": "HIGHLY_HORIZONTAL", "expected_mode": 2, "fixture": "policy-highly_horizontal.vsn"}
+      ],
+      "test_pattern": "parse(.vsn) -> records with ModeDeclaration record containing mode byte == expected"
+    },
+    {
+      "id": "P04",
+      "name": "reader_independence",
+      "level": "CROSS_LANGUAGE",
+      "description": "A reader implementing the VSN-1 parser can decode any container produced by any storage policy without that policy name appearing in the binary. The reader needs only ModeDeclaration to determine representation family.",
+      "fixture_prefix": "policy-",
+      "expected_semantics": {
+        "all_four_readable": true,
+        "no_policy_bytes_in_container": true,
+        "mode_declaration_sufficient": true,
+        "content_materializable": true
+      },
+      "wire_constraints": [
+        {"operation": "parse_and_verify", "fixture_list": ["policy-highly_vertical.vsn", "policy-vertical.vsn", "policy-horizontal.vsn", "policy-highly_horizontal.vsn"]},
+        {"operation": "assert_no_policy_name_as_bytes", "fixture_list": ["policy-highly_vertical.vsn", "policy-vertical.vsn", "policy-horizontal.vsn", "policy-highly_horizontal.vsn"]}
+      ],
+      "test_pattern": "parse each policy fixture; verify mode declaration present and valid; verify no policy name string in raw bytes"
+    },
+    {
+      "id": "P05",
+      "name": "logical_equivalence",
+      "level": "SEMANTIC",
+      "description": "Writing identical content under different policies produces containers with equivalent logical semantics: same FileId, same content, same object serials (per ObjectSerial rules), but potentially different wire layout.",
+      "input_description": "identical payload written under all four policies",
+      "expected_semantics": {
+        "file_identity_equivalent": true,
+        "content_identical_after_materialization": true,
+        "revision_relationship_equivalent": true,
+        "deletion_semantics_equivalent": true,
+        "directory_semantics_equivalent": true
+      },
+      "wire_constraints": [
+        {"note": "raw bytes may differ (different representation choices); do NOT compare raw bytes across policies"}
+      ],
+      "test_pattern": "create identical files under HV/VERT/HOR/HHOR; compare parsed logical semantics; assert NOT raw byte equality"
+    },
+    {
+      "id": "P06",
+      "name": "object_serial_preservation",
+      "level": "SEMANTIC",
+      "description": "ObjectSerial identity is preserved across policy changes. Objects that are not rewritten retain their ObjectSerial per ID-03, ID-09, SR-37.",
+      "input_description": "single file written under HIGHLY_VERTICAL, then container reopened and read under HORIZONTAL (no write)",
+      "expected_semantics": {
+        "object_serial_unchanged_on_read": true,
+        "content_digest_preserved": true
+      },
+      "wire_constraints": [
+        {"note": "ObjectSerial comparison follows frozen protocol rules (ID-03/ID-09), not policy-specific rules"}
+      ],
+      "test_pattern": "write HV -> commit; reopen under HOR; verify same object serials and content"
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "corpus_version": "1.0",
+  "description": "Machine-readable conformance fixture definitions for Writer Storage Policy capabilities (P07–P12).",
+  "capabilities": [
+    {
+      "id": "P07",
+      "name": "commit_recovery",
+      "level": "WIRE",
+      "description": "Committed containers under each policy produce valid CommitMarkers. Recovery accepts the highest valid generation regardless of writer policy.",
+      "expected_semantics": {
+        "all_policies_commit_validly": true,
+        "recovery_status_consistent": true,
+        "accepted_generation_matches_writer": true,
+        "truncation_recovery_works": true
+      },
+      "wire_constraints": [
+        {"fixture_type": "policy-scenario", "operation": "commit_and_verify_marker"},
+        {"fixture_type": "policy-scenario", "operation": "truncate_last_bytes_and_recover"},
+        {"note": "CommitMarker (record 0x06) is the sole acceptance authority per RC-01"}
+      ],
+      "test_pattern": "write+commit under each policy -> parse -> verify CommitMarker; truncate -> recover -> verify accepted generation"
+    },
+    {
+      "id": "P08",
+      "name": "optimization_budget_fallback",
+      "level": "SEMANTIC",
+      "description": "When optimization budget is exceeded or exhausted, the writer falls back to a valid representation (not failure). Valid-but-less-optimized is distinguished from operation failure.",
+      "input_description": "same payload written with and without OptimizationConfiguration constraints",
+      "expected_semantics": {
+        "budget_exhausted_is_not_failure": true,
+        "fallback_to_valid_representation": true,
+        "commit_succeeds_with_degraded_optimization": true
+      },
+      "wire_constraints": [
+        {"note": "Budget effects may not be observable on small payloads; test with large payloads when available"}
+      ],
+      "test_pattern": "write with tight search_budget -> verify commit succeeds -> verify representation is valid (even if suboptimal)"
+    },
+    {
+      "id": "P09",
+      "name": "cross_policy_compatibility",
+      "level": "CROSS_LANGUAGE",
+      "description": "A container written under one policy can be parsed and decoded by a reader using a different (or no) policy. Writer A -> VSN -> Reader B works.",
+      "expected_semantics": {
+        "any_to_any_parseable": true,
+        "no_policy_name_dependency": true,
+        "mode_declaration_sufficient_for_decode": true
+      },
+      "wire_constraints": [
+        {"note": "Cross-language: Python -> C#; Python -> TypeScript; etc."},
+        {"operation": "all_pairs", "policies": ["HIGHLY_VERTICAL", "VERTICAL", "HORIZONTAL", "HIGHLY_HORIZONTAL"]}
+      ],
+      "test_pattern": "write under each policy; parse with store.open() (no storage_policy); verify content recoverable"
+    },
+    {
+      "id": "P10",
+      "name": "policy_not_on_wire",
+      "level": "WIRE",
+      "description": "The StoragePolicy name and its numeric value do NOT appear in any serialized container. Only ModeDeclaration (0x0701) carries the wire mode.",
+      "fixture_prefix": "policy-",
+      "expected_semantics": {
+        "no_policy_record_type": true,
+        "no_policy_name_in_bytes": true,
+        "only_mode_declaration_for_mode": true,
+        "only_known_record_types_present": true
+      },
+      "wire_constraints": [
+        {"fixture": "policy-highly_vertical.vsn",   "assert_no_policy_name": true},
+        {"fixture": "policy-vertical.vsn",          "assert_no_policy_name": true},
+        {"fixture": "policy-horizontal.vsn",        "assert_no_policy_name": true},
+        {"fixture": "policy-highly_horizontal.vsn",  "assert_no_policy_name": true}
+      ],
+      "test_pattern": "for each policy fixture: verify no record type < 0x8000 is unexpected; verify policy name bytes absent"
+    },
+    {
+      "id": "P11",
+      "name": "backward_compatibility",
+      "level": "API",
+      "description": "Existing library APIs (VsnStore.Create(mode), VsnStore.Open(bytes)) continue to work without any storage_policy parameter. Existing mode-based behavior is preserved.",
+      "expected_semantics": {
+        "create_without_policy_works": true,
+        "open_without_policy_works": true,
+        "mode_preserved_across_commit_reopen": true,
+        "no_breaking_changes": true
+      },
+      "test_pattern": "VsnStore.Create(MODE_MODERN) -> write file -> commit; VsnStore.Open(data) -> read file -> verify mode"
+    },
+    {
+      "id": "P12",
+      "name": "writer_options_validation",
+      "level": "API",
+      "description": "WriterOptions and OptimizationConfiguration enforce validation rules: invalid budgets, memory limits, or conflicting policy+constraint pairs raise appropriate error categories.",
+      "expected_semantics": {
+        "invalid_search_budget_rejected": true,
+        "zero_memory_limit_rejected": true,
+        "policy_constraint_conflict_detected": true,
+        "valid_options_passed_through": true
+      },
+      "error_categories": [
+        {"category": "INVALID_STORAGE_POLICY",     "condition": "storage_policy value outside 1-4"},
+        {"category": "POLICY_WIRE_MODE_CONFLICT",  "condition": "policy + constraint disagree on wire mode"},
+        {"category": "INVALID_OPTIMIZATION_CONFIGURATION", "condition": "search_budget<=0, memory_limit<=0, max_dependency_depth<1"}
+      ],
+      "test_pattern": "WriterOptions(storage_policy=HV, wire_mode_constraint=ENTERPRISE) -> PolicyWireModeConflict"
+    }
+  ]
+}

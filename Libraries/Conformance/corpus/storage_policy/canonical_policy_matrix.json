@@ -1,0 +1,71 @@
+{
+  "format_version": "1.0",
+  "description": "Canonical mapping from Writer Storage Policy to VSN-1 Wire Mode. This is a Library-level configuration table, NOT on the wire.",
+  "authority": "library_api_contract_policy.md + VSN1_Library_Storage_Policy_API_Contract.md",
+  "policies": [
+    {
+      "name": "HIGHLY_VERTICAL",
+      "numeric_value": 1,
+      "wire_mode": "MODERN",
+      "wire_mode_byte": 1,
+      "description": "Maximum storage-effort optimization within MODERN wire mode.",
+      "representation_preferences": ["EXTENTS-1 (deep dependencies allowed within bounds)", "DIRECT-1 (fallback)"],
+      "constraints": [
+        "Must not claim global storage optimality",
+        "EXTENTS-1 subject to GR-43 bounds (ENTERPRISE forbidden)",
+        "ObjectSerial preservation per ID-03/ID-09/SR-37"
+      ],
+      "opt_level": 4
+    },
+    {
+      "name": "VERTICAL",
+      "numeric_value": 2,
+      "wire_mode": "MODERN",
+      "wire_mode_byte": 1,
+      "description": "Bounded storage-effort optimization within MODERN wire mode.",
+      "representation_preferences": ["DIRECT-1 (common baseline)", "EXTENTS-1 (when bounded search finds savings)"],
+      "constraints": [
+        "Bounded candidate search only",
+        "Must not exceed optimization budget",
+        "Fallback to DIRECT-1 if no savings found"
+      ],
+      "opt_level": 3
+    },
+    {
+      "name": "HORIZONTAL",
+      "numeric_value": 3,
+      "wire_mode": "ENTERPRISE",
+      "wire_mode_byte": 2,
+      "description": "Low storage-effort optimization within ENTERPRISE wire mode.",
+      "representation_preferences": ["DIRECT-1 (preferred baseline)"],
+      "constraints": [
+        "Limited optimization effort only",
+        "EXTENTS-1 not forbidden at wire level but discouraged for normal writes"
+      ],
+      "opt_level": 2
+    },
+    {
+      "name": "HIGHLY_HORIZONTAL",
+      "numeric_value": 4,
+      "wire_mode": "ENTERPRISE",
+      "wire_mode_byte": 2,
+      "description": "Minimal optimization effort within ENTERPRISE wire mode.",
+      "representation_preferences": ["DIRECT-1 (required for all emitted content)"],
+      "constraints": [
+        "Explicitly forbids reconstruction dependencies",
+        "DIRECT-1 required for ALL emitted content objects"
+      ],
+      "opt_level": 1
+    }
+  ],
+  "mappings": {
+    "HIGHLY_VERTICAL": {"wire_mode": "MODERN", "wire_mode_byte": 1},
+    "VERTICAL":        {"wire_mode": "MODERN", "wire_mode_byte": 1},
+    "HORIZONTAL":      {"wire_mode": "ENTERPRISE", "wire_mode_byte": 2},
+    "HIGHLY_HORIZONTAL": {"wire_mode": "ENTERPRISE", "wire_mode_byte": 2}
+  },
+  "wire_mode_to_policies": {
+    1: ["HIGHLY_VERTICAL", "VERTICAL"],
+    2: ["HORIZONTAL", "HIGHLY_HORIZONTAL"]
+  }
+}

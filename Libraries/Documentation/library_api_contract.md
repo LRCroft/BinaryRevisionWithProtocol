@@ -621,3 +621,20 @@ Implementations must provide these capabilities to be Library-Complete:
   - FileId is 16 bytes (UUID).
   - Reject duplicate paths.
   - Support arbitrary binary content (including empty, NULs).
+
+---
+
+## Writer Storage Policy Contract
+
+VSN-1 defines exactly two normative wire modes and four informative writer-side storage-policy profiles. The complete formal contract is in `library_api_contract_policy.md`.
+
+| Wire Mode | Value | Permitted Storage Policies |
+|-----------|-------|--------------------------|
+| MODERN | 0x01 | HIGHLY_VERTICAL, VERTICAL |
+| ENTERPRISE | 0x02 | HORIZONTAL, HIGHLY_HORIZONTAL |
+
+**Key invariants:**
+- Policies do NOT appear in the container binary.
+- Policy names are implementation-local configuration values.
+- A reader never needs to know the writer's policy to decode a container.
+- All four policies preserve identical logical VSN semantics (SR-37).

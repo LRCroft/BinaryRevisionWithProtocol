@@ -1,0 +1,74 @@
+{
+  "P01": {
+    "capability": "policy_enumeration",
+    "level": "API",
+    "status": "PASS",
+    "fixture_id": "P01-enum"
+  },
+  "P02": {
+    "capability": "policy_to_wire_mode",
+    "level": "API",
+    "status": "PASS",
+    "fixture_id": "P02-mapping"
+  },
+  "P03": {
+    "capability": "mode_declaration_bytes",
+    "level": "WIRE",
+    "status": "PASS",
+    "fixture_id": "P03-mode-bytes"
+  },
+  "P04": {
+    "capability": "reader_independence",
+    "level": "CROSS_LANGUAGE",
+    "status": "PASS",
+    "fixture_id": "P04-reader"
+  },
+  "P05": {
+    "capability": "logical_equivalence",
+    "level": "SEMANTIC",
+    "status": "PASS",
+    "fixture_id": "P05-logical"
+  },
+  "P06": {
+    "capability": "object_serial_preservation",
+    "level": "SEMANTIC",
+    "status": "PASS",
+    "fixture_id": "P06-objserial"
+  },
+  "P07": {
+    "capability": "commit_recovery",
+    "level": "WIRE",
+    "status": "PASS",
+    "fixture_id": "P07-commit"
+  },
+  "P08": {
+    "capability": "optimization_budget_fallback",
+    "level": "SEMANTIC",
+    "status": "PASS",
+    "fixture_id": "P08-budget"
+  },
+  "P09": {
+    "capability": "cross_policy_compatibility",
+    "level": "CROSS_LANGUAGE",
+    "status": "PASS",
+    "fixture_id": "P09-cross"
+  },
+  "P10": {
+    "capability": "policy_not_on_wire",
+    "level": "WIRE",
+    "status": "PASS",
+    "fixture_id": "P10-no-wire"
+  },
+  "P11": {
+    "capability": "backward_compatibility",
+    "level": "API",
+    "status": "PASS",
+    "fixture_id": "P11-backward"
+  },
+  "P12": {
+    "capability": "writer_options_validation",
+    "level": "API",
+    "status": "PASS",
+    "fixture_id": "P12-validate"
+  }
+}

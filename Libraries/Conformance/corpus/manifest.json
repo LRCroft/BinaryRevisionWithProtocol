@@ -55,7 +55,31 @@
       "file": "scenarios/multifile.vsn",
       "name": "multifile",
       "sha256": "ea6137b6d28a0a06200ede5d809ea52c671e24d365295ea7d5255417b982801a"
+    },
+    {
+      "bytes": 154,
+      "file": "scenarios/policy-highly_vertical.vsn",
+      "name": "policy-highly_vertical",
+      "sha256": "ee6e7f23b2a8f1f84aa534877da6f064346595472cc302e3e62b16f0f5e0d0c1"
+    },
+    {
+      "bytes": 154,
+      "file": "scenarios/policy-vertical.vsn",
+      "name": "policy-vertical",
+      "sha256": "d5b9b7b96fe6305c77cad95199d13c86580ed7846653f8cb8d51bbcdc073252a"
+    },
+    {
+      "bytes": 154,
+      "file": "scenarios/policy-horizontal.vsn",
+      "name": "policy-horizontal",
+      "sha256": "d9693bd6bc065a12e41fb49ffbfc07837d54a495cfeb8fddf3ada62bc53ff10b"
+    },
+    {
+      "bytes": 154,
+      "file": "scenarios/policy-highly_horizontal.vsn",
+      "name": "policy-highly_horizontal",
+      "sha256": "22fc4a83654be52c1fb709732cb0cfd2f1af7ee7b4ea8317a426fc3dde14449a"
     }
   ],
-  "scenarios_count": 4
+  "scenarios_count": 8
 }

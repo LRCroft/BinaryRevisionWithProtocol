@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "description": "Normalized result schema for storage-policy conformance tests. Every implementation MUST produce output conforming to this schema for machine-readable comparison.",
+  "fields": {
+    "status": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "BLOCKED", "NOT_IMPLEMENTED"],
+      "description": "Result of the capability test."
+    },
+    "capability_level": {
+      "type": "string",
+      "enum": ["API", "WIRE", "SEMANTIC", "CROSS_LANGUAGE"],
+      "description": "Which conformance level this result pertains to. Do NOT collapse into one flag."
+    },
+    "fixture_id": {
+      "type": "string",
+      "description": "Canonical fixture identifier (e.g., 'policy-highly_vertical', 'P01-enum')."
+    },
+    "wire_mode": {
+      "type": "integer",
+      "nullable": true,
+      "description": "The effective wire mode value (1=MODERN, 2=ENTERPRISE). Null if not applicable."
+    },
+    "logical_result": {
+      "type": "object",
+      "properties": {
+        "file_count": {"type": "integer"},
+        "content_length": {"type": "integer"},
+        "revision_count": {"type": "integer"},
+        "deletion_status": {"type": "string", "enum": ["PRESENT", "DELETED", "DIRECTORY", null]},
+        "representation_identity": {"type": "integer"}
+      }
+    },
+    "representations": {
+      "type": "array",
+      "items": {
+        "identity": {"type": "integer"},
+        "version": {"type": "integer"}
+      }
+    },
+    "object_serials": {
+      "type": "array",
+      "items": {"type": "integer"},
+      "description": "ObjectSerial values in the container. Compare per frozen identity rules (ID-03/ID-09)."
+    },
+    "transaction_result": {
+      "type": "string",
+      "enum": ["COMMITTED", "ROLLED_BACK", "PENDING"],
+      "description": "CommitMarker acceptance status."
+    },
+    "recovery_result": {
+      "type": "object",
+      "properties": {
+        "status": {"type": "string", "enum": ["RECOVERED", "PARTIAL", "FAILED"]},
+        "accepted_generation": {"type": "integer"}
+      }
+    },
+    "error_category": {
+      "type": "string",
+      "nullable": true,
+      "description": "Semantic error category if the test expected an error. Do NOT use language-specific exception names.",
+      "valid_values": [
+        "INVALID_STORAGE_POLICY",
+        "POLICY_WIRE_MODE_CONFLICT",
+        "INVALID_OPTIMIZATION_CONFIGURATION",
+        "OPTIMIZATION_BUDGET_EXCEEDED",
+        "UNSUPPORTED_REPRESENTATION"
+      ]
+    }
+  },
+  "example_result": {
+    "status": "PASS",
+    "capability_level": "WIRE",
+    "fixture_id": "policy-highly_vertical",
+    "wire_mode": 1,
+    "logical_result": {"file_count": 1, "content_length": 19, "revision_count": 1},
+    "representations": [],
+    "object_serials": [1],
+    "transaction_result": "COMMITTED",
+    "recovery_result": null,
+    "error_category": null
+  }
+}

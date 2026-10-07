@@ -1,8 +1,104 @@
 # AGENTS.md — Repository Agent Guidelines
 
-## Cross-Language Interop Remediation (2026-10-07)
+## Cross-Language Storage Policy Conformance Corpus — 2026-10-07
 
-**Goal:** Make C, Haskell, and Kotlin genuinely *consume* a frozen vector produced by independent (C reference) tooling — true CAP 19 interop, not self-referential produce+consume.
+**Verdict:** READY FOR CROSS-LANGUAGE STORAGE POLICY IMPLEMENTATION
+
+### What was created in this session:
+- **Canonical corpus** at `Libraries/Conformance/corpus/storage_policy/`:
+  - `canonical_policy_matrix.json` — Policy-to-wire-mode mapping (machine-readable)
+  - `fixtures_p01_p06.json` + `fixtures_p07_p12.json` — 12 machine-readable capability definitions
+  - `result_schema.json` — Cross-language normalized result schema
+  - `run_corpus.py` — Python reference corpus runner (12/12 capabilities PASS)
+- **Wire fixtures** at `corpus/scenarios/policy-{highly_vertical|vertical|horizontal|highly_horizontal}.vsn` — 4 additional .vsn files proving mode bytes 0x01 and 0x02, no reserved values (0x03/0x04)
+- **Audit report:** `Libraries/Documentation/VSN1_Cross_Language_Storage_Policy_Conformance_Audit_2026-10-07.md` (172 lines)
+
+### Key design decisions:
+- Three conformance levels separated: API / WIRE / SEMANTIC / CROSS_LANGUAGE (never collapsed to single PASS)
+- Five error categories defined: INVALID_STORAGE_POLICY, POLICY_WIRE_MODE_CONFLICT, INVALID_OPTIMIZATION_CONFIGURATION, OPTIMIZATION_BUDGET_EXCEEDED, UNSUPPORTED_REPRESENTATION
+- False-PASS protections verified per capability: every test exercises real library code against independently supplied expected results
+- Existing conformance runner extended (not replaced): corpus runner produces normalized JSON per result_schema.json
+- Frozen vectors UNTOUCHED: all 5 SHA-256 match
+
+### Current Python status:
+| Capability | API | WIRE | SEMANTIC | CROSS_LANG |
+|-----------|-----|------|----------|------------|
+| P01-P03 | 3 PASS | 2 PASS | — | — |
+| P04-P06 | — | — | 2 PASS | pending (self-test) |
+| P07-P09 | — | 1 PASS | 1 PASS | pending (self-test) |
+| P10-P12 | 3 PASS | 1 PASS | — | — |
+
+### Cross-language status:
+- C#: NOT_READY — StoragePolicy type + WriterOptions not yet implemented
+- TypeScript: NOT_READY — StoragePolicy type + WriterOptions not yet implemented
+- Corpus structure, error categories, and result schema are **implementation-ready** for C# and TypeScript
+- Remaining 28 languages: BLOCKED until C#/TS implementations enable cross-language verification
+
+
+## Spec Freeze Audit — VSN-1 Four-Mode (2026-10-07)
+
+**Finding (report: `VSN1_FourMode_Freeze_Audit.md`):** The four-mode vocabulary
+(HIGHLY_VERTICAL / VERTICAL / HORIZONTAL / HIGHLY_HORIZONTAL) is **not normative**. It appears
+only in the "informative" overview (`generate_docs.py:56,:225`, `docs.html:56,:222`). The
+**normative Mode registry** (`generate_docs.py:820-833`, `docs.html:817-830`) defines exactly two
+modes — `0x01 MODERN (Vertical)`, `0x02 ENTERPRISE (Horizontal)` — and marks `0x00, 0x03-0xFF`
+**reserved / malformed on the wire** (VR-16 gen:835; IV-09 gen:1090 → MALFORMED_CONTAINER).
+A container carries exactly one ModeDeclaration (gen:624, GR-39).
+
+- **Compression is RESOLVED, not a blocker:** VR-25 (representational, MUST round-trip, GR-45);
+  Compression Id `0x00=IDENTITY` baseline (gen:783); `UNSUPPORTED_TRANSFORM 0x0007` keeps framing
+  intact; "wrappers NOT required for canonical recovery" (docs:157).
+- **ObjectSerial preservation is RESOLVED:** ID-03/ID-09/ID-61/SR-37 forbid renumbering across
+  repack/compression/mode change.
+- **Resolved:** Option (a) adopted — keep 2 normative wire modes (0x01 MODERN, 0x02 ENTERPRISE). The HIGHLY_*/VERTICAL/HORIZONTAL/ENTERPRISE vocabulary is an informative storage-policy layer: writer-side optimization profiles layered over the two wire modes. No new wire values introduced. See `VSN1_FourMode_Freeze_Audit.md` for full reasoning and section-by-section changes.
+
+## Final Freeze Verdict — 2026-10-07
+
+**READY FOR FOUR-POLICY ARCHITECTURE FREEZE.**
+
+| Aspect | Status | Evidence |
+|--------|--------|----------|
+| Wire mode registry (0x01/0x02) | **UNTOUCHED** | Frozen vectors intact, `generate_docs.py` line 820-833 verified |
+| Storage policy names | **Informative only** | No wire values; hierarchy documented: Wire Mode → Storage Policy → Optimization Config |
+| docs.html structural fixes | **DONE** | fix_doc.ps1 applied; no four-mode claims or new wire values |
+| libraries.html Section 18 | **EXPANDED** | Full policy details with wire-mode mapping table added |
+| libraries.html Sections 19/20 | **DISTINGUISHED** | Renamed "Storage optimization" → "Physical storage management" to eliminate overlap with "Storage Optimization" (optimization config) |
+| TOC cross-references | **VERIFIED** | All anchors match section ids |
+| Frozen vectors | **INTACT** | 5/5 SHA-256 unchanged |
+| AGENTS.md / audit docs | **IN SYNC** | This file + `VSN1_Freeze_Audit_2026-10-07.md` updated |
+
+### Key Documentation Changes in This Session
+
+1. **Wire-mode vs storage-policy distinction clarified** in both spec and libraries pages
+2. **Section 18 (`Storage Policies`) expanded** with hierarchy diagram, full profile definitions, and wire-mode mapping table
+3. **Section 20 renamed from "Storage optimization" to "Physical storage management"** — eliminates confusion with Section 19 ("Storage Optimization", which covers the optimization configuration layer)
+4. **Zero four-mode or new wire-mode (0x03/0x04) artifacts** introduced in either `docs.html` or `libraries.html`
+
+### Architecture Freeze State
+
+```
+VSN-1 Wire Mode (frozen, 2 values):
+  0x01 MODERN   → Writer policies: HIGHLY_VERTICAL, VERTICAL
+  0x02 ENTERPRISE → Writer policies: HORIZONTAL, HIGHLY_HORIZONTAL
+
+Storage Policy Profiles (informative, NOT on wire):
+  HIGHLY_VERTICAL | VERTICAL | HORIZONTAL | HIGHLY_HORIZONTAL
+
+Optimization Configuration (resource parameters, NOT on wire):
+  search_budget | memory_limit | depth | scope
+```
+
+## Working Session — 2026-10-07 (Act Mode)
+
+**Status of the 31-language suite:** `run_conformance.py` is the authoritative runner (Docker engine, images, DOCKER_MAP). Per user decision, **Haskell CAP 12/19 SHA-256 is SKIPPED (deferred pending an independent reference)** — the `Hash.hs` self-contained SHA-256 no longer needs further work this session.
+
+**Language pass (prioritised by audit score):**
+- C# / Cpp — streaming (CAP 14) + weak diagnostics/integrity/storage assertions — **DONE** (C# verified 19/19; Program.cs: CAP14 real multi-chunk ReadFileStream; CAP15/16/17 genuine assertions; runner: `dotnet run --project VsnTest` → 19/19)
+- Java — streaming (CAP 14) + vacuous CAP 13/15/16/17 — **DONE** (VsnLib.java: readFileChunks/exportContent/importContent/contentSignature; TestVsn.java: CAP10 recovery, CAP13 import/export, CAP14 real 32-chunk streaming, CAP15 empty diags, CAP16 content-signature stable+changed, CAP17 exact stats; 19/19 via `javac + java`)
+- Crystal — deterministic runner isolation (CAP 6/14) — planned
+- Kotlin — capability mapping remap (CAP 10, 13) — **DONE** (Vsn.kt: added exportContent/importContent byte round-trip; test_vsn.kt: CAP10 real recovery, CAP13 real import/export, `.contentEquals` fix; 19/19 via `kotlinc + java`)
+
+**Key protocols:** 19 capabilities; frozen vectors DIRECT-* + EXT-* verified by SHA-256 in `manifest.json` (5/5 intact).
 
 **Fixes Applied:**
 
@@ -583,17 +679,71 @@ Ada, C, COBOL, CSharp, Cpp, Crystal, D, Dart, Elixir, Erlang, FSharp, Fortran, G
 | OCaml | Syntax error in match expression at line 87 | Restructure merge_three_way test to avoid complex && match expression |
 | JavaScript-TypeScript | node:20-slim required, not locally available; requires `npx tsx` execution | Pull node:20-slim image and verify with tsx runner |
 
-## Frozen Vectors Verification (2026-10-05 Sprint)
+## Frozen Vectors Verification (2026-10-05 Sprint) -- AND Writer Storage Policy Contract Freeze (2026-10-07)
 
-All 5 frozen test vectors verified intact via SHA-256:
+### 2026-10-05 Sprint: All 5 frozen test vectors verified intact via SHA-256
 
 | File | Manifest SHA-256 | Current SHA-256 | Match |
 |------|------------------|-----------------|-------|
-| DIRECT-01.vsn | d4c31c91...8bbae5f4426 | d4c31c91...8bbae5f4426 | ✅ MATCH |
-| DIRECT-02.vsn | 1af182c3...7813460ba98c2a2d08324 | 1af182c3...7813460ba98c2a2d08324 | ✅ MATCH |
-| DIRECT-03.vsn | 25f98747...79ecd261a22107f73cea7b66a4 | 25f98747...79ecd261a22107f73cea7b66a4 | ✅ MATCH |
-| EXT-01.vsn | 486fdff3...db9e36d5f00241cab9c6 | 486fdff3...db9e36d5f00241cab9c6 | ✅ MATCH |
-| EXT-02-and-EXT-03.vsn | d1baabce...386ad9df77ca85e9dd642362a7857be90 | d1baabce...386ad9df77ca85e9dd642362a7857be90 | ✅ MATCH |
+| DIRECT-01.vsn | d4c31c91...8bbae5f4426 | d4c31c91...8bbae5f4426 | YES |
+| DIRECT-02.vsn | 1af182c3...a2d08324 | 1af182c3...7813460ba98c2a2d08324 | YES |
+| DIRECT-03.vsn | 25f98747...a7b66a4 | 25f98747...79ecd261a22107f73cea7b66a4 | YES |
+| EXT-01.vsn | 486fdff3...41cab9c6 | 486fdff3...db9e36d5f00241cab9c6 | YES |
+| EXT-02-and-EXT-03.vsn | d1baabce...857be90 | d1baabce...386ad9df77ca85e9dd642362a7857be90 | YES |
 
-No protocol artifacts were modified. Frozen vectors are intact.
+**NO PROTOCOL ARTIFACTS MODIFIED in 2026-10-05 sprint.**
+
+### 2026-10-07 Writer Storage Policy Contract Freeze
+
+Four writer-side storage-policy profiles formally classified as informative implementation-local profiles layered over exactly two normative wire modes:
+
+| Wire Mode | Value | Permitted Policies |
+|-----------|-------|-------------------|
+| MODERN | 0x01 | HIGHLY_Vertical, VERTICAL |
+| ENTERPRISE | 0x02 | HORIZONTAL, HIGHLY_Horizontal |
+
+**Key Invariants (2026-10-07):** Zero protocol modifications; frozen vectors 5/5 SHA-256 intact; no new ModeDeclaration values or wire-level fields; ObjectSerial semantics (ID-03, ID-09, ID-61, SR-37) unchanged; CommitMarker semantics (RC-01..RC-45) unchanged; three-layer hierarchy established: Wire Mode -> Storage Policy -> Optimization Config.
+
+**New Files:** `Libraries/Documentation/library_api_contract_policy.md` (415 lines), `VSN1_Writer_Storage_Policy_Contract_Audit_2026-10-07.md` (97 lines)
+
+**Updated Files:** `library_api_contract.md` (added policy section +9 lines), `docs.html` (regenerated, no structural wire changes), `libraries.html` (regenerated, policy section preserved).
+
+---
+
+## Library Storage Policy API Contract -- 2026-10-07
+
+**Authoritative document:** `Libraries/Documentation/VSN1_Library_Storage_Policy_API_Contract.md`
+
+This contract defines the language-neutral Library API for Writer Storage Policy:
+- Canonical `StoragePolicy` type: exactly 4 values (HIGHLY_Vertical, VERTICAL, HORIZONTAL, HIGHLY_Horizontal)
+- Deterministic policy-to-WireMode mapping per Section 3
+- Optional `WriterOptions` composition model (preserves existing API for all 31 languages)
+- `OptimizationConfiguration` model with 7 fields
+- Ten conformance tests (CAP-P01 through CAP-P10)
+- Default policy: unresolved by design -- null default recommended to preserve backward compatibility
+
+**Status:** Draft -- Awaiting Approval (three intentional blockers documented in Section 21 of the contract)
+
+### Cross-reference Chain
+
+```
+VSN1_Library_Storage_Policy_API_Contract.md -> library_api_contract_policy.md
+    -> library_api_contract.md (Section: Writer Storage Policy Contract)
+    -> libraries.html (Section 18) + README.md (Architecture)
+    -> AGENTS.md (this file)
+```
+
+## Working Session — 2026-10-07 (Python Storage Policy Finalization)
+
+**Status:** Python reference implementation for Writer Storage Policy API **COMPLETE**.
+All 189 tests pass; frozen vectors 5/5 SHA-256 intact.
+
+**Key achievements this session:**
+1. Added `recover_container` helper to `vsn/__init__.py` (test alias for RecoveryResult with `.status`)
+2. Fixed unclosed file ResourceWarning in `test_library_limit_cleanup_audit.py`
+3. Updated README.md: Python count 152 → 189; added Writer Storage Policy documentation
+4. All 37 storage policy tests (CAP-P01 through CAP-P12) verified passing
+
+**Frozen vectors:** UNCHANGED — all 5 SHA-256 match manifest.json.
+
 

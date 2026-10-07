@@ -10,3 +10,15 @@ basic	scenarios/basic.vsn	scenarios/basic.json
 extents	scenarios/extents.vsn	scenarios/extents.json
 enterprise	scenarios/enterprise.vsn	scenarios/enterprise.json
 multifile	scenarios/multifile.vsn	scenarios/multifile.json
+
+# storage-policy wire fixtures: name	file	interpretation
+policy-highly_vertical	scenarios/policy-highly_vertical.vsn	scenarios/policy-highly_vertical.json
+policy-vertical	scenarios/policy-vertical.vsn	scenarios/policy-vertical.json
+policy-horizontal	scenarios/policy-horizontal.vsn	scenarios/policy-horizontal.json
+policy-highly_horizontal	scenarios/policy-highly_horizontal.vsn	scenarios/policy-highly_horizontal.json
+
+# storage-policy corpus metadata
+canonical_policy_matrix	storage_policy/canonical_policy_matrix.json	--
+fixtures_p01_p06	storage_policy/fixtures_p01_p06.json	--
+fixtures_p07_p12	storage_policy/fixtures_p07_p12.json	--
+result_schema	storage_policy/result_schema.json	--
