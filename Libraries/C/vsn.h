@@ -23,14 +23,16 @@ extern "C" {
 #define VSN_ERR_PRIM            0x0030
 #define VSN_ERR_CAP             0x0040
 
-/* Record types */
+/* Record types (GR-28) */
 #define REC_END         0x0000
 #define REC_FILE_ID     0x0001
 #define REC_REVISION    0x0002
 #define REC_FILE_HEAD   0x0004
 #define REC_OBJ         0x0005
 #define REC_COMMIT      0x0006
-#define REC_MODE        0x0007
+#define REC_MODE        0x0007             /* OBSOLETE: ModeDeclaration (deprecated, kept for reader compat) */
+#define REC_STORAGE_POLICY 0x0009          /* New: authoritative storage classification */
+#define REC_REP_DESC    0x0008             /* RepresentationDescriptor (defined after SP for numeric order) */
 
 /* Field IDs */
 #define FID_RECORDS_END 0x0000
@@ -46,11 +48,25 @@ extern "C" {
 #define FID_OBJ_SIZE    0x0511
 #define FID_COMMIT_GEN  0x0601
 #define FID_COMMIT_GENERATION FID_COMMIT_GEN
-#define FID_MODE        0x0701
+#define FID_MODE        0x0701               /* OBSOLETE: ModeDeclaration field (deprecated) */
+#define FID_STORAGE_POLICY 0x0901            /* StoragePolicy.field_id (new) */
 
-/* Modes */
-#define MODE_MODERN     0x01
-#define MODE_ENTERPRISE 0x02
+/* Modes (GR-38) -- OBSOLETE: deprecated, kept for reader compatibility only */
+#define MODE_MODERN       0x01               /* OBSOLETE: was MODERN wire mode */
+#define MODE_ENTERPRISE   0x02               /* OBSOLETE: was ENTERPRISE wire mode */
+
+/* ---- Storage Policy (REC_STORAGE_POLICY / FID_STORAGE_POLICY) ---- */
+/* Authoritative four-way classification. Directly encoded in .vsn container. */
+
+#define STORAGE_HIGHLY_VERTICAL       1        /* maximum optimization effort */
+#define STORAGE_VERTICAL              2        /* bounded optimization effort */
+#define STORAGE_HORIZONTAL            3        /* low optimization effort */
+#define STORAGE_HIGHLY_HORIZONTAL     4        /* minimal optimization effort */
+
+/* Error codes for storage policy validation */
+#define VSN_ERR_INVALID_STORAGE_POLICY   0x0050
+#define VSN_ERR_POLICY_WIRE_MODE_CONFLICT 0x0051
+#define VSN_ERR_INVALID_OPT_CONFIG       0x0052
 
 /* Representation IDs */
 #define REP_DIRECT_1    0x0001
@@ -92,6 +108,7 @@ typedef struct {
 typedef struct {
     uint16_t cfv, ev;
     int mode;
+    uint8_t storage_policy;  // direct StoragePolicy value (1..4) from REC_STORAGE_POLICY
     uint32_t generation;
     uint32_t trailer_record_count;
     FileId files[MAX_FILES];
@@ -114,6 +131,7 @@ int vsn_materialize(const VsnContainer *c, uint32_t serial, uint8_t *buf, size_t
 /* Store API */
 VsnContainer *vsn_create(int mode);
 VsnContainer *vsn_open(const uint8_t *data, size_t len);
+VsnContainer *vsn_create_with_policy(int storage_policy);
 void vsn_close(VsnContainer *c);
 int vsn_commit(VsnContainer *c, uint8_t *buf, size_t buf_len, size_t *out_len);
 int vsn_reopen(VsnContainer *c, const uint8_t *data, size_t len);

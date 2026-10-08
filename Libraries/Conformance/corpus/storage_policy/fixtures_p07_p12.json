@@ -54,23 +54,23 @@
     },
     {
       "id": "P10",
-      "name": "policy_not_on_wire",
+      "name": "storage_policy_on_wire",
       "level": "WIRE",
-      "description": "The StoragePolicy name and its numeric value do NOT appear in any serialized container. Only ModeDeclaration (0x0701) carries the wire mode.",
+      "description": "The StoragePolicy value IS directly encoded in the .vsn container via REC_STORAGE_POLICY (0x0009) / FID_STORAGE_POLICY (0x0901). The policy's name string does NOT appear on wire, but its numeric value does.",
       "fixture_prefix": "policy-",
       "expected_semantics": {
-        "no_policy_record_type": true,
+        "storage_policy_record_present": true,
         "no_policy_name_in_bytes": true,
-        "only_mode_declaration_for_mode": true,
-        "only_known_record_types_present": true
+        "only_known_record_types_present": true,
+        "no_mode_declaration_on_wire": true
       },
       "wire_constraints": [
-        {"fixture": "policy-highly_vertical.vsn",   "assert_no_policy_name": true},
-        {"fixture": "policy-vertical.vsn",          "assert_no_policy_name": true},
-        {"fixture": "policy-horizontal.vsn",        "assert_no_policy_name": true},
-        {"fixture": "policy-highly_horizontal.vsn",  "assert_no_policy_name": true}
+        {"fixture": "policy-highly_vertical.vsn",   "assert_storage_policy": 1},
+        {"fixture": "policy-vertical.vsn",          "assert_storage_policy": 2},
+        {"fixture": "policy-horizontal.vsn",        "assert_storage_policy": 3},
+        {"fixture": "policy-highly_horizontal.vsn", "assert_storage_policy": 4}
       ],
-      "test_pattern": "for each policy fixture: verify no record type < 0x8000 is unexpected; verify policy name bytes absent"
+      "test_pattern": "for each policy fixture: find REC_STORAGE_POLICY record (0x0009) with FID_STORAGE_POLICY (0x0901); verify value matches expected; assert no ModeDeclaration; assert policy name bytes absent"
     },
     {
       "id": "P11",
@@ -98,8 +98,8 @@
       },
       "error_categories": [
         {"category": "INVALID_STORAGE_POLICY",     "condition": "storage_policy value outside 1-4"},
-        {"category": "POLICY_WIRE_MODE_CONFLICT",  "condition": "policy + constraint disagree on wire mode"},
-        {"category": "INVALID_OPTIMIZATION_CONFIGURATION", "condition": "search_budget<=0, memory_limit<=0, max_dependency_depth<1"}
+        {"category": "INVALID_OPTIMIZATION_CONFIGURATION", "condition": "search_budget<=0, memory_limit<=0, max_dependency_depth<1"},
+        {"category": "UNSUPPORTED_REPRESENTATION", "condition": "representation not supported by policy"}
       ],
       "test_pattern": "WriterOptions(storage_policy=HV, wire_mode_constraint=ENTERPRISE) -> PolicyWireModeConflict"
     }

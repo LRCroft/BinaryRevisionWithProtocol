@@ -63,7 +63,7 @@ public static class ContainerParser
             var payload = SliceChecked(data, offset, checked((int)rl), "record payload");
             offset += (int)rl;
             var rec = new Record(rt, payload, start);
-            if (rt <= Constants.RecRepresentationDescriptor)
+            if (rt <= Constants.RecRepresentationDescriptor || rt == Constants.RecStoragePolicy)
                 ParseFields(payload.Span, rec);
             container.Records.Add(rec);
         }
@@ -91,7 +91,8 @@ public static class ContainerParser
         finalContainer.Objects.AddRange(container.Objects);
         container = finalContainer;
 
-        // Extract mode
+        // Extract mode and storage_policy
+        bool hasModeDecl = false;
         foreach (var rec in container.Records)
         {
             if (rec.RType == Constants.RecModeDeclaration)
@@ -99,6 +100,22 @@ public static class ContainerParser
                 var m = rec.GetField(Constants.FidMode);
                 if (m != null && m.Value.Length > 0)
                     container.Mode = m.Value.Span[0];
+                    hasModeDecl = true;
+            }
+            if (rec.RType == Constants.RecStoragePolicy)
+            {
+                var sp = rec.GetField(Constants.FidStoragePolicy);
+                if (sp != null && sp.Value.Length > 0)
+                    container.StoragePolicy = sp.Value.Span[0];
+            }
+        }
+        // Derive mode from storage_policy when no ModeDeclaration present (canonical writers)
+        if (!hasModeDecl && container.StoragePolicy.HasValue)
+        {
+            var spVal = container.StoragePolicy.Value;
+            if (spVal >= 1 && spVal <= 4)
+            {
+                container.Mode = (spVal >= 3) ? Constants.ModeEnterprise : Constants.ModeModern;
             }
         }
 

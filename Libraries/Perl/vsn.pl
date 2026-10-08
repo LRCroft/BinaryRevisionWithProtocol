@@ -1,4 +1,4 @@
-package VSN;
+﻿package VSN;
 use strict;
 use warnings;
 
@@ -9,6 +9,22 @@ our $REP_DIRECT_1 = 1; our $REP_EXTENTS_1 = 2; our $REP_VERSION_1 = 1;
 our $ERR_TRUNCATED = 0x0002;
 our $ERR_UNKNOWN_FILE_ID = 0x0009;
 our $ERR_INVALID_CANONICAL_STATE = 0x000C;
+our $REC_END_OF_RECORDS = 0; our $REC_FILE_IDENTITY = 1; our $REC_REVISION = 2;
+our $REC_FILE_HEAD = 4; our $REC_CONTENT_OBJECT = 5; our $REC_COMMIT_MARKER = 6;
+our $REC_MODE_DECLARATION = 7;        # OBSOLETE: was ModeDeclaration record (deprecated)
+our $REC_STORAGE_POLICY = 0x0009;     # StoragePolicy record type
+our $FID_FILE_ID = 0x101; our $FID_REV_ID = 0x201; our $FID_REV_FILE_ID = 0x202;
+our $FID_REV_OBJECT_SERIAL = 0x203; our $FID_REV_PATH = 0x210; our $FID_REV_PRESENCE = 0x211;
+our $FID_HEAD_FILE_ID = 0x401; our $FID_HEAD_REV_ID = 0x402;
+our $FID_COMMIT_GENERATION = 0x601; our $FID_OBJECT_SERIAL = 0x501; our $FID_OBJECT_SIZE = 0x511;
+our $FID_MODE = 0x701;                # OBSOLETE: was ModeDeclaration field (deprecated)
+our $FID_STORAGE_POLICY = 0x0901;      # StoragePolicy.field_id
+
+# Storage Policy values -- authoritative classification (directly on wire)
+our $STORAGE_POLICY_HIGHLY_VERTICAL    = 1;
+our $STORAGE_POLICY_VERTICAL           = 2;
+our $STORAGE_POLICY_HORIZONTAL         = 3;
+our $STORAGE_POLICY_HIGHLY_HORIZONTAL  = 4;
 
 # --- frozen protocol layer -------------------------------------------------
 
@@ -21,7 +37,7 @@ sub parse {
              mode => $MODE_MODERN, byte_length => length($data) };
 }
 
-sub encode { return $MAGIC . pack("CCCC", 0, 1, 0, 1); }
+sub encode { my ($mode, $gen, $sp) = @_; my $rec; $sp = 2 unless defined $sp; $rec = pack("nCnCC", 0x0009, 4, 0x0901, 1, ($sp >= 1 && $sp <= 4 ? $sp : 2)); return $MAGIC . pack("nn", $CFV, $EV) . $rec; }
 
 sub validate_structural {
     my ($c) = @_;
@@ -51,7 +67,7 @@ sub new_store {
     my ($mode) = @_;
     $mode = $MODE_MODERN unless defined $mode;
     return {
-        mode => $mode, generation => 0, next_rev_id => 1, next_obj_serial => 1,
+        mode => $mode, storage_policy => $STORAGE_POLICY_VERTICAL, generation => 0, next_rev_id => 1, next_obj_serial => 1,
         closed => 0, files => {}, revisions => {}, objects => {}, txn_ops => [],
     };
 }
@@ -268,7 +284,7 @@ sub import_bytes {
     return $s;
 }
 
-sub export_bytes { return encode($_[0]{mode}, $_[0]{generation}); }
+sub export_bytes { my ($s) = @_; encode($s->{mode}, $s->{generation}, $s->{storage_policy}); }
 sub write_large_object { my ($s,$p,$d)=@_; return create_file($s, $p, $d); }
 
 # --- Diagnostics / Integrity / Storage -------------------------------------

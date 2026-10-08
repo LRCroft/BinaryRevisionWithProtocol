@@ -51,6 +51,11 @@ def parse(data: bytes) -> Container:
             break
         cur.read(ln)  # header fields are structural; skipped by length
 
+    # Determine which record types contain parseable field streams
+    # All records below EXTENSION_MIN have field streams: FileIdentity(1) through RepresentationDescriptor(8)
+    # Plus StoragePolicy(9) which is the new canonical on-wire record
+    FIELD_RECORD_TYPES = frozenset({0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09})
+
     records = []
     while True:
         start = cur.pos
@@ -60,7 +65,7 @@ def parse(data: bytes) -> Container:
         rl = cur.read_uvarint()
         payload = cur.read(rl)
         rec = Record(rt, payload, byte_offset=start)
-        if rt <= C.REC_REPRESENTATION_DESCRIPTOR:
+        if rt in FIELD_RECORD_TYPES:
             rec.fields = _parse_fields(Cursor(payload))
         records.append(rec)
 
@@ -79,9 +84,22 @@ def parse(data: bytes) -> Container:
     gen = cur.read_uvarint()
 
     cont = Container(cfv, ev, records, objects, rc, gen, byte_length=len(data))
+    has_mode_decl = False
     for rec in records:
         if rec.rtype == C.REC_MODE_DECLARATION:
             m = rec.field(C.FID_MODE)
             if m is not None:
                 cont.mode = m.value[0] if m.value else None
+                has_mode_decl = True
+        if rec.rtype == C.REC_STORAGE_POLICY:
+            sp = rec.field(C.FID_STORAGE_POLICY)
+            if sp is not None and len(sp.value) >= 1:
+                cont.storage_policy = sp.value[0]
+    # Derive mode from storage_policy when no ModeDeclaration present (canonical writers)
+    if not has_mode_decl and hasattr(cont, 'storage_policy') and cont.storage_policy:
+        sp_val = cont.storage_policy
+        if sp_val in (1, 2):
+            cont.mode = C.MODE_MODERN
+        elif sp_val in (3, 4):
+            cont.mode = C.MODE_ENTERPRISE
     return cont

@@ -81,6 +81,7 @@ public sealed class ParsedContainer
     public ulong TrailerRecordCount { get; }
     public ulong TrailerGeneration { get; }
     public byte? Mode { get; set; }
+    public byte? StoragePolicy { get; set; }
     public int ByteLength { get; }
 
     public ParsedContainer(int cfv, int ev, ulong trailerRc, ulong trailerGen, int byteLength)

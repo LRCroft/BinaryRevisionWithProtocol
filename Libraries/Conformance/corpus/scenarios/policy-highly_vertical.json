@@ -1,5 +1,5 @@
 {
-  "byte_length": 154,
+  "byte_length": 166,
   "file_count": 1,
   "fixture_id": "policy-highly_vertical",
   "generation": 1,
@@ -13,6 +13,7 @@
     "0x7"
   ],
   "representations": [],
-  "sha256": "ee6e7f23b2a8f1f84aa534877da6f064346595472cc302e3e62b16f0f5e0d0c1",
-  "wire_mode": 1
+  "sha256": "ab0191fe879b9ffbce7b399063933e4b5cbb3cc71f4f01031ff6342154e4ff17",
+  "wire_mode": 1,
+  "mode_from_fixture": 1
 }

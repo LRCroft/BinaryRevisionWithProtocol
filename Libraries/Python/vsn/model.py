@@ -67,4 +67,5 @@ class Container:
     trailer_record_count: int
     trailer_generation: int
     mode: Optional[int] = None
+    storage_policy: Optional[int] = None  # NEW: direct StoragePolicy value (1..4)
     byte_length: int = 0

@@ -2,6 +2,10 @@
 let magic = "VSN-"
 let find_opt f l = try Some (List.find f l) with Not_found -> None
 
+(* Storage Policy record type and field ID (new) *)
+let rec_storage_policy = 0x0009
+let fid_storage_policy = 0x0901
+
 (* Mutex polyfill: use a simple reference-based lock when threads not available *)
 module Mutex = struct
   type t = { mu : bool ref }
@@ -16,10 +20,18 @@ end
 let mode_modern = 1 and mode_enterprise = 2
 let rep_direct_1 = 1 and rep_extents_1 = 2
 
+(* Storage Policy values -- authoritative classification (directly on wire) *)
+let fid_storage_policy = 0x0901
+
+let storage_policy_highly_vertical = 1
+and storage_policy_vertical = 2
+and storage_policy_horizontal = 3
+and storage_policy_highly_horizontal = 4
+
 type container = {
   cfv : int; ev : int; records : int; objects : int;
   trailer_record_count : int; trailer_generation : int;
-  mode : int; byte_length : int;
+  mode : int; byte_length : int; storage_policy : int option;
 }
 
 let parse s =
@@ -27,14 +39,57 @@ let parse s =
     raise (Invalid_argument "vsn: bad magic")
   else { cfv=1; ev=1; records=0; objects=0;
          trailer_record_count=0; trailer_generation=0;
-         mode=mode_modern; byte_length=String.length s }
+         mode=mode_modern; byte_length=String.length s;
+         storage_policy=(let rec parse_sp d pos =
+           if pos + 3 >= String.length d then None else
+           let rt = (int_of_char d.[pos] lsl 8) lor (int_of_char d.[pos+1]) in
+           if rt = 0 then None else
+           let plen = int_of_char d.[pos+2] in
+           if pos + 3 + plen > String.length d then None else
+           let fid_off = pos + 3 in
+           if fid_off + 4 >= String.length d then parse_sp d (pos + 3 + plen) else
+           let fid = (int_of_char d.[fid_off] lsl 8) lor (int_of_char d.[fid_off+1]) in
+           if fid = fid_storage_policy then Some (int_of_char d.[fid_off+3])
+           else parse_sp d (pos + 3 + plen)
+         in parse_sp s 8) }
 
-let encode _mode _gen =
-  let buf = Bytes.create 8 in
-  Bytes.blit_string "VSN-" 0 buf 0 4;
+let encode mode gen =
+  let buf = Bytes.make 9 (Char.chr 0) in
+  Bytes.set buf 0 (Char.chr ((rec_storage_policy lsr 8) land 0xFF));
+  Bytes.set buf 1 (Char.chr (rec_storage_policy land 0xFF));
+  Bytes.set buf 2 (Char.chr 4);
+  Bytes.set buf 3 (Char.chr ((fid_storage_policy lsr 8) land 0xFF));
+  Bytes.set buf 4 (Char.chr (fid_storage_policy land 0xFF));
+  Bytes.set buf 5 (Char.chr 1);
+  Bytes.set buf 6 (Char.chr 2);
+  let rec_storage_bytes = buf in
+  let buf = Bytes.create (8 + Bytes.length rec_storage_bytes) in
+  Bytes.blit_string magic 0 buf 0 4;
   Bytes.set buf 4 (Char.chr 0); Bytes.set buf 5 (Char.chr 1);
   Bytes.set buf 6 (Char.chr 0); Bytes.set buf 7 (Char.chr 1);
-  Bytes.unsafe_to_string buf
+  Bytes.blit rec_storage_bytes 0 buf 8 (Bytes.length rec_storage_bytes);
+  let out = Bytes.create (Bytes.length buf) in
+  Bytes.blit buf 0 out 0 (Bytes.length buf);
+  Bytes.unsafe_to_string out
+
+let encode_with_policy mode gen sp =
+  let policy_byte = if sp >= 1 && sp <= 4 then Char.chr sp else Char.chr 2 in
+  let rec_storage_bytes = Bytes.make 7 (Char.chr 0) in
+  Bytes.set rec_storage_bytes 0 (Char.chr ((rec_storage_policy lsr 8) land 0xFF));
+  Bytes.set rec_storage_bytes 1 (Char.chr (rec_storage_policy land 0xFF));
+  Bytes.set rec_storage_bytes 2 (Char.chr 4);
+  Bytes.set rec_storage_bytes 3 (Char.chr ((fid_storage_policy lsr 8) land 0xFF));
+  Bytes.set rec_storage_bytes 4 (Char.chr (fid_storage_policy land 0xFF));
+  Bytes.set rec_storage_bytes 5 (Char.chr 1);
+  Bytes.set rec_storage_bytes 6 policy_byte;
+  let buf = Bytes.create (8 + Bytes.length rec_storage_bytes) in
+  Bytes.blit_string magic 0 buf 0 4;
+  Bytes.set buf 4 (Char.chr 0); Bytes.set buf 5 (Char.chr 1);
+  Bytes.set buf 6 (Char.chr 0); Bytes.set buf 7 (Char.chr 1);
+  Bytes.blit rec_storage_bytes 0 buf 8 (Bytes.length rec_storage_bytes);
+  let out = Bytes.create (Bytes.length buf) in
+  Bytes.blit buf 0 out 0 (Bytes.length buf);
+  Bytes.unsafe_to_string out
 
 let validate_structural c = c.cfv = 1 && (c.mode = mode_modern || c.mode = mode_enterprise)
 
@@ -52,10 +107,17 @@ type mutable_store = {
   mutable files : (string * string * string) list;
    mutable revisions : (string * revision list) list;      (* name -> [revision] *)
    mutable objects : (int * string) list;                  (* serial -> content *)
-   lock : Mutex.t;                                         (* Tier 3: thread safety *)
+   mutable lock : Mutex.t;                                         (* Tier 3: thread safety *)
+   mutable storage_policy : int option;                            (* StoragePolicy field *)
 }
 
-let create mode = { mode=mode; generation=0; next_rev_id=1; next_obj_serial=1; closed=false; files=[]; revisions=[]; objects=[]; lock=Mutex.create() }
+let create mode = { mode=mode; generation=0; next_rev_id=1; next_obj_serial=1; closed=false; files=[]; revisions=[]; objects=[]; lock=Mutex.create(); storage_policy=None }
+
+let create_with_policy spolicy =
+  (* Canonical writer: stores policy directly; no wire-mode inference from storage policy. *)
+  let sp = if spolicy >= 1 && spolicy <= 4 then Some spolicy else Some 2 in
+  { mode=mode_modern; generation=0; next_rev_id=1; next_obj_serial=1; closed=false;
+    files=[]; revisions=[]; objects=[]; lock=Mutex.create(); storage_policy=sp }
 
 let get_mode s = s.mode
 
@@ -159,19 +221,25 @@ let merge_three_way base ours theirs =
 
 let begin_transaction s = s.generation
 let stage_add _txn _name _content = ()
-let commit txn expected =
-  if txn <> expected then raise (Invalid_argument "vsn: revision mismatch");
-  encode 1 1
+let commit s expected =
+  if s.generation <> expected then raise (Invalid_argument "vsn: revision mismatch");
+  match s.storage_policy with
+  | Some sp -> encode_with_policy s.mode s.generation sp
+  | None -> encode s.mode s.generation
 
 let validate s = s.mode >= 1 && s.mode <= 2
 
 
 let import_bytes s data =
-  if String.length data >= 8 && String.sub data 0 4 = magic then
-    s.generation <- 0
+  if String.length data >= 8 && String.sub data 0 4 = magic then (
+    let c = parse data in
+    s.generation <- 0;
+    match c.storage_policy with Some sp -> s.storage_policy <- Some sp | None -> ()
+  )
   else raise (Invalid_argument "vsn: bad import")
-
-let export_bytes s = encode s.mode 1
+let export_bytes s = match s.storage_policy with
+  | Some sp -> encode_with_policy s.mode s.generation sp
+  | None -> encode s.mode s.generation
 
 let write_large_object _name data = String.length data > 0
 let integrity_verify s = s.mode >= 1

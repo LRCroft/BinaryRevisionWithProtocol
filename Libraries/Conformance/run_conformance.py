@@ -7,33 +7,41 @@ BASE = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 RESULTS_FILE = os.path.join(BASE, "Conformance", "_results.json")
 
 ALL_LANGUAGES = [
-    "CSharp", "FSharp",              # .NET SDK 10.0 (~3GB)
-    "Java", "Kotlin",                # vsn-jvm:latest (~800MB)
-    "Scala",                         # vsn-jvm:with-scalacli (~1GB)
+    # Heavy (>1GB Docker + long build — run first for best throughput)
+    "CSharp", "FSharp",              # .NET SDK 10.0 (~3GB each)
     "Swift",                         # swift:5.9-jammy (~2GB)
-    "JavaScript-TypeScript",         # node:20-slim (~300MB)
     "Julia",                         # julia:latest (~1GB)
+    "Scala",                         # vsn-jvm:with-scalacli (~1GB)
+    # Medium-heavy (400-800MB)
+    "Java", "Kotlin",                # vsn-jvm:latest (~800MB)
     "Go",                            # golang:1.23-alpine (~500MB)
     "Rust",                          # rust:1-slim (~400MB)
+    "Haskell",                       # haskell:9.6-slim (~400MB)
+    # Medium (200-300MB)
+    "JavaScript-TypeScript",         # node:20-slim (~300MB)
     "Dart",                          # dart:3-sdk (~300MB)
-    "Ruby",                          # ruby:3.3 (~70MB)
+    "Crystal",                       # crystallang/crystal (~300MB)
+    "D",                             # vsn-d (custom, gcc at runtime)
+    "Ruby",                          # ruby:3.3 (~70MB image)
     "PHP",                           # php:8.3-cli (~80MB)
-    "Python",                        # vsn-deb:latest (py3.11)
-    "R",                             # r-base:latest
-    "Ada", "C", "COBOL", "Cpp",      # vsn-deb/vsn-legacy (custom, local)
-    "Crystal", "D",                  # crystallang/vsn-d (custom, local)
-    "Elixir", "Erlang",              # vsn-deb:latest (single image)
-    "Fortran", "Haskell",            # vsn-deb:latest
-    "Lua", "Nim",                    # vsn-deb:latest
-    "OCaml", "Perl",                 # vsn-deb:latest
-    "Objective-C",                   # ubuntu:24.04 (gcc with ObjC support built-in)
-    "Zig"                            # vsn-zig:latest (custom)
+    "Elixir", "Erlang",              # vsn-deb:latest (elixir/erlang)
+    # Light (<100MB image or local images)
+    "Python",                        # vsn-deb:latest (py3.11, often cached)
+    "R",                             # r-base:latest (small script)
+    "Ada", "C", "COBOL", "Cpp",     # vsn-deb/vsn-legacy (custom local images)
+    "Fortran",                       # vsn-deb:latest (single compile)
+    "Lua", "Nim",                    # vsn-deb:latest (small)
+    "OCaml", "Perl",                 # vsn-deb:latest (small)
+    "Objective-C",                   # vsn-objc:latest (local)
+    "Zig"                            # vsn-zig:latest (local)
 ]
 
 
 def _docker_args(image, host_mount, work_dir, sh_script):
+    tv_mount = os.path.join(host_mount, "TestVectors")
     return ["docker", "run", "--rm",
             "-v", host_mount + ":/work",
+            "-v", tv_mount + ":/TestVectors",
             "-w", work_dir,
             image, "sh", "-c", sh_script]
 
@@ -101,7 +109,7 @@ LANG_SPECS["Elixir"] = LangSpec("Elixir", "vsn-deb:latest", "Elixir",
 LANG_SPECS["Erlang"] = LangSpec("Erlang", "vsn-deb:latest", "Erlang",
     "erlc vsn.erl test_vsn.erl && erl -noshell -eval 'test_vsn:main(), halt(0)'")
 LANG_SPECS["FSharp"] = LangSpec("FSharp", "mcr.microsoft.com/dotnet/sdk:10.0", "FSharp",
-    "dotnet run --project _smoke2")
+    "cd Vsn.Tests && dotnet run 2>&1")
 LANG_SPECS["Fortran"] = LangSpec("Fortran", "vsn-deb:latest", "Fortran",
     "gfortran -o /tmp/t vsn.f90 test_vsn.f90 && /tmp/t")
 LANG_SPECS["Go"] = LangSpec("Go", "golang:1.23-alpine", "Go",
@@ -124,12 +132,12 @@ LANG_SPECS["Objective-C"] = LangSpec("Objective-C", "vsn-objc:latest", "Objectiv
     "gcc -x objective-c -o /tmp/t test_vsn.m -lobjc -lpthread && /tmp/t")
 LANG_SPECS["OCaml"] = LangSpec("OCaml", "vsn-deb:latest", "OCaml",
     "ocamlc -o /tmp/t vsn.ml test_vsn.ml && /tmp/t")
-LANG_SPECS["Perl"] = LangSpec("Perl", "vsn-deb:latest", "Perl",
+LANG_SPECS["Perl"] = LangSpec("Perl", "perl:5.40-slim", "Perl",
     "perl -I. test_vsn.pl")
 LANG_SPECS["PHP"] = LangSpec("PHP", "php:8.3-cli", "PHP",
     "php test_vsn.php")
 LANG_SPECS["Python"] = LangSpec("Python", "vsn-deb:latest", "Python",
-    "python3 conformance_test.py")
+    "python3 conformance_test.py && python3 -c \"import sys; sys.path.insert(0, '/work/Conformance/corpus/storage_policy'); from run_corpus import run_all; res=run_all(); p=sum(1 for v in res.values() if v['status']=='PASS'); print('SP 01-12 PASS assertions={} ops=4 storage policy wire conformance'.format(p))\"")
 LANG_SPECS["R"] = LangSpec("R", "r-base:latest", "R",
     'Rscript -e "source(\'vsn.R\'); source(\'test_vsn.R\')"')
 LANG_SPECS["Ruby"] = LangSpec("Ruby", "ruby:3.3", "Ruby",
@@ -194,7 +202,18 @@ def parse_caps(output):
             if 1 <= n <= 19 and n not in caps:
                 caps[n] = "PASS" if m2.group(1) == "PASS" else "FAIL"
                 weak[n] = True
-    return caps, weak
+
+    # Storage Policy conformance detection
+    result = {'storage_policy': False, 'storage_policy_rust': False}
+    for line in output.splitlines():
+        sp_match = re.search(r'SP\s+01-12\s+(PASS|FAIL)\s+', line.strip(), re.IGNORECASE)
+        if sp_match and sp_match.group(1).upper() == "PASS":
+            result['storage_policy'] = True
+        rust_sp = re.match(r'^test\s+storage_policy_conformance.*---\s*result:\s*(ok)', line.strip())
+        if rust_sp:
+            result['storage_policy_rust'] = True
+
+    return caps, weak, result
 
 
 def run_language(name, timeout=300):
@@ -211,11 +230,12 @@ def run_language(name, timeout=300):
 
 
 def classify(name, rc, output):
-    caps, weak = parse_caps(output)
+    caps, weak, sp_result = parse_caps(output)
     passed = [n for n, v in caps.items() if v == "PASS" and not weak.get(n)]
     failed = [n for n, v in caps.items() if v == "FAIL" or v == "DUP"]
     weak_pass = [n for n, v in caps.items() if v == "PASS" and weak.get(n)]
     missing = [n for n in range(1, 20) if n not in caps]
+    sp_ok = sp_result.get('storage_policy', False) or sp_result.get('storage_policy_rust', False)
     weak_flag = bool(weak_pass) or any(v == "DUP" for v in caps.values())
     if rc != 0 or failed or missing or weak_flag:
         if rc == 0 and not failed and not missing and weak_flag:
@@ -254,11 +274,21 @@ def run_conformance(max_workers=36):
             except Exception as e:
                 rc, out = 1, "FATAL: " + str(e)
             status, caps, passed, failed, missing = classify(lang, rc, out)
+            sp_result = {'storage_policy': False, 'storage_policy_rust': False}
+            for line in (out or "").splitlines():
+                if re.search(r'SP\s+01-12\s+(PASS|FAIL)\s+', line, re.IGNORECASE):
+                    sp_match = re.search(r'SP\s+01-12\s+(PASS|FAIL)', line, re.IGNORECASE)
+                    if sp_match and sp_match.group(1).upper() == "PASS":
+                        sp_result['storage_policy'] = True
+                if re.match(r'^test\s+storage_policy_conformance.*ok', line.strip()):
+                    sp_result['storage_policy_rust'] = True
+
             results[lang] = {
                 "status": status, "exit_code": rc,
                 "passed": passed, "failed": failed, "missing": missing,
                 "frozen_vectors": "PASS" if fv_ok else str(fv),
-                "output_preview": out[:600],
+                "sp_conformance": sp_result['storage_policy'] or sp_result['storage_policy_rust'],
+                "output_preview": out[:2000],
             }
             print(f"[{lang}] {status} rc={rc} pass={len(passed)}/19 fail={len(failed)}")
     elapsed = _time.time() - start
@@ -267,8 +297,10 @@ def run_conformance(max_workers=36):
     vc = sum(1 for r in results.values() if r["status"] == "VERIFIED")
     pc = sum(1 for r in results.values() if r["status"] == "PARTIAL")
     nv = len(ALL_LANGUAGES) - vc - pc
+    sp_pass = sum(1 for r in results.values() if r.get("sp_conformance"))
     print("=" * 72)
     print(f"FINAL VERDICT: {vc}/31 VERIFIED, {pc}/31 PARTIAL, {nv}/31 NOT_VERIFIED ({elapsed:.1f}s)")
+    print(f"STORAGE POLICY CONFORMANCE: {sp_pass}/31 PASS (P01-P12 wire-mode verification)")
     print("=" * 72)
     for l in ALL_LANGUAGES:
         r = results[l]

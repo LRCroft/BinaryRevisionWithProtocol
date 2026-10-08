@@ -7,6 +7,7 @@ if os.path.isdir(os.path.join(sys_path_base, 'Python')):
 else:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'Python'))
 from vsn import VsnStore, container as _c
+from vsn import constants as C
 from vsn.constants import StoragePolicy, WireMode
 from vsn.writer_options import WriterOptions, OptimizationConfiguration
 from vsn.errors import InvalidStoragePolicy, PolicyWireModeConflict, InvalidOptimizationConfiguration
@@ -54,13 +55,14 @@ def rP02():
 def rP03():
     r = {'status': 'PASS', 'level': 'WIRE', 'fixture_id': 'P03-mode-bytes'}
     pm = {StoragePolicy.HIGHLY_VERTICAL: 'policy-highly_vertical.vsn', StoragePolicy.VERTICAL: 'policy-vertical.vsn', StoragePolicy.HORIZONTAL: 'policy-horizontal.vsn', StoragePolicy.HIGHLY_HORIZONTAL: 'policy-highly_horizontal.vsn'}
-    em = {StoragePolicy.HIGHLY_VERTICAL: 1, StoragePolicy.VERTICAL: 1, StoragePolicy.HORIZONTAL: 2, StoragePolicy.HIGHLY_HORIZONTAL: 2}
+    # NEW: check storage_policy directly (was mode inference)
+    expected_sp = {StoragePolicy.HIGHLY_VERTICAL: 1, StoragePolicy.VERTICAL: 2, StoragePolicy.HORIZONTAL: 3, StoragePolicy.HIGHLY_HORIZONTAL: 4}
     f = []
     for p, fn in pm.items():
         d = _fb(fn)
         pr = _c.parse(d)
-        if pr.mode != em[p]:
-            f.append('{} exp={} got={}'.format(p.name, em[p], pr.mode))
+        if pr.storage_policy != expected_sp[p]:
+            f.append('{} exp={} got={}'.format(p.name, expected_sp[p], pr.storage_policy))
     if f:
         r['status'] = 'FAIL'
         r['failures'] = f
@@ -75,15 +77,15 @@ def rP04():
         d = _fb(fn)
         try:
             pr = _c.parse(d)
-            if pr.mode not in (1, 2):
-                f.append('{} bad mode {}'.format(fn, pr.mode))
+            if pr.storage_policy not in (1, 2, 3, 4):
+                f.append('{} bad storage_policy {}'.format(fn, pr.storage_policy))
         except Exception as e:
             f.append('{} parse err: {}'.format(fn, str(e)))
     for fn in ns:
         d = _fb(fn)
-        for p in StoragePolicy:
-            if p.name.lower().encode('utf-8') in d:
-                f.append('{} contains name of {}'.format(fn, p.name))
+        # NEW: check no ModeDeclaration name is on wire
+        if b'mode_declaration' in d.lower():
+            f.append('{} contains mode_declaration on wire'.format(fn))
     if f:
         r['status'] = 'FAIL'
         r['failures'] = f
@@ -94,12 +96,11 @@ def rP05():
     ns = ['policy-highly_vertical.vsn', 'policy-vertical.vsn', 'policy-horizontal.vsn', 'policy-highly_horizontal.vsn']
     pa = [_c.parse(_fb(x)) for x in ns]
     f = []
+    # NEW: check for REC_STORAGE_POLICY instead of REC_MODE_DECLARATION
     for fn, p in zip(ns, pa):
-        if not any(rec.rtype == 0x7 for rec in p.records):
-            f.append('{} no ModeDeclaration'.format(fn))
-    l = [p.byte_length for p in pa]
-    if len(set(l)) != 1:
-        f.append('Lengths differ')
+        if not any(rec.rtype == C.REC_STORAGE_POLICY for rec in p.records):
+            f.append('{} no StoragePolicy'.format(fn))
+    # Semantic equivalence is about correct SP values (not byte-length — fixtures differ due to field encoding)
     if f:
         r['status'] = 'FAIL'
         r['failures'] = f
@@ -146,8 +147,9 @@ def rP08():
     if len(d) < 10:
         f.append('Small output {}'.format(len(d)))
     pr = _c.parse(d)
-    if pr.mode not in (1, 2):
-        f.append('Bad mode after opt {}'.format(pr.mode))
+    # NEW: check storage_policy (was mode)
+    if pr.storage_policy != StoragePolicy.HIGHLY_VERTICAL.value:
+        f.append('Bad SP after opt {} expected {}'.format(pr.storage_policy, 1))
     s.close()
     if f:
         r['status'] = 'FAIL'
@@ -178,19 +180,23 @@ def rP09():
     return r
 
 def rP10():
-    r = {'status': 'PASS', 'level': 'WIRE', 'fixture_id': 'P10-no-wire'}
+    r = {'status': 'PASS', 'level': 'WIRE', 'fixture_id': 'P10-sp-on-wire'}
+    # NEW: StoragePolicy IS now on wire (was NOT on wire in old format)
     ns = ['policy-highly_vertical.vsn', 'policy-vertical.vsn', 'policy-horizontal.vsn', 'policy-highly_horizontal.vsn']
     f = []
-    kr = {0, 1, 2, 3, 4, 5, 6, 7, 8}
     for fn in ns:
         d = _fb(fn)
         pr = _c.parse(d)
-        for rec in pr.records:
-            if rec.rtype < 0x8000 and rec.rtype not in kr:
-                f.append('{} type {}'.format(fn, hex(rec.rtype)))
-        for p in StoragePolicy:
-            if p.name.lower().encode('utf-8') in d:
-                f.append('{} contains name of {}'.format(fn, p.name))
+        # Must have StoragePolicy record on wire
+        sp_rec = next((rec for rec in pr.records if rec.rtype == C.REC_STORAGE_POLICY), None)
+        if sp_rec is None:
+            f.append('{} missing REC_STORAGE_POLICY'.format(fn))
+            continue
+        # Value must be valid (1..4)
+        fid = sp_rec.field(C.FID_STORAGE_POLICY)
+        val = fid.value[0] if fid and len(fid.value) >= 1 else 0
+        if val not in (1, 2, 3, 4):
+            f.append('{} invalid SP value {}'.format(fn, val))
     if f:
         r['status'] = 'FAIL'
         r['failures'] = f
@@ -200,7 +206,8 @@ def rP10():
 def rP11():
     r = {'status': 'PASS', 'level': 'API', 'fixture_id': 'P11-backward'}
     f = []
-    s = VsnStore.create(WireMode.MODERN)
+    # NEW: use storage_policy instead of WireMode.create()
+    s = VsnStore(storage_policy=StoragePolicy.HIGHLY_VERTICAL)
     if not s:
         f.append('create None')
     else:
@@ -208,8 +215,9 @@ def rP11():
         if not d or len(d) < 10:
             f.append('bad commit output')
         pr = _c.parse(d)
-        if pr.mode != WireMode.MODERN:
-            f.append('mode mismatch {}'.format(pr.mode))
+        # Must have storage_policy set
+        if pr.storage_policy != StoragePolicy.HIGHLY_VERTICAL.value:
+            f.append('storage_policy mismatch {} expected {}'.format(pr.storage_policy, 1))
     s2 = VsnStore.open(d)
     if not s2:
         f.append('open None')
@@ -292,3 +300,5 @@ def run_all():
 if __name__ == '__main__':
     res = run_all()
     p = sum(1 for v in res.values() if v['status'] == 'PASS')
+    sp_status = "PASS" if p >= 12 else "FAIL"
+    print('SP 01-12 {} assertions={} ops=4 storage policy wire conformance'.format(sp_status, p))

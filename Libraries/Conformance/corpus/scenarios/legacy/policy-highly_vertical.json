@@ -1,0 +1,19 @@
+{
+  "byte_length": 166,
+  "file_count": 1,
+  "fixture_id": "policy-highly_vertical",
+  "generation": 1,
+  "policy": "HIGHLY_VERTICAL",
+  "records_present": [
+    "0x1",
+    "0x2",
+    "0x4",
+    "0x5",
+    "0x6",
+    "0x7"
+  ],
+  "representations": [],
+  "sha256": "ab0191fe879b9ffbce7b399063933e4b5cbb3cc71f4f01031ff6342154e4ff17",
+  "wire_mode": 1,
+  "mode_from_fixture": 1
+}

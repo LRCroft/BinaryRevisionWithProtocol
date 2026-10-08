@@ -5,6 +5,8 @@ language-idiomatic mechanisms without adding new protocol error IDs.
 """
 from __future__ import annotations
 
+from .constants import StoragePolicy, STORAGE_POLICY_TO_WIRE_MODE
+
 # Frozen error identifiers (value -> name)
 ERRORS = {
     0x0000: "OK",
@@ -50,3 +52,53 @@ class VsnError(Exception):
 
 class ResourceRefusal(Exception):
     """A reader-local resource limit was exceeded (not canonical invalidity)."""
+
+
+# ---- Writer Storage Policy semantic errors ----
+# These map to frozen protocol error identifiers where equivalent ones exist.
+# No new protocol error IDs are invented.
+
+
+class InvalidStoragePolicy(VsnError):
+    """Raised when a StoragePolicy value is outside {HIGHLY_VERTICAL, VERTICAL, HORIZONTAL, HIGHLY_HORIZONTAL}.
+
+    Maps to 0x0010 (RESERVED_VALUE).
+    """
+    def __init__(self, policy):
+        super().__init__(0x0010, "INVALID_STORAGE_POLICY: %r" % (policy,), byte_offset=None)
+
+
+class PolicyWireModeConflict(VsnError):
+    """Raised when writer_options specifies both storage_policy and wire_mode that conflict.
+
+    Maps to 0x0005 (UNSUPPORTED_PROTOCOL_VERSION).
+    """
+    def __init__(self, policy, mode):
+        super().__init__(0x0005, "POLICY_WIRE_MODE_CONFLICT: %r not allowed in wire mode 0x%02X" % (policy.value, mode), byte_offset=None)
+
+
+class InvalidOptimizationConfiguration(VsnError):
+    """Raised when OptimizationConfiguration contains invalid values.
+
+    Maps to 0x0010 (RESERVED_VALUE).
+    """
+    def __init__(self, field, value):
+        super().__init__(0x0010, "INVALID_OPTIMIZATION_CONFIGURATION: %s = %r" % (field, value), byte_offset=None)
+
+
+class OptimizationBudgetExceeded(VsnError):
+    """Raised when optimization effort exceeds budget but fallback may still succeed.
+
+    Maps to 0x000D (VERIFICATION_UNAVAILABLE).
+    """
+    def __init__(self, detail):
+        super().__init__(0x000D, "OPTIMIZATION_BUDGET_EXCEEDED: %s" % detail, byte_offset=None)
+
+
+class UnsupportedRepresentation(VsnError):
+    """Raised when a representation is not allowed (e.g., EXTENTS-1 in ENTERPRISE).
+
+    Maps to 0x0006 (UNSUPPORTED_REPRESENTATION -- frozen protocol ID).
+    """
+    def __init__(self, rep_id):
+        super().__init__(0x0006, "UNSUPPORTED_REPRESENTATION: %s" % (rep_id,), byte_offset=None)

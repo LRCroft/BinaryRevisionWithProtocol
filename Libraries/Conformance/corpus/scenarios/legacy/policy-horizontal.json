@@ -1,0 +1,19 @@
+{
+  "byte_length": 166,
+  "file_count": 1,
+  "fixture_id": "policy-horizontal",
+  "generation": 1,
+  "policy": "HORIZONTAL",
+  "records_present": [
+    "0x1",
+    "0x2",
+    "0x4",
+    "0x5",
+    "0x6",
+    "0x7"
+  ],
+  "representations": [],
+  "sha256": "67ce5f042756d73899929b6199349e1019e98f52eae9adcc4d2fea344ec4dcf7",
+  "wire_mode": 2,
+  "mode_from_fixture": 2
+}

@@ -59,6 +59,16 @@ void tx_rollback(VsnTx& tx);
 // Builder API: staged multi-file construction over the same C core.
 // The header-only facade cannot reuse C's struct layout, so it stages
 // files in memory and materialises them one container at a time.
+
+// Storage Policy values (informative, NOT on wire) — maps to wire mode.
+// Storage Policy values (informative, NOT on wire) — maps to wire mode.
+struct StoragePolicy {
+    static constexpr int HIGHLY_VERTICAL   = 1;
+    static constexpr int VERTICAL          = 2;
+    static constexpr int HORIZONTAL        = 3;
+    static constexpr int HIGHLY_HORIZONTAL = 4;
+};
+
 class ContainerBuilder {
 public:
     explicit ContainerBuilder(int mode) : mode_(mode) {}
@@ -91,6 +101,9 @@ public:
                                            s.second.data(), s.second.size(), &f);
             if (rc != VSN_ERR_OK) break;
         }
+
+// ---- Storage Policy integration ----
+
         static uint8_t buf[1 << 20]; size_t n = 0;
         if (rc == VSN_ERR_OK) rc = vsn_commit(c, buf, sizeof(buf), &n);
         vsn_close(c); throw_if(rc);
@@ -104,5 +117,9 @@ private:
     std::vector<FileId> staged_ids_;
     FileId last_{};
 };
+
+
+// ---- Storage Policy integration ----
+VsnContainer* create_with_storage_policy_raw(int policy, int default_mode = MODE_MODERN);
 
 }  // namespace vsn

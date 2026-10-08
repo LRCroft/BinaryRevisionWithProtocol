@@ -3,8 +3,22 @@ package VSN is
    Magic        : constant String := "VSN-";
    CFV          : constant Positive := 1;
    EV           : constant Positive := 1;
-   MODE_MODERN          : constant Positive := 1;
-   MODE_ENTERPRISE      : constant Positive := 2;
+   -- Modes -- OBSOLETE: deprecated, kept for reader compatibility only
+    MODE_MODERN          : constant Positive := 1;     -- OBSOLETE: was MODERN wire mode
+
+
+   -- Storage Policy values -- authoritative classification (directly on wire)
+   STORAGE_POLICY_HIGHLY_VERTICAL       : constant Positive := 1;
+   STORAGE_POLICY_VERTICAL              : constant Positive := 2;
+   STORAGE_POLICY_HORIZONTAL            : constant Positive := 3;
+   STORAGE_POLICY_HIGHLY_HORIZONTAL     : constant Positive := 4;
+   -- Storage Policy record type and field ID (new)
+   REC_STORAGE_POLICY     : constant Positive := 9;
+   FID_STORAGE_POLICY     : constant Positive := 2305;
+    -- Modes -- OBSOLETE: deprecated, kept for reader compatibility only
+    MODE_ENTERPRISE      : constant Positive := 2;
+
+    -- Modes -- OBSOLETE: deprecated, kept for reader compatibility only
    REP_DIRECT_1         : constant Positive := 1;
    REP_EXTENTS_1        : constant Positive := 2;
    type Vsn_Container is record
@@ -38,10 +52,14 @@ package VSN is
    function Merge_Ok (s : Store) return Boolean;
    function Import_Bytes (s : in out Store; data : String) return Boolean;
    function Export_Len (s : Store) return Natural;
+   function Export_Bytes (s : Store) return String;
    function Integrity_Ok (s : Store) return Boolean;
    function Stats_Files (s : Store) return Natural;
    function Stats_Revs (s : Store) return Natural;
    function Builder_Ok (s : Store) return Boolean;
+   -- Storage Policy values -- authoritative classification (directly on wire)
+   function Create_With_Policy (policy : Positive) return Store;
+   function Get_Storage_Policy (s : Store) return Positive;
 private
    type Store is tagged record
       mval : Positive := MODE_MODERN;
@@ -52,5 +70,6 @@ private
       next_rev : Positive := 1;
       isclosed : Boolean := False;
       next_obj : Positive := 1;
+      storage_policy : Positive := STORAGE_POLICY_VERTICAL;
    end record;
 end VSN;

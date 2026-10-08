@@ -18,11 +18,39 @@ duplicates the normative text.
 
 ## Records (GR-28) and fields (GR-17)
 
-Implemented for record types `0x0001..0x0008` and their frozen fields in
-`constants.py` / `container.py`. FileIdentity.FileId = `0x0101` (normative
-field allocation). Unknown records/fields are skipped by declared length
-(GR-29..GR-33). FieldId `0x0001` in a FileIdentity record is NOT treated as
-the canonical FileId field.
+### Record Type Registry (GR-28)
+
+| ID | Name | Status | Description |
+|----|------|--------|-------------|
+| 0x0000 | END_OF_RECORDS | FROZEN | End-of-records marker (GR-11) |
+| 0x0001 | FILE_IDENTITY | FROZEN | File identity record |
+| 0x0002 | REVISION | FROZEN | Revision record |
+| 0x0003 | REVISION_SET | FROZEN | Revision set record |
+| 0x0004 | FILE_HEAD | FROZEN | File head record |
+| 0x0005 | CONTENT_OBJECT | FROZEN | Content object record |
+| 0x0006 | COMMIT_MARKER | FROZEN | Commit marker / acceptance record |
+| 0x0007 | MODE_DECLARATION | **OBSOLETE** | Deprecated, no longer emitted by canonical writers |
+| 0x0008 | REPRESENTATION_DESCRIPTOR | FROZEN | Representation descriptor (DIRECT/EXTENTS) |
+| **0x0009** | **STORAGE_POLICY** | **ACTIVE** | **New: authoritative storage policy (direct on wire)** |
+| 0x8000..0xFFFE | EXTENSION | PLANNED | Extension range |
+| 0xFFFF | RESERVED | FROZEN | Reserved |
+
+### Field ID Registry (GR-17)
+
+| ID | Name | Record | Status | Description |
+|----|------|--------|--------|-------------|
+| 0x0000 | RECORDS_END | - | FROZEN | End-of-header marker |
+| **0x0901** | **FID_STORAGE_POLICY** | **0x0009** | **ACTIVE** | **StoragePolicy field (u8 value 1..4)** |
+| 0x0701 | FID_MODE | 0x0007 | OBSOLETE | ModeDeclaration field ID (deprecated) |
+| 0x0101 | FID_FILE_ID | 0x0001 | FROZEN | FileIdentity.FileId (normative field allocation) |
+| 0x0201..0x0211 | REV_FID_* | 0x0002 | FROZEN | Revision record fields |
+| 0x0301..0x0310 | RSET_FID_* | 0x0003 | FROZEN | Revision set fields |
+| 0x0401..0x0410 | HEAD_FID_* | 0x0004 | FROZEN | File head fields |
+| 0x0501..0x0511 | OBJ_FID_* | 0x0005 | FROZEN | Content object fields |
+| 0x0601..0x0610 | COMMIT_FID_* | 0x0006 | FROZEN | Commit marker fields |
+| 0x0801..0x0810 | REP_FID_* | 0x0008 | FROZEN | Representation descriptor fields |
+
+Unknown records/fields are skipped by declared length (GR-29..GR-33). FieldId `0x0001` in a FileIdentity record is NOT treated as the canonical FileId field.
 
 ## Representations (DR-0..DR-12)
 

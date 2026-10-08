@@ -80,6 +80,8 @@ static int parse_fields_into(const uint8_t *data, size_t len, VsnContainer *c, i
             if (vsn_read_uvarint(val, flen, &gen, &gb) == VSN_ERR_OK) c->generation = (uint32_t)gen;
         } else if (rec_type == REC_MODE && fid == FID_MODE && flen >= 1)
             c->mode = val[0];
+        else if (rec_type == REC_STORAGE_POLICY && fid == FID_STORAGE_POLICY && flen >= 1)
+            c->storage_policy = val[0];
         else if (rec_type == REC_OBJ && fid == FID_OBJ_SERIAL) {
             uint64_t os; size_t ob;
             if (vsn_read_uvarint(val, flen, &os, &ob) == VSN_ERR_OK) {
@@ -206,10 +208,11 @@ int vsn_encode(const VsnContainer *c, uint8_t *buf, size_t buf_len, size_t *out_
     put_u16(buf + pos, 1); pos += 2;
     pos = (size_t)enc_field(buf, pos, buf_len, FID_RECORDS_END, NULL, 0);
     if (pos < 0) return VSN_ERR_CAP;
-    /* Mode declaration */
+    /* Storage Policy (authoritative on wire) - NEVER ModeDeclaration */
     {
-        uint8_t pl[4]; pl[0]=FID_MODE>>8; pl[1]=FID_MODE&0xFF; pl[2]=1; pl[3]=(uint8_t)c->mode;
-        pos = (size_t)enc_record(buf, pos, buf_len, REC_MODE, pl, 4);
+        uint8_t sp = c->storage_policy > 0 ? c->storage_policy : STORAGE_VERTICAL;
+        uint8_t pl[4]; pl[0]=FID_STORAGE_POLICY>>8; pl[1]=FID_STORAGE_POLICY&0xFF; pl[2]=1; pl[3]=sp;
+        pos = (size_t)enc_record(buf, pos, buf_len, REC_STORAGE_POLICY, pl, 4);
         if (pos < 0) return VSN_ERR_CAP;
     }
     /* File identities */
@@ -321,6 +324,16 @@ VsnContainer *vsn_create(int mode) {
     c->cfv = 1; c->ev = 1; c->mode = mode;
     c->next_rev_id = 1; c->next_serial = 1; c->generation = 0;
     pthread_mutex_init(&c->lock, NULL);
+    return c;
+}
+
+VsnContainer *vsn_create_with_policy(int storage_policy) {
+    // Canonical writer: maps policy to wire mode; stores policy directly for encoder.
+    int mode = MODE_MODERN;  // HIGHLY_VERTICAL(1), VERTICAL(2) → MODERN
+    if (storage_policy >= 3)       // HORIZONTAL(3), HIGHLY_HORIZONTAL(4) → ENTERPRISE
+        mode = MODE_ENTERPRISE;
+    VsnContainer *c = vsn_create(mode);
+    c->storage_policy = (uint8_t)(storage_policy > 0 ? storage_policy : STORAGE_HIGHLY_VERTICAL);
     return c;
 }
 

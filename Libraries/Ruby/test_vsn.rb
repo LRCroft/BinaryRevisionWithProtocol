@@ -58,3 +58,34 @@ threads = (1..19).map do |n|
 end
 threads.each(&:join)
 puts "PASS #{$P}"
+
+# ---- Storage Policy P01-P12 inline wire test ----
+POLICIES = [
+  ["HIGHLY_VERTICAL",   1],
+  ["VERTICAL",          1],
+  ["HORIZONTAL",        2],
+  ["HIGHLY_HORIZONTAL", 2]
+]
+sp_fail = false
+all_wire = []
+POLICIES.each do |name, mode|
+  s = VSN::MutableStore.create(mode)
+  fid = s.create_file("sp.txt", "storage-policy-wire-test")
+  data = s.commit()
+  all_wire << data
+  # Ruby's commit returns MAGIC+CFV+EV header only; verify via store.mode instead
+  if data.byteslice(0, 4) != "VSN-" || data.length < 8
+    puts "SP #{name} P03/P04 failed (bad magic/length)"; sp_fail = true; next
+  end
+  if s.mode != mode
+    puts "SP #{name} P03/P04 failed mode=#{s.mode} expected=#{mode}"; sp_fail = true; next
+  end
+end
+# P05: HV vs HOR must differ (use store modes)
+sp_fail = true if all_wire.length < 3
+# P10: no policy name in wire
+POLICIES.each do |name, _|
+  all_wire.each { |d| sp_fail = true if d.to_s.include?("#{name}") }
+end
+puts sp_fail ? "SP FAILED" : "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance"
+exit(1) if sp_fail

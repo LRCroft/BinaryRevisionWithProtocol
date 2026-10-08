@@ -57,29 +57,94 @@
       "sha256": "ea6137b6d28a0a06200ede5d809ea52c671e24d365295ea7d5255417b982801a"
     },
     {
-      "bytes": 154,
       "file": "scenarios/policy-highly_vertical.vsn",
       "name": "policy-highly_vertical",
-      "sha256": "ee6e7f23b2a8f1f84aa534877da6f064346595472cc302e3e62b16f0f5e0d0c1"
+      "sha256": "e3b41aa2193843b3d9226e4646158575ede5027427dfa38b5253905f40da2fa6",
+      "format_version": "3.0",
+      "wire_record": "REC_STORAGE_POLICY (0x0009)",
+      "note": "REGENERATED Phase 2: uses REC_STORAGE_POLICY instead of obsolete ModeDeclaration",
+      "bytes": 234
     },
     {
-      "bytes": 154,
       "file": "scenarios/policy-vertical.vsn",
       "name": "policy-vertical",
-      "sha256": "d5b9b7b96fe6305c77cad95199d13c86580ed7846653f8cb8d51bbcdc073252a"
+      "sha256": "9cafafa91036ed3ff62df29c0b3173e8c19bab53a0778ff0ff03f3b46450c5ac",
+      "format_version": "3.0",
+      "wire_record": "REC_STORAGE_POLICY (0x0009)",
+      "note": "REGENERATED Phase 2: uses REC_STORAGE_POLICY instead of obsolete ModeDeclaration",
+      "bytes": 234
     },
     {
-      "bytes": 154,
       "file": "scenarios/policy-horizontal.vsn",
       "name": "policy-horizontal",
-      "sha256": "d9693bd6bc065a12e41fb49ffbfc07837d54a495cfeb8fddf3ada62bc53ff10b"
+      "sha256": "62e6d39c6f76ca0cafa0eae4d150e576a0339ede73d2bd0d713623f82825c53a",
+      "format_version": "3.0",
+      "wire_record": "REC_STORAGE_POLICY (0x0009)",
+      "note": "REGENERATED Phase 2: uses REC_STORAGE_POLICY instead of obsolete ModeDeclaration",
+      "bytes": 229
     },
     {
-      "bytes": 154,
       "file": "scenarios/policy-highly_horizontal.vsn",
       "name": "policy-highly_horizontal",
-      "sha256": "22fc4a83654be52c1fb709732cb0cfd2f1af7ee7b4ea8317a426fc3dde14449a"
+      "sha256": "d834f7c6ecf9982a5ae7ccee4ed7d29f570fe99d7f164632c7bc200f732d1fb8",
+      "format_version": "3.0",
+      "wire_record": "REC_STORAGE_POLICY (0x0009)",
+      "note": "REGENERATED Phase 2: uses REC_STORAGE_POLICY instead of obsolete ModeDeclaration",
+      "bytes": 234
     }
   ],
-  "scenarios_count": 8
+  "negative_fixtures": [
+    {
+      "file": "scenarios/neg_storage_policy_0.vsn",
+      "name": "NEG-SP-001: StoragePolicy=0",
+      "expected_outcome": "INVALID_STORAGE_POLICY"
+    },
+    {
+      "file": "scenarios/neg_storage_policy_5.vsn",
+      "name": "NEG-SP-002: StoragePolicy=5",
+      "expected_outcome": "INVALID_STORAGE_POLICY"
+    },
+    {
+      "file": "scenarios/neg_malformed_fid.vsn",
+      "name": "NEG-SP-003: Wrong field ID",
+      "expected_outcome": "MALFORMED_RECORD"
+    },
+    {
+      "file": "scenarios/neg_truncated_field.vsn",
+      "name": "NEG-SP-004: Truncated field",
+      "expected_outcome": "TRUNCATED_CONTAINER"
+    },
+    {
+      "file": "scenarios/neg_truncated_record.vsn",
+      "name": "NEG-SP-005: Truncated record",
+      "expected_outcome": "TRUNCATED_CONTAINER"
+    },
+    {
+      "file": "scenarios/neg_duplicate_sp.vsn",
+      "name": "NEG-SP-006: Duplicate StoragePolicy",
+      "expected_outcome": "INVALID_STORAGE_POLICY"
+    },
+    {
+      "file": "scenarios/neg_missing_sp.vsn",
+      "name": "NEG-SP-007: Missing StoragePolicy",
+      "expected_outcome": "MISSING_STORAGE_POLICY"
+    },
+    {
+      "file": "scenarios/neg_obsolete_mode_decl.vsn",
+      "name": "NEG-SP-008: Only obsolete ModeDeclaration",
+      "expected_outcome": "LEGACY_FORMAT"
+    },
+    {
+      "file": "scenarios/neg_malformed_length.vsn",
+      "name": "NEG-SP-009: Non-minimal uvarint length",
+      "expected_outcome": "MALFORMED_RECORD"
+    }
+  ],
+  "legacy_scenarios": {
+    "note": "Old policy fixtures (pre-Phase2, using obsolete ModeDeclaration) preserved in scenarios/legacy/",
+    "path": "scenarios/legacy/policy-{highly_vertical|vertical|horizontal|highly_horizontal}.{vsn,json}"
+  },
+  "scenarios_count": 8,
+  "negative_count": 9,
+  "migration_note": "Phase 2 (2026-10-08): Storage Policy architecture migrated. Old policy fixtures replaced with new format using REC_STORAGE_POLICY (0x0009) directly on wire. No mode-to-policy mapping exists. See VSN1_Storage_Policy_Normative_Binary_Format.md"
 }

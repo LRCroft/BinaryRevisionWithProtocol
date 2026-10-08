@@ -14,6 +14,7 @@
 -export([new_builder/1, check_magic_bytes/1]).
 -export([get_file_id/2, diagnostics/2, stats/1]).
 -export([get_file_id/2, diagnostics/2, stats/1]).
+-export([create_with_policy/1]).
 -define(MAGIC, "VSN-").
 -define(CFV, 1).
 -define(EV, 1).
@@ -24,6 +25,7 @@
 -define(REC_CONTENT_OBJECT, 5).
 -define(REC_COMMIT_MARKER, 6).
 -define(REC_MODE_DECLARATION, 7).
+-define(REC_STORAGE_POLICY, 16#0009).    % StoragePolicy record type
 -define(FID_FILE_ID, 16#101).
 -define(FID_REV_ID, 16#201).
 -define(FID_REV_FILE_ID, 16#202).
@@ -32,6 +34,7 @@
 -define(FID_REV_PRESENCE, 16#211).
 -define(FID_HEAD_FILE_ID, 16#401).
 -define(FID_HEAD_REV_ID, 16#402).
+-define(FID_STORAGE_POLICY, 16#901).  % StoragePolicy.field_id
 -define(FID_COMMIT_GENERATION, 16#601).
 -define(FID_OBJECT_SERIAL, 16#501).
 -define(FID_OBJECT_SIZE, 16#511).
@@ -42,18 +45,45 @@
 -define(REP_EXTENTS_1, 2).
 -define(REP_VERSION_1, 1).
 
+% --- Writer Storage Policy (informative, NOT on wire) ---
+-define(STORAGE_POLICY_HIGHLY_VERTICAL, 1).
+-define(STORAGE_POLICY_VERTICAL, 2).
+-define(STORAGE_POLICY_HORIZONTAL, 3).
+-define(STORAGE_POLICY_HIGHLY_HORIZONTAL, 4).
+
 %% --- Protocol layer (frozen VSN-1 grammar) ---
 
 parse(Data) when is_binary(Data), byte_size(Data) >= 8 ->
     case Data of
-        <<"VSN-", _:4/binary, _/binary>> ->
+        <<"VSN-", _:4/binary, Rest/binary>> ->
+            %% Extract storage_policy from REC_STORAGE_POLICY record if present
+            Sp = case parse_sp_record(Rest) of
+                     undefined -> ?STORAGE_POLICY_VERTICAL;
+                     V -> V
+                 end,
             #{cfv => ?CFV, ev => ?EV, mode => ?MODE_MODERN,
-              records => [], objects => [], byte_length => byte_size(Data)};
+              records => [], objects => [], byte_length => byte_size(Data),
+              storage_policy => Sp};
         _ -> throw(bad_magic)
     end;
 parse(_) -> throw(bad_magic).
 
+%% Internal: try to read REC_STORAGE_POLICY from data starting after header
+parse_sp_record(<<?REC_STORAGE_POLICY:16, Plen:8, Rest/binary>>) when byte_size(Rest) >= 1 ->
+    <<_FID:16, ValLen:8, Val:8, _/binary>> = <<Plen:8, Rest/binary>>,
+    case ValLen of
+        1 -> Val;
+        _ -> undefined
+    end;
+parse_sp_record(_) -> undefined.
+
+encode(Mode, _Gen, Sp) when is_integer(Mode), is_integer(Sp) ->
+    %% Emit REC_STORAGE_POLICY record (16#0009) with FID_STORAGE_POLICY (16#0901) + u8 value
+    RecPayload = <<?16#0901:16/unsigned-big-integer, 1:8/unsigned-integer, Sp:8/unsigned-integer>>,
+    Record = <<16#0009:16/unsigned-big-integer, byte_size(RecPayload):8/unsigned-integer, RecPayload/binary>>,
+    <<"VSN-", ?CFV:16, ?EV:16, Record/binary>>;
 encode(Mode, _Gen) when is_integer(Mode) ->
+    %% Default encode without storage policy (legacy compat)
     <<"VSN-", ?CFV:16, ?EV:16>>.
 
 validate_structural(#{cfv := ?CFV, mode := M})
@@ -71,6 +101,7 @@ recover(_) -> -1.
 
 create(Mode) ->
     #{mode => Mode, generation => 0, next_rev_id => 1, next_obj_serial => 1,
+      storage_policy => ?STORAGE_POLICY_VERTICAL,
       files => #{}, revisions => #{}, objects => #{}, closed => false}.
 
 open(Data) when is_binary(Data) ->
@@ -199,7 +230,7 @@ checkout_revision(S, Rid) ->
     end.
 
 %% LimitCleanUp: per-FileId, ascending RevisionId, keep newest N.
-%% Limit = 0 -> error(?REC_END_OF_RECORDS style error id 0x000C).
+%% Limit = 0 -> error(?REC_END_OF_RECORDS style error id 16#000C).
 limit_cleanup(_S, _Fid, 0) -> throw({limit_zero, 16#000C});
 limit_cleanup(_S, _Fid, Limit) when Limit < 0 -> throw(negative_limit);
 limit_cleanup(S, Fid, Limit) ->
@@ -268,7 +299,8 @@ commit(S, ExpectedRevId) ->
            ({del, F}, Acc) -> delete_file(Acc, F)
         end, maps:remove(txn, S), Ops),
     Gen = maps:get(generation, S2) + 1,
-    {encode(maps:get(mode, S2), Gen), S2#{generation => Gen}}.
+    Sp = maps:get(storage_policy, S2, ?STORAGE_POLICY_VERTICAL),
+    {encode(maps:get(mode, S2), Gen, Sp), S2#{generation => Gen}}.
 
 %% --- Diff / Merge ---
 
@@ -311,14 +343,8 @@ import_bytes(S, Data) ->
     S#{mode => maps:get(mode, C)}.
 
 export_bytes(S) ->
-    Obj = maps:get(objects, S),
-    TotalLen = case maps:to_list(Obj) of
-        [] -> 0;
-        List -> lists:foldl(
-            fun({_, C}, Acc) -> Acc + byte_size(C) end, 0, List)
-    end,
-    <<"VSN-", ?CFV:16, ?EV:16, TotalLen:16>>.
-
+    Sp = maps:get(storage_policy, S, ?STORAGE_POLICY_VERTICAL),
+    encode(maps:get(mode, S), maps:get(generation, S, 0), Sp).
 write_large_object(S, Path, Content) when byte_size(Content) > 0 ->
     {_, S2} = create_file(S, Path, Content),
     S2;
@@ -378,3 +404,11 @@ stats(S) ->
 rep_direct_1() -> ?REP_DIRECT_1.
 
 rep_extents_1() -> ?REP_EXTENTS_1.
+
+%% --- Writer Policy helpers -- OBSOLETE: mode_from_storage_policy removed.
+%% Canonical writer: stores storage policy directly in store state; encode uses it.
+
+create_with_policy(P) ->
+    % Canonical writer: sets storage_policy directly on the store (no mode mapping).
+    S = create(?MODE_MODERN),
+    S#{storage_policy => P}.

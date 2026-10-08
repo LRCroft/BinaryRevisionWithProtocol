@@ -5,18 +5,27 @@ const MAGIC = "VSN-";
 const CFV = 1; const EV = 1;
 const REC_END_OF_RECORDS = 0; const REC_FILE_IDENTITY = 1; const REC_REVISION = 2;
 const REC_FILE_HEAD = 4; const REC_CONTENT_OBJECT = 5; const REC_COMMIT_MARKER = 6; const REC_MODE_DECLARATION = 7;
+const REC_STORAGE_POLICY = 0x0009;                      // StoragePolicy record type
 const FID_FILE_ID = 0x101; const FID_REV_ID = 0x201; const FID_REV_FILE_ID = 0x202;
 const FID_REV_OBJECT_SERIAL = 0x203; const FID_REV_PATH = 0x210; const FID_REV_PRESENCE = 0x211;
 const FID_HEAD_FILE_ID = 0x401; const FID_HEAD_REV_ID = 0x402;
 const FID_COMMIT_GENERATION = 0x601; const FID_OBJECT_SERIAL = 0x501; const FID_OBJECT_SIZE = 0x511;
-const FID_MODE = 0x701;
+const FID_MODE = 0x701;                                // OBSOLETE: was ModeDeclaration field (deprecated)
+const FID_STORAGE_POLICY = 0x0901;                     // StoragePolicy.field_id
 const MODE_MODERN = 1; const MODE_ENTERPRISE = 2;
+
+// Storage Policy values -- authoritative classification (directly on wire)
+const STORAGE_POLICY_HIGHLY_VERTICAL    = 1;
+const STORAGE_POLICY_VERTICAL           = 2;
+const STORAGE_POLICY_HORIZONTAL         = 3;
+const STORAGE_POLICY_HIGHLY_HORIZONTAL  = 4;
 const REP_DIRECT_1 = 1; const REP_EXTENTS_1 = 2; const REP_VERSION_1 = 1;
 
 class Container {
     public int $cfv = CFV; public int $ev = EV; public array $records = []; public array $objects = [];
     public int $trailerRecordCount = 0; public int $trailerGeneration = 0;
     public int $mode = MODE_MODERN; public int $byteLength = 0;
+    public int $storagePolicy = STORAGE_POLICY_VERTICAL;
     private bool $locked = false;
     public function withLock(callable $fn) {
         while ($this->locked) { usleep(10); }
@@ -32,16 +41,48 @@ function parse(string $data): Container {
     $c->ev = unpack("n", substr($data,6,2))[1];
     $c->mode = MODE_MODERN;
     $c->byteLength = strlen($data);
+    // Extract storage_policy from REC_STORAGE_POLICY record in binary
+    $sp = parse_sp_from_bytes($data);
+    if ($sp !== null) { $c->storagePolicy = $sp; }
     return $c;
 }
 
-function encode(int $mode, int $gen): string { return MAGIC . pack("n", CFV) . pack("n", EV); }
+// Storage Policy reader helper — extract from actual wire bytes
+function parse_sp_from_bytes(string $data): ?int {
+    $pos = 8;
+    $len = strlen($data);
+    while ($pos + 2 <= $len) {
+        $rt = (ord($data[$pos]) << 8) | ord($data[$pos+1]);
+        if ($rt === 0x0000) break;  // RecordsEnd — stop scanning
+        $pos += 2;
+        $plen = ord($data[$pos]); $pos++;
+        if ($pos + $plen > $len) break;
+        $ppos = $pos;
+        while ($ppos + 2 <= $pos + $plen) {
+            $fid = (ord($data[$ppos]) << 8) | ord($data[$ppos+1]); $ppos += 2;
+            if ($ppos > $pos + $plen) break;
+            $vlen = ord($data[$ppos]); $ppos++;
+            if ($vlen === 1 && $ppos <= $pos + $plen && $fid === FID_STORAGE_POLICY) {
+                return ord($data[$ppos]);
+            }
+            $ppos += max($vlen, 1);
+        }
+        $pos += $plen;
+    }
+    return null;
+}
+
+function encode(int $mode, int $gen, int $sp = 2): string { 
+    $rec = pack("n", REC_STORAGE_POLICY) . pack("C", 4) . pack("n", FID_STORAGE_POLICY) . pack("CC", 1, $sp >= 1 && $sp <= 4 ? $sp : 2);
+    return MAGIC . pack("n", CFV) . pack("n", EV) . $rec; 
+}
 
 function validateStructural(Container $c): bool { return $c->cfv === CFV && in_array($c->mode, [MODE_MODERN, MODE_ENTERPRISE], true); }
 function recover(string $data): int { return (strlen($data) >= 8 && substr($data,0,4) === MAGIC) ? 0 : -1; }
 
 class MutableStore {
     public int $mode = MODE_MODERN;
+    public int $storagePolicy = STORAGE_POLICY_VERTICAL;
     public int $generation = 0;
     private int $nextRevId = 1;
     private int $nextObjSerial = 1;
@@ -51,6 +92,13 @@ class MutableStore {
     private array $objects = [];
 
     public static function create(int $mode = MODE_MODERN): self { $s = new self(); $s->mode = $mode; return $s; }
+
+    /** Writer Storage Policy chain -- OBSOLETE: cancelled mode mapping removed. */
+    public static function createWithStoragePolicy(int $spolicy): self {
+        $s = self::create(MODE_MODERN);
+        $s->storagePolicy = $spolicy;
+        return $s;
+    }
 
     public static function open(string $data): self {
         if (strlen($data) < 8 || substr($data,0,4) !== MAGIC) throw new \InvalidArgumentException("bad magic");
@@ -206,7 +254,7 @@ class MutableStore {
         if (strlen($data) < 8 || substr($data,0,4) !== MAGIC) throw new \InvalidArgumentException("bad magic");
     }
 
-    public function exportBytes(): string { return encode($this->mode, $this->generation); }
+    public function exportBytes(): string { return encode($this->mode, $this->generation, $this->storagePolicy); }
     public function writeLargeObject(string $path, string $content): void { $this->createFile($path, $content); }
     public function integrityVerify(): bool { return $this->validateStructural(); }
     public static function integrityVerifyRaw(string $data): bool {

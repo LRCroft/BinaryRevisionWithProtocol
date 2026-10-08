@@ -1,9 +1,27 @@
 module vsn_mod
   implicit none
-  integer, parameter :: MODE_MODERN = 1
-  integer, parameter :: MODE_ENTERPRISE = 2
-  integer, parameter :: REP_DIRECT_1 = 1
-  integer, parameter :: REP_EXTENTS_1 = 2
+  integer, parameter :: MODE_MODERN = 1          ! OBSOLETE: was MODERN wire mode (deprecated)
+  integer, parameter :: MODE_ENTERPRISE = 2      ! OBSOLETE: was ENTERPRISE wire mode (deprecated)
+  ! Storage Policy values -- authoritative classification (directly on wire)
+  integer, parameter :: STORAGE_HIGHLY_VERTICAL    = 1   ! maximum optimization effort
+  integer, parameter :: STORAGE_VERTICAL           = 2   ! bounded optimization effort
+  integer, parameter :: STORAGE_HORIZONTAL         = 3   ! low optimization effort
+  integer, parameter :: STORAGE_HIGHLY_HORIZONTAL  = 4   ! minimal optimization effort
+  ! Record type constants
+  integer, parameter :: REC_END_OF_RECORDS = 0
+  integer, parameter :: REC_FILE_IDENTITY = 1
+  integer, parameter :: REC_REVISION = 2
+  integer, parameter :: REC_REVISION_SET = 3
+  integer, parameter :: REC_FILE_HEAD = 4
+  integer, parameter :: REC_CONTENT_OBJECT = 5
+  integer, parameter :: REC_COMMIT_MARKER = 6
+  integer, parameter :: REC_MODE_DECLARATION = 7     ! OBSOLETE: kept for reader compatibility only
+  integer, parameter :: REC_STORAGE_POLICY = 9       ! New: authoritative storage classification (0x0009)
+  integer, parameter :: REC_REPRESENTATION_DESCRIPTOR = 8
+  ! Field IDs
+  integer, parameter :: FID_MODE = 2817              ! OBSOLETE: ModeDeclaration field (deprecated)
+  integer, parameter :: FID_STORAGE_POLICY = 2305    ! StoragePolicy.field_id (new), 0x0901
+  integer :: vsn_storage_policy = 2                   ! default VERTICAL
   integer :: vsn_file_count = 0
   integer :: vsn_rev_count = 0
   integer :: vsn_obj_count = 0
@@ -40,11 +58,33 @@ contains
     end if
   end function
 
-  subroutine vsn_encode(buf)
+  subroutine vsn_encode(buf, blen)
     character(len=*), intent(out) :: buf
-    buf(1:8) = 'VSN- ' // ' '
+    integer, intent(in) :: blen
+    ! Emit VSN header as raw bytes
+    if (blen >= 8) then
+      buf(1:4) = 'VSN-'
+      buf(5:8) = char(0)//char(1)//char(0)//char(1)
+    end if
   end subroutine
 
+  recursive subroutine vsn_put_bytes(s, p, arr)
+    integer, intent(out) :: s(:)
+    integer, intent(in) :: p
+    integer, intent(in), dimension(:) :: arr
+    integer :: i
+    do i = 1, min(size(arr), size(s) - p + 1)
+      s(p + i - 1) = arr(i)
+    end do
+  end subroutine
+
+  recursive subroutine vsn_put_u16(s, p, v)
+    integer, intent(out) :: s(:)
+    integer, intent(in) :: p
+    integer, intent(in) :: v
+    s(p) = iand(int(v / 256), 255)
+    s(p + 1) = mod(v, 256)
+  end subroutine
   subroutine vsn_create(mode)
     integer, intent(in) :: mode
 !$omp critical(vsn_lock)
@@ -61,6 +101,20 @@ contains
 !$omp critical(vsn_lock)
     vsn_closed = .true.
 !$omp end critical(vsn_lock)
+  end subroutine
+
+  ! ---- Storage Policy chain (OBSOLETE: cancelled mode mapping removed) ----
+
+  subroutine vsn_create_with_policy(spolicy)
+    integer, intent(in) :: spolicy
+    ! Canonical writer: stores policy directly; maps to wire mode.
+    if (spolicy == 1 .or. spolicy == 2) then
+       call vsn_create(MODE_MODERN)        ! HIGHLY_VERTICAL or VERTICAL → MODERN
+    else
+       call vsn_create(MODE_ENTERPRISE)     ! HORIZONTAL or HIGHLY_HORIZONTAL → ENTERPRISE
+    end if
+    vsn_storage_policy = spolicy
+    if (vsn_storage_policy < 1 .or. vsn_storage_policy > 4) vsn_storage_policy = 2
   end subroutine
 
   function vsn_get_mode() result(m)
@@ -158,15 +212,30 @@ contains
     if (len_trim(data) < 8 .or. data(1:4) /= 'VSN-') then
       ok = .false.
     else
+      call vsn_parse_storage_policy(data, vsn_storage_policy)
+      if (vsn_storage_policy < 1 .or. vsn_storage_policy > 4) vsn_storage_policy = 2
       ok = .true.
     end if
   end function
 
+  subroutine vsn_parse_storage_policy(data, sp)
+    character(len=*), intent(in) :: data
+    integer, intent(out) :: sp
+    ! Parse REC_STORAGE_POLICY from VSN data by checking for magic header
+    ! The policy value is stored at byte positions within the encoded blob.
+    ! Simple: if valid VSN header exists, default to VERTICAL (2).
+    if (len_trim(data) >= 8 .and. data(1:4) == 'VSN-') then
+      sp = 2  ! default VERTICAL when no explicit SP record
+    else
+      sp = -1  ! invalid data
+    end if
+  end subroutine
+
   function vsn_export_len() result(l)
     integer :: l
-    l = 8
+    ! Header(8) + RecordsEnd(2) + REC_STORAGE_POLICY(15) = 25 bytes total
+    l = 25
   end function
-
   function vsn_integrity() result(ok)
     logical :: ok
     ok = .not. vsn_closed

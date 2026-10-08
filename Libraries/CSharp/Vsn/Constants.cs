@@ -16,6 +16,8 @@ public static class Constants
     public const ushort RecCommitMarker = 0x0006;
     public const ushort RecModeDeclaration = 0x0007;
     public const ushort RecRepresentationDescriptor = 0x0008;
+    // Storage Policy -- authoritative classification (directly on wire)
+    public const ushort RecStoragePolicy = 0x0009;     // StoragePolicy record type
     public const ushort RecExtensionMin = 0x8000;
     public const ushort RecExtensionMax = 0xFFFE;
     public const ushort RecReserved = 0xFFFF;
@@ -40,14 +42,23 @@ public static class Constants
     public const ushort FidObjectSize = 0x0511;
     public const ushort FidCommitGeneration = 0x0601;
     public const ushort FidCommitHash = 0x0610;
-    public const ushort FidMode = 0x0701;
+    // FID_MODE -- OBSOLETE: deprecated, kept for reader compatibility only
+    public const ushort FidMode = 0x0701;              // OBSOLETE: was ModeDeclaration field (deprecated)
+    // Storage Policy field ID -- authoritative classification (directly on wire)
+    public const ushort FidStoragePolicy = 0x0901;     // StoragePolicy field_id
     public const ushort FidRepIdentity = 0x0801;
     public const ushort FidRepVersion = 0x0802;
     public const ushort FidRepMetadata = 0x0810;
 
-    // VSN modes (GR-38)
-    public const byte ModeModern = 0x01;
-    public const byte ModeEnterprise = 0x02;
+    // VSN modes (GR-38) -- OBSOLETE: deprecated, kept for reader compatibility only
+    public const byte ModeModern = 0x01;               // OBSOLETE: was MODERN wire mode
+    public const byte ModeEnterprise = 0x02;           // OBSOLETE: was ENTERPRISE wire mode
+
+    // Storage Policy values -- authoritative classification (directly on wire)
+    public const byte StorageHighlyVertical = 1;       // maximum optimization effort
+    public const byte StorageVertical = 2;             // bounded optimization effort
+    public const byte StorageHorizontal = 3;           // low optimization effort
+    public const byte StorageHighlyHorizontal = 4;     // minimal optimization effort
 
     // Representation identities (VR-*)
     public const ushort RepDirect1 = 0x0001;

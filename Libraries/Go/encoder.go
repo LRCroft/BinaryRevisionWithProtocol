@@ -57,14 +57,8 @@ func Encode(records []rawRecord, objects map[uint64][]byte, generation uint64) [
 	}
 	out = AppendUvarint(out, 0) // end-of-objects marker
 
-	// GR-13: the canonical record count excludes ModeDeclaration, which is a
-	// structural marker rather than canonical content.
-	count := uint64(0)
-	for _, rec := range records {
-		if rec.rtype != RecModeDeclaration {
-			count++
-		}
-	}
+	// GR-13: canonical record count includes all records (including REC_STORAGE_POLICY).
+	count := uint64(len(records))
 	out = AppendUvarint(out, count)
 	out = AppendUvarint(out, generation)
 	return out

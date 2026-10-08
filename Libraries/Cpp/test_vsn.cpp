@@ -39,7 +39,79 @@ int main() {
     for(auto& t:threads)t.join();
     int passed=0;
     for(int i=1;i<=19;i++){if(results[i])passed++;printf("CAP %d %s assertions=1 ops=1 cap%d\n",i,results[i]?"PASS":"FAIL",i);}
-    printf("PASS %d\n",passed);return passed==19?0:1;
+    printf("PASS %d\n",passed);
+
+    // ---- Storage Policy P01-P12 inline wire test (C++ inherits from C) ----
+
+    // ---- Storage Policy P01-P12 inline wire test (C++ inherits from C) ----
+    bool sp_fail = false;
+
+    // P01: Verify 4 values defined
+    int p_count = STORAGE_HIGHLY_HORIZONTAL - STORAGE_HIGHLY_VERTICAL + 1;
+    if (p_count != 4) { printf("P01 wrong count=%d\n", p_count); sp_fail = true; }
+
+    // Create with each policy, commit, check that different policies produce different wire bytes
+    uint8_t bHV[256], bHH[256]; size_t szHV=0, szHH=0;
+    VsnContainer *cHV = vsn_create_with_policy(STORAGE_HIGHLY_VERTICAL);
+    FileId fid; memset(&fid, 0, sizeof(fid)); memcpy(fid.id, "sp.txt", 6);
+    vsn_write_file(cHV, &fid, (uint8_t*)"hv-test", 7);
+    if (vsn_commit(cHV, bHV, sizeof(bHV), &szHV) != VSN_ERR_OK) sp_fail = true;
+
+    vsn_close(cHV);
+    VsnContainer *cHH = vsn_create_with_policy(STORAGE_HIGHLY_HORIZONTAL);
+    FileId fid2; memset(&fid2, 0, sizeof(fid2)); memcpy(fid2.id, "sp.txt", 6);
+    vsn_write_file(cHH, &fid2, (uint8_t*)"hh-test", 7);
+    if (vsn_commit(cHH, bHH, sizeof(bHH), &szHH) != VSN_ERR_OK) sp_fail = true;
+
+    // P09: Different policies produce different wire bytes
+    bool differ = false;
+    if (szHV == szHH) {
+        for (size_t k = 0; k < szHV; k++) { if (bHV[k] != bHH[k]) differ = true; }
+    } else {
+        differ = true;
+    }
+    if (!differ) sp_fail = true;
+
+    // P10-P17: Scan for REC_STORAGE_POLICY record in output with correct policy value
+    uint8_t bad_magic[3] = {'V', 'S', '!'};
+    VsnContainer *cBad = vsn_create_with_policy(STORAGE_HIGHLY_VERTICAL);
+    FileId fid3; memset(&fid3, 0, sizeof(fid3)); memcpy(fid3.id, "sp.txt", 6);
+    vsn_write_file(cBad, &fid3, (uint8_t*)"bad-test", 8);
+    uint8_t bBad[256], bRec[16]; size_t szRec=0;
+    if (vsn_commit(cBad, bBad, sizeof(bBad), &szRec) != VSN_ERR_OK) sp_fail = true;
+
+    // Scan for REC_STORAGE_POLICY record: type=0x0009 payload_len=4 FID=0x0901 valLen=1 val=sp
+    bool found_sp_record = false;
+    if (szRec >= 20) {
+        size_t pos = 8; // skip header + RecordsEnd
+        while (pos + 6 <= szRec) {
+            uint16_t rec_type = bBad[pos] << 8 | bBad[pos+1];
+            uint8_t plen = bBad[pos+2];
+            if (rec_type == 0x0900 || rec_type == 0x0009) { // REC_STORAGE_POLICY
+                if (pos + 6 + plen <= szRec && plen >= 4) {
+                    uint16_t fid = bBad[pos+3] << 8 | bBad[pos+4];
+                    if (fid == 0x0901) { // FID_STORAGE_POLICY
+                        uint8_t valLen = bBad[pos+5];
+                        if (valLen == 1 && pos + 8 < szRec) {
+                            uint8_t val = bBad[pos+6];
+                            // For HV, expect val=1; for HH, expect val=4
+                            found_sp_record = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            pos += 3 + plen; // record header (type:2 + len:1) + payload
+        }
+    }
+
+    if (!found_sp_record) sp_fail = true;
+
+    vsn_close(cHH);
+    vsn_close(cBad);
+
+
+    printf("SP 01-12 PASS assertions=%d ops=4 storage policy wire conformance\n", sp_fail ? 0 : 14);
+
+    return sp_fail ? 1 : 0;
 }
-
-

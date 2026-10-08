@@ -7,6 +7,7 @@ public sealed class VsnStore
     private ParsedContainer? _parsed;
     private bool _closed;
     private byte _mode;
+    private byte _storagePolicy; // direct StoragePolicy value (1..4) -- canonical on wire
     private readonly object _lock = new();
 
     private readonly Dictionary<string, FileRecord> _fileIds = new(StringComparer.Ordinal);
@@ -33,11 +34,18 @@ public sealed class VsnStore
         else
         {
             _mode = mode;
+            _storagePolicy = 0; // defer derivation in ToBytes() from wire mode
         }
         BuildState();
     }
 
     public static VsnStore Create(byte mode = Constants.ModeModern) => new(null, mode);
+    public static VsnStore Create(StoragePolicy policy) {
+        // Canonical writer: stores policy directly; toBytes emits REC_STORAGE_POLICY.
+        var s = new VsnStore(null, Constants.ModeModern);
+        s._storagePolicy = (byte)(policy > 0 ? (int)policy : Constants.StorageVertical);
+        return s;
+    }
     public static VsnStore Open(byte[] data) => new(data, Constants.ModeModern);
 
     private void CheckOpen()
@@ -491,10 +499,12 @@ public sealed class VsnStore
     {
         CheckOpen();
         _generation += 1;
+        // Canonical: always emit REC_STORAGE_POLICY (authoritative on wire). NEVER ModeDeclaration.
+        var policyVal = _storagePolicy > 0 ? _storagePolicy : (_mode == Constants.ModeEnterprise ? Constants.StorageHorizontal : Constants.StorageHighlyVertical);
         var records = new List<(ushort, List<(ushort, byte[])>)>
         {
-            (Constants.RecModeDeclaration,
-                new List<(ushort, byte[])> { (Constants.FidMode, new[] { _mode }) }),
+            (Constants.RecStoragePolicy,
+                new List<(ushort, byte[])> { (Constants.FidStoragePolicy, new[] { policyVal }) }),
         };
         foreach (var info in _fileIds.Values)
             records.Add((Constants.RecFileIdentity,

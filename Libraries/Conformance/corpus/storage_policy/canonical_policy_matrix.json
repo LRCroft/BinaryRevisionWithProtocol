@@ -1,71 +1,70 @@
 {
-  "format_version": "1.0",
-  "description": "Canonical mapping from Writer Storage Policy to VSN-1 Wire Mode. This is a Library-level configuration table, NOT on the wire.",
-  "authority": "library_api_contract_policy.md + VSN1_Library_Storage_Policy_API_Contract.md",
+  "format_version": "3.0",
+  "description": "Canonical four-way Storage Policy classification. Each policy is an authoritative value directly encoded in the .vsn container via REC_STORAGE_POLICY (0x0009) / FID_STORAGE_POLICY (0x0901). Wire-mode mapping architecture CANCELLED -- Storage Policy IS the sole normative classification on wire.",
+  "authority": "VSN1_Storage_Policy_Normative_Binary_Format.md",
+  "migration_date": "2026-10-08",
+  "architecture_status": {
+    "old_mapping_cancelled": true,
+    "description": "The old architecture that mapped storage policies to two wire modes (MODERN/ENTERPRISE) is CANCELLED. Storage Policy values {1,2,3,4} are direct classification on wire. No policy-to-mode mapping exists."
+  },
   "policies": [
     {
       "name": "HIGHLY_VERTICAL",
       "numeric_value": 1,
-      "wire_mode": "MODERN",
-      "wire_mode_byte": 1,
-      "description": "Maximum storage-effort optimization within MODERN wire mode.",
+      "description": "Maximum storage-effort optimization. Storage Policy value 1 directly encoded in container via REC_STORAGE_POLICY.",
       "representation_preferences": ["EXTENTS-1 (deep dependencies allowed within bounds)", "DIRECT-1 (fallback)"],
       "constraints": [
         "Must not claim global storage optimality",
-        "EXTENTS-1 subject to GR-43 bounds (ENTERPRISE forbidden)",
         "ObjectSerial preservation per ID-03/ID-09/SR-37"
-      ],
-      "opt_level": 4
+      ]
     },
     {
       "name": "VERTICAL",
       "numeric_value": 2,
-      "wire_mode": "MODERN",
-      "wire_mode_byte": 1,
-      "description": "Bounded storage-effort optimization within MODERN wire mode.",
+      "description": "Bounded storage-effort optimization. Storage Policy value 2 directly encoded in container.",
       "representation_preferences": ["DIRECT-1 (common baseline)", "EXTENTS-1 (when bounded search finds savings)"],
       "constraints": [
         "Bounded candidate search only",
         "Must not exceed optimization budget",
         "Fallback to DIRECT-1 if no savings found"
-      ],
-      "opt_level": 3
+      ]
     },
     {
       "name": "HORIZONTAL",
       "numeric_value": 3,
-      "wire_mode": "ENTERPRISE",
-      "wire_mode_byte": 2,
-      "description": "Low storage-effort optimization within ENTERPRISE wire mode.",
+      "description": "Low storage-effort optimization. Storage Policy value 3 directly encoded in container.",
       "representation_preferences": ["DIRECT-1 (preferred baseline)"],
       "constraints": [
         "Limited optimization effort only",
         "EXTENTS-1 not forbidden at wire level but discouraged for normal writes"
-      ],
-      "opt_level": 2
+      ]
     },
     {
       "name": "HIGHLY_HORIZONTAL",
       "numeric_value": 4,
-      "wire_mode": "ENTERPRISE",
-      "wire_mode_byte": 2,
-      "description": "Minimal optimization effort within ENTERPRISE wire mode.",
+      "description": "Minimal optimization effort. Storage Policy value 4 directly encoded in container.",
       "representation_preferences": ["DIRECT-1 (required for all emitted content)"],
       "constraints": [
         "Explicitly forbids reconstruction dependencies",
         "DIRECT-1 required for ALL emitted content objects"
-      ],
-      "opt_level": 1
+      ]
     }
   ],
-  "mappings": {
-    "HIGHLY_VERTICAL": {"wire_mode": "MODERN", "wire_mode_byte": 1},
-    "VERTICAL":        {"wire_mode": "MODERN", "wire_mode_byte": 1},
-    "HORIZONTAL":      {"wire_mode": "ENTERPRISE", "wire_mode_byte": 2},
-    "HIGHLY_HORIZONTAL": {"wire_mode": "ENTERPRISE", "wire_mode_byte": 2}
+  "wire_format": {
+    "record_type": 9,
+    "record_hex": "0x0009",
+    "field_id": 2305,
+    "field_hex": "0x0901",
+    "value_type": "u8",
+    "valid_values": [1, 2, 3, 4],
+    "invalid_values": [0, 5, 6, 7, 8, 9, 10, ... 255],
+    "encoding_note": "Record: u16be type + varint length + field sequence. Field: u16be fid + varint value_length + u8 value."
   },
-  "wire_mode_to_policies": {
-    1: ["HIGHLY_VERTICAL", "VERTICAL"],
-    2: ["HORIZONTAL", "HIGHLY_HORIZONTAL"]
+  "obsolete_architecture": {
+    "mode_declaration": "REC_MODE_DECLARATION (0x0007) -- OBSOLETE: deprecated, no longer emitted by canonical writers",
+    "fid_mode": "FID_MODE (0x0701) -- OBSOLETE: ModeDeclaration field ID, deprecated",
+    "wire_modes": "WireMode.MODERN (0x01) and WireMode.ENTERPRISE (0x02) -- CANCELLED: no policy-to-mode mapping exists",
+    "policy_to_wire_mapping": "CANCELLED: no storage policy value maps to a wire mode. Each policy value {1,2,3,4} is independent direct classification.",
+    "status": "Old architecture removed from normative specification"
   }
 }

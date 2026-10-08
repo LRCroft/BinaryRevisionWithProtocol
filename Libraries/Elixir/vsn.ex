@@ -7,16 +7,23 @@ defmodule VSN do
   @fid_rev_object_serial 0x203; @fid_rev_path 0x210; @fid_rev_presence 0x211
   @fid_head_file_id 0x401; @fid_head_rev_id 0x402
   @fid_commit_generation 0x601; @fid_object_serial 0x501; @fid_object_size 0x511
-  @fid_mode 0x701
+  @fid_mode 0x701                                    # OBSOLETE: was ModeDeclaration field (deprecated)
+   @fid_storage_policy    0x0901                     # StoragePolicy.field_id (new)
+ @rec_storage_policy   0x0009                         # StoragePolicy record type (new)
   @mode_modern 1; @mode_enterprise 2
+  
+  # Storage Policy values -- authoritative classification (directly on wire)
+  @storage_policy_highly_vertical 1
+  @storage_policy_vertical 2
+  @storage_policy_horizontal 3
+  @storage_policy_highly_horizontal 4
   @rep_direct_1 1; @rep_extents_1 2; @rep_version_1 1
   @err_truncated 0x0002
   @err_unknown_file_id 0x0009
   @err_invalid_canonical_state 0x000C
 
   defstruct [:cfv, :ev, :records, :objects, :trailer_record_count,
-             :trailer_generation, :mode, :byte_length]
-
+             :trailer_generation, :mode, :byte_length, :storage_policy]
   def magic, do: @magic
   def cfv, do: @cfv
   def ev, do: @ev
@@ -53,7 +60,7 @@ defmodule VSN do
       cfv: bsl(cfv_hi, 8) ||| cfv_lo,
       ev: bsl(ev_hi, 8) ||| ev_lo,
       records: [], objects: [], mode: @mode_modern,
-      byte_length: byte_size(@magic) + 4 + byte_size(rest)
+      byte_length: byte_size(@magic) + 4 + byte_size(rest), storage_policy: read_storage_policy(rest)
     }
   end
 
@@ -61,6 +68,11 @@ defmodule VSN do
 
   @spec encode(non_neg_integer, non_neg_integer) :: binary
   def encode(_mode, _gen), do: @magic <> <<0, 1, 0, 1>>
+  # --- Writer Storage Policy (canonical) ---
+  def encode(_mode, _gen, sp) do
+    @magic <> <<0, 1, 0, 1>> <>
+      <<@rec_storage_policy::16-unsigned, 4::8, @fid_storage_policy::16-unsigned, 1::8, min(max(sp, 1), 4)::8>>
+  end
 
   @spec validate_structural(%__MODULE__{}) :: boolean
   def validate_structural(%__MODULE__{cfv: @cfv, mode: m}) when m in [@mode_modern, @mode_enterprise],
@@ -71,7 +83,20 @@ defmodule VSN do
   def recover(<<@magic::binary, _rest::binary>>), do: 0
   def recover(_), do: -1
 
-  def parse_ok?(data) when byte_size(data) >= 8, do: binary_part(data, 0, 4) == @magic
+  
+  # --- Storage Policy reader ---
+  defp read_storage_policy(rest) when byte_size(rest) >= 5 do
+    case rest do
+      <<@rec_storage_policy::16-unsigned, plen::8, payload::binary>> when plen >= 4 ->
+        <<_fid::16, vlen::8, val::8, _rest::binary>> = payload
+        if vlen == 1, do: val, else: nil
+      _ -> nil
+    end
+  end
+
+  defp read_storage_policy(_), do: nil
+
+def parse_ok?(data) when byte_size(data) >= 8, do: binary_part(data, 0, 4) == @magic
   def parse_ok?(_), do: false
 end
 
@@ -84,17 +109,26 @@ defmodule VSN.MutableStore do
   """
 
   defstruct [:mode, :generation, :next_rev_id, :next_obj_serial, :closed,
-             :files, :revisions, :objects, :txn_ops]
+             :files, :revisions, :objects, :txn_ops, :storage_policy]
 
   @type file_id :: binary()
 
   @spec new(integer) :: %__MODULE__{}
   def new(mode \\ 1) do
     %__MODULE__{mode: mode, generation: 0, next_rev_id: 1, next_obj_serial: 1,
-                 closed: false, files: %{}, revisions: %{}, objects: %{}, txn_ops: []}
+                 closed: false, files: %{}, revisions: %{}, objects: %{}, txn_ops: [],
+                 storage_policy: @storage_policy_vertical}
   end
 
   def create(mode \\ 1), do: new(mode)
+
+  # Writer Storage Policy chain -- OBSOLETE: cancelled mode mapping removed.
+  # Canonical writer: stores policy directly in store; encode uses it.
+  def create_with_storage_policy(p) do
+    %__MODULE__{mode: @mode_modern, generation: 0, next_rev_id: 1, next_obj_serial: 1,
+                  closed: false, files: %{}, revisions: %{}, objects: %{}, txn_ops: [],
+                  storage_policy: p}
+  end
 
   def open(data) when is_binary(data) do
     if byte_size(data) >= 8 and binary_part(data, 0, 4) == VSN.magic(),
@@ -315,7 +349,7 @@ cand = <<0::size(96), n::size(32)>>
     end)
 
     s = %{s | txn_ops: [], generation: s.generation + 1}
-    {VSN.encode(s.mode, s.generation), s}
+    {VSN.encode(s.mode, s.generation, s.storage_policy), s}
   end
 
   # --- Diff / Merge ---------------------------------------------------------
@@ -355,7 +389,7 @@ cand = <<0::size(96), n::size(32)>>
     end
   end
 
-  def export_bytes(%__MODULE__{} = s), do: VSN.encode(s.mode, s.generation)
+  def export_bytes(%__MODULE__{} = s), do: VSN.encode(s.mode, s.generation, s.storage_policy)
 
   def write_large_object(%__MODULE__{} = s, path, data), do: create_file(s, path, data)
 

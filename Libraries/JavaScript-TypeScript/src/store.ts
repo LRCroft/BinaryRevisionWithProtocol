@@ -10,10 +10,11 @@ import { VsnError } from "./errors.js";
 import { putUvarint } from "./primitives.js";
 import {
   REC_MODE_DECLARATION, REC_FILE_IDENTITY, REC_REVISION, REC_CONTENT_OBJECT,
-  REC_FILE_HEAD, REC_COMMIT_MARKER, FID_MODE, FID_FILE_ID, FID_REV_ID,
+  REC_FILE_HEAD, REC_COMMIT_MARKER, REC_STORAGE_POLICY, FID_MODE, FID_STORAGE_POLICY,
+  FID_FILE_ID, FID_REV_ID,
   FID_REV_FILE_ID, FID_REV_OBJECT_SERIAL, FID_REV_PATH, FID_REV_PRESENCE,
   FID_HEAD_FILE_ID, FID_HEAD_REV_ID, FID_OBJECT_SERIAL, FID_OBJECT_SIZE,
-  FID_COMMIT_GENERATION, MODE_MODERN, PRESENT, DELETED,
+  FID_COMMIT_GENERATION, MODE_MODERN, MODE_ENTERPRISE, PRESENT, DELETED,
   REP_DIRECT_1, REP_EXTENTS_1, REP_VERSION_1,
 } from "./constants.js";
 
@@ -57,6 +58,7 @@ export class VsnStore {
   private parsed: ParsedContainer | null = null;
   private closed = false;
   private modeValue: number;
+  private storagePolicy: number = 2; // default VERTICAL
   private fileIds = new Map<string, FileInfo>();
   private revisions = new Map<number, RevisionInfo>();
   private objects = new Map<number, Buffer>();
@@ -77,6 +79,12 @@ export class VsnStore {
   }
 
   static create(mode: number = MODE_MODERN): VsnStore { return new VsnStore(undefined, mode); }
+  static createWithPolicy(policy: number): VsnStore {
+    // Canonical writer: stores policy directly; toBytes emits REC_STORAGE_POLICY.
+    const s = new VsnStore(undefined, MODE_MODERN);
+    s.storagePolicy = policy > 0 ? policy : 2;
+    return s;
+  }
 private buildState(): void {
     this.fileIds.clear(); this.revisions.clear(); this.objects.clear();
     this.contentCache.clear();
@@ -434,9 +442,9 @@ readFile(fileId: Buffer): Buffer {
     this.checkOpen();
     this.generationValue += 1;
     const records: EncodedRecord[] = [];
-    records.push({
-      rtype: REC_MODE_DECLARATION,
-      fields: [{ fid: FID_MODE, value: Buffer.from([this.modeValue]) }] });
+    // Canonical: always emit REC_STORAGE_POLICY (authoritative on wire). NEVER ModeDeclaration.
+    const policyVal = this.storagePolicy > 0 ? this.storagePolicy : 2;
+    records.push({ rtype: REC_STORAGE_POLICY, fields: [{ fid: FID_STORAGE_POLICY, value: Buffer.from([policyVal]) }] });
     for (const info of this.fileIds.values())
       records.push({ rtype: REC_FILE_IDENTITY, fields: [{ fid: FID_FILE_ID, value: info.fileId }] });
     for (const rid of [...this.revisions.keys()].sort((a, b) => a - b)) {

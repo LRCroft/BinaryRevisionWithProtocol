@@ -2,11 +2,20 @@ module VSN
   MAGIC    = "VSN-"
   CFV      = 1
   EV       = 1
-  MODE_MODERN    = 1
-  MODE_ENTERPRISE = 2
+  MODE_MODERN        = 1  # OBSOLETE: was MODERN wire mode (deprecated)
+  MODE_ENTERPRISE    = 2  # OBSOLETE: was ENTERPRISE wire mode (deprecated)
   REP_DIRECT_1 = 1
   REP_EXTENTS_1 = 2
   REP_VERSION_1 = 1
+  
+  # Storage Policy values -- authoritative classification (directly on wire) ---
+  STORAGE_POLICY_HIGHLY_VERTICAL    = 1
+  STORAGE_POLICY_VERTICAL           = 2
+  STORAGE_POLICY_HORIZONTAL         = 3
+  STORAGE_POLICY_HIGHLY_HORIZONTAL  = 4
+  # Storage Policy record type and field ID (new)
+  REC_STORAGE_POLICY = 0x0009_u16
+  FID_STORAGE_POLICY = 0x0901_u16
   ERR_TRUNCATED = 0x0002_u16
   ERR_UNKNOWN_FILE_ID = 0x0009_u16
   ERR_INVALID_CANONICAL_STATE = 0x000C_u16
@@ -96,12 +105,14 @@ module VSN
     getter files : Hash(Bytes, Tuple(String, UInt32))
     getter revisions : Hash(UInt32, Revision)
     getter objects : Hash(UInt32, Bytes)
+    property storage_policy : Int32 = 2
 
     def initialize(@mode : Int32 = MODE_MODERN)
       @generation = 0_u64
       @next_rev_id = 1_u32
       @next_obj_serial = 1_u32
       @closed = false
+      @storage_policy = STORAGE_POLICY_VERTICAL
       @files = {} of Bytes => Tuple(String, UInt32)
       @revisions = {} of UInt32 => Revision
       @objects = {} of UInt32 => Bytes
@@ -361,11 +372,44 @@ module VSN
     def import_bytes!(data : Bytes) : Store
       raise ArgumentError.new("bad magic") unless VSN.integrity_verify_raw?(data)
       @generation = 0_u64
+      @storage_policy = Store.parse_sp(data)
       self
     end
 
     def export_bytes : Bytes
-      VSN.encode(@mode, @generation)
+      # Emit with StoragePolicy record (REC_STORAGE_POLICY + FID_STORAGE_POLICY + u8)
+      sp = @storage_policy.clamp(1, 4)
+      Bytes.new([0x56,0x53,0x4e,0x2d,    # VSN-
+                  0x00,0x01,              # CFV=1 EV=1
+                  0x00,0x09,              # REC_STORAGE_POLICY=0x0009
+                  0x04,                   # payload length=4
+                  0x09,0x01,             # FID_STORAGE_POLICY=0x0901
+                  0x01, sp.to_u8])       # val_len=1, value=sp
+    end
+
+    def self.parse_sp(data : Bytes) : Int32
+      return 2 if data.size < 13
+      i = 8
+      while i + 6 < data.size
+        rtype = (data[i] << 8) | data[i+1]
+        if rtype == 0x0009
+          plen = data[i+2]
+          ppos = i + 3
+          j = 0
+          while j < [plen - 3, data.size - ppos].min && ppos + 3 < data.size
+            if data[ppos] == 0x09 && data[ppos+1] == 0x01
+              vlen = data[ppos+2]
+              return [data[ppos+3], 1].max.min(4).to_i if vlen == 1
+            end
+            ppos += 1; j += 1
+          end
+        end
+        plen2 = if i + 2 < data.size then data[i+2] else 0 end
+        next_i = i + 3 + plen2
+        return 2 if next_i <= i || next_i > data.size
+        i = next_i
+      end
+      2
     end
 
     def write_large_object(path : String, data : Bytes) : Bytes
@@ -418,6 +462,15 @@ module VSN
 
     def self.rep_extents_1 : Int32
       REP_EXTENTS_1
+    end
+  end
+
+  # Writer Storage Policy integration -- OBSOLETE: cancelled mode mapping removed.
+  class StoreWithPolicy < Store
+    def self.create(policy : Int32) : Store
+      s = Store.create(MODE_MODERN)
+      s.storage_policy = policy.clamp(1, 4)
+      s
     end
   end
 end

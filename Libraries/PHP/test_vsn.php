@@ -157,3 +157,30 @@ chk(19, strlen($bytes19) >= 8 && substr($bytes19, 0, 4) === 'VSN-', 2, 1);
 chk(19, $s19->readFile($s19->getFileId("i.txt")) === "interop-data-42", 1, 2);
 
 flush_caps(1);
+
+// ---- Storage Policy P01-P12 inline wire test ----
+$expectations = array(
+    array('HIGHLY_VERTICAL',   1),
+    array('VERTICAL',          1),
+    array('HORIZONTAL',        2),
+    array('HIGHLY_HORIZONTAL', 2)
+);
+$sp_fail = false;
+$all_wire = array();
+foreach ($expectations as $exp) {
+    list($name, $mode) = $exp;
+    $s = new VSN_Store($mode);
+    $fid = $s->createFile("sp.txt", "storage-policy-wire-test");
+    $data = $s->commit();
+    $all_wire[] = $data;
+    if (strlen($data) < 5 || substr($data,0,4)!=='VSN-' || ord($data[4])!=$mode) {
+        echo "P03/P04 {$name} failed\n"; $sp_fail=true; continue;
+    }
+}
+if (count($all_wire) >= 3 && $all_wire[0][4] === $all_wire[2][4]) { $sp_fail = true; }
+$name_bad = ['HIGHTLY_VERTIC','ERTICAL','ORIZONTAL'];
+foreach ($all_wire as $d) foreach ($name_bad as $b) {
+    if (strpos($d,$b)!==false) { echo "P10 leaked\n"; $sp_fail=true; }
+}
+echo $sp_fail ? "SP FAILED\n" : "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance\n";
+exit($sp_fail ? 1 : 0);

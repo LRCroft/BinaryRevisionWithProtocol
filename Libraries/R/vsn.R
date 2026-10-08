@@ -5,8 +5,8 @@
 MAGIC <- "VSN-"
 CFV <- 1
 EV <- 1
-MODE_MODERN <- 1L
-MODE_ENTERPRISE <- 2L
+MODE_MODERN <- 1L                    # OBSOLETE: was MODERN wire mode (deprecated)
+MODE_ENTERPRISE <- 2L              # OBSOLETE: was ENTERPRISE wire mode (deprecated)
 REP_DIRECT_1 <- 1L
 REP_EXTENTS_1 <- 2L
 REP_VERSION_1 <- 1L
@@ -71,6 +71,7 @@ new_store <- function(mode = MODE_MODERN) {
   e$next_rev_id <- 1L
   e$next_obj_serial <- 1L
   e$closed <- FALSE
+  e$storagePolicy <- 2L   # default VERTICAL (STORAGE_POLICY_VERTICAL)
   e$files <- list()        # fileId -> list(path, head)
   e$revisions <- list()    # revId   -> list(file_id, object_serial, path, presence)
   e$objects <- list()      # serial  -> raw vector
@@ -285,10 +286,40 @@ has_conflicts <- function(r) r$has_conflicts
 import_bytes <- function(s, data) {
   if (!integrity_verify_raw(data)) stop("bad magic")
   s$generation <- 0L
+  # Parse storage policy from REC_STORAGE_POLICY record in wire
+  r <- as.raw(data)
+  sp_val <- 2L
+  if (length(r) >= 13) {
+    i <- 8L
+    while (i + 6 <= length(r)) {
+      rtype <- as.integer(r[i]) * 256L + as.integer(r[i+1L])
+      if (rtype == 9L) {
+        plen <- as.integer(r[i+2L])
+        ppos <- i + 3L
+        j <- 0L
+        while (j < min(plen - 3L, length(r) - ppos) && ppos + 3L <= length(r)) {
+          if (as.integer(r[ppos]) == 9L && as.integer(r[ppos+1L]) == 1L) {
+            vlen <- as.integer(r[ppos+2L])
+            if (vlen == 1L) { sp_val <- max(1L, min(4L, as.integer(r[ppos+3L]))); break }
+          }
+          ppos <- ppos + 1L; j <- j + 1L
+        }
+      }
+      plen2 <- if (i + 2L <= length(r)) as.integer(r[i+2L]) else 0L
+      next_i <- i + 3L + plen2
+      if (next_i <= i || next_i > length(r)) break
+      i <- next_i
+    }
+  }
+  s$storagePolicy <- sp_val
   invisible(s)
 }
 
-export_bytes <- function(s) encode(s$mode, s$generation)
+export_bytes <- function(s) {
+  sp <- as.integer(if (!is.null(s$storagePolicy)) s$storagePolicy else 2L)
+  sp <- max(1L, min(4L, sp))
+  as.raw(c(0x56L,0x53L,0x4eL,0x2dL, 0x00L,0x01L, 0x00L,0x09L, 0x04L, 0x09L,0x01L, 0x01L, as.raw(sp)))
+}
 
 write_large_object <- function(s, path, data) create_file(s, path, as_content(data))
 
@@ -453,10 +484,40 @@ has_conflicts <- function(r) r$has_conflicts
 import_bytes <- function(s, data) {
   if (!integrity_verify_raw(data)) stop("bad magic")
   s$generation <- 0L
+  # Parse storage policy from REC_STORAGE_POLICY record in wire
+  r <- as.raw(data)
+  sp_val <- 2L
+  if (length(r) >= 13) {
+    i <- 8L
+    while (i + 6 <= length(r)) {
+      rtype <- as.integer(r[i]) * 256L + as.integer(r[i+1L])
+      if (rtype == 9L) {
+        plen <- as.integer(r[i+2L])
+        ppos <- i + 3L
+        j <- 0L
+        while (j < min(plen - 3L, length(r) - ppos) && ppos + 3L <= length(r)) {
+          if (as.integer(r[ppos]) == 9L && as.integer(r[ppos+1L]) == 1L) {
+            vlen <- as.integer(r[ppos+2L])
+            if (vlen == 1L) { sp_val <- max(1L, min(4L, as.integer(r[ppos+3L]))); break }
+          }
+          ppos <- ppos + 1L; j <- j + 1L
+        }
+      }
+      plen2 <- if (i + 2L <= length(r)) as.integer(r[i+2L]) else 0L
+      next_i <- i + 3L + plen2
+      if (next_i <= i || next_i > length(r)) break
+      i <- next_i
+    }
+  }
+  s$storagePolicy <- sp_val
   invisible(s)
 }
 
-export_bytes <- function(s) encode(s$mode, s$generation)
+export_bytes <- function(s) {
+  sp <- as.integer(if (!is.null(s$storagePolicy)) s$storagePolicy else 2L)
+  sp <- max(1L, min(4L, sp))
+  as.raw(c(0x56L,0x53L,0x4eL,0x2dL, 0x00L,0x01L, 0x00L,0x09L, 0x04L, 0x09L,0x01L, 0x01L, as.raw(sp)))
+}
 
 write_large_object <- function(s, path, data) create_file(s, path, as_content(data))
 
@@ -476,3 +537,20 @@ get_stats <- function(s) {
 
 rep_direct_1 <- function() REP_DIRECT_1
 rep_extents_1 <- function() REP_EXTENTS_1
+
+# Storage Policy values -- authoritative classification (directly on wire)
+FID_STORAGE_POLICY <- 0x0901L
+
+# --- Legacy Storage Policy values kept for backward compatibility ---
+# These were previously marked informative but are now the authoritative
+# classification system. Old comments about 'NOT on wire' have been removed.
+STORAGE_POLICY_HIGHLY_VERTICAL <- 1L
+STORAGE_POLICY_VERTICAL <- 2L
+STORAGE_POLICY_HORIZONTAL <- 3L
+STORAGE_POLICY_HIGHLY_HORIZONTAL <- 4L
+create_with_policy <- function(policy) {
+    # OBSOLETE: cancelled mode mapping removed; no wire-mode inference from storage policy.
+    e <- new_store(MODE_MODERN)
+    e$storagePolicy <- as.integer(max(1, min(4L, as.integer(policy))))
+    invisible(e)
+}

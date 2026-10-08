@@ -138,6 +138,11 @@ func Parse(data []byte) (*Container, error) {
 					c.HasMode = true
 				}
 			}
+			if recs[i].RType == RecStoragePolicy {
+				if sp := recs[i].Field(FidStoragePolicy); sp != nil && len(sp.Value) > 0 {
+					c.StoragePolicy = int(sp.Value[0])
+				}
+			}
 		}
 		return nil
 	})

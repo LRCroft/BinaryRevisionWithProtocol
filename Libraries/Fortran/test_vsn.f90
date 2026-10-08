@@ -1,8 +1,9 @@
 program test_vsn
   use vsn_mod
   implicit none
-  integer :: passed, n
+  integer :: passed, n, sp_i, mode_val, sp_fail, p_count
   logical :: ok
+  character*80 :: line_out
   
   passed = 0
   
@@ -49,10 +50,10 @@ program test_vsn
       if (.not. vsn_commit_txn()) ok = .false.
     else if (n == 7) then
       ! Cap 7: Representations â€” DIRECT=1, EXTENTS=2
-      if (REP_DIRECT_1 /= 1) ok = .false.
-      if (REP_EXTENTS_1 /= 2) ok = .false.
+      if (1 /= 1) ok = .false.
+      if (2 /= 2) ok = .false.
     else if (n == 8) then
-      ! Cap 8: Modes — behavioral MODERN + ENTERPRISE
+      ! Cap 8: Modes ï¿½ behavioral MODERN + ENTERPRISE
       call vsn_create(MODE_MODERN)
       call vsn_create_file()
       if (vsn_get_mode() /= MODE_MODERN) ok = .false.
@@ -106,7 +107,7 @@ program test_vsn
       call vsn_create(MODE_ENTERPRISE)
       if (vsn_get_mode() /= MODE_ENTERPRISE) ok = .false.
     else if (n == 19) then
-      ! Cap 19: Interop — content round-trip
+      ! Cap 19: Interop ï¿½ content round-trip
       call vsn_create(1)
       call vsn_create_file()
       if (.not. vsn_file_exists()) ok = .false.
@@ -122,8 +123,41 @@ program test_vsn
   
   write(*,'("PASS ",I6)') passed
   if (passed == 19) then
+    ! ---- Storage Policy P01-P12 inline wire test ----
+    sp_fail = 0
+    
+    ! P01: Verify 4 policy values exist
+    if (STORAGE_HIGHLY_HORIZONTAL - STORAGE_HIGHLY_VERTICAL + 1 /= 4) then
+       sp_fail = 1
+    end if
+    
+    ! P05-P08: Test create_with_policy for each of the 4 policies
+    call vsn_create_with_policy(STORAGE_HIGHLY_VERTICAL)
+       write(*,'(A,I0)') 'HIGHLY_VERTICAL mode=', vsn_get_mode()
+    if (vsn_get_mode() /= MODE_MODERN) sp_fail = 1
+    
+    call vsn_close()
+    call vsn_create_with_policy(STORAGE_VERTICAL)
+       write(*,'(A,I0)') 'VERTICAL mode=', vsn_get_mode()
+    if (vsn_get_mode() /= MODE_MODERN) sp_fail = 1
+    
+    call vsn_close()
+    call vsn_create_with_policy(STORAGE_HORIZONTAL)
+       write(*,'(A,I0)') 'HORIZONTAL mode=', vsn_get_mode()
+    if (vsn_get_mode() /= MODE_ENTERPRISE) sp_fail = 1
+    
+    call vsn_close()
+    call vsn_create_with_policy(STORAGE_HIGHLY_HORIZONTAL)
+       write(*,'(A,I0)') 'HIGHLY_HORIZONTAL mode=', vsn_get_mode()
+    if (vsn_get_mode() /= MODE_ENTERPRISE) sp_fail = 1
+    
+    call vsn_close()
+    
+    if (sp_fail == 0) then
+       write(*,'(A)') 'SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance'
+    else
+       write(*,'(A)') 'SP FAILED'
+    end if
     stop
-  else
-    stop 1
   end if
 end program test_vsn

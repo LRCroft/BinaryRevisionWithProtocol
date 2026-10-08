@@ -3,31 +3,59 @@
 const MAGIC = "VSN-";
 const CFV = 1; const EV = 1;
 const REC_END_OF_RECORDS = 0; const REC_FILE_IDENTITY = 1; const REC_REVISION = 2;
-const REC_FILE_HEAD = 4; const REC_CONTENT_OBJECT = 5; const REC_COMMIT_MARKER = 6; const REC_MODE_DECLARATION = 7;
+const REC_FILE_HEAD = 4; const REC_CONTENT_OBJECT = 5; const REC_COMMIT_MARKER = 6;
+const REC_MODE_DECLARATION = 7;  // OBSOLETE: kept for reader compatibility only
+const REC_STORAGE_POLICY = 9;    // New: authoritative storage classification (0x0009)
 const FID_FILE_ID = 0x101; const FID_REV_ID = 0x201; const FID_REV_FILE_ID = 0x202;
 const FID_REV_OBJECT_SERIAL = 0x203; const FID_REV_PATH = 0x210; const FID_REV_PRESENCE = 0x211;
 const FID_HEAD_FILE_ID = 0x401; const FID_HEAD_REV_ID = 0x402;
 const FID_COMMIT_GENERATION = 0x601; const FID_OBJECT_SERIAL = 0x501; const FID_OBJECT_SIZE = 0x511;
-const FID_MODE = 0x701;
+const FID_MODE = 0x701;               // OBSOLETE: ModeDeclaration field (deprecated)
+const FID_STORAGE_POLICY = 0x0901;     // StoragePolicy.field_id (new)
+// Modes -- OBSOLETE: deprecated, kept for reader compatibility only
 const MODE_MODERN = 1; const MODE_ENTERPRISE = 2;
+// Storage Policy values -- authoritative classification (directly on wire)
+const STORAGE_POLICY_HIGHLY_VERTICAL    = 1;
+const STORAGE_POLICY_VERTICAL           = 2;
+const STORAGE_POLICY_HORIZONTAL         = 3;
+const STORAGE_POLICY_HIGHLY_HORIZONTAL  = 4;
 const REP_DIRECT_1 = 1; const REP_EXTENTS_1 = 2; const REP_VERSION_1 = 1;
 
 class Container {
   final int cfv, ev, mode, byteLength;
   final List<int> records, objects;
+  final int? storagePolicy;
   Container({this.cfv = CFV, this.ev = EV, this.mode = MODE_MODERN,
-            this.byteLength = 0, this.records = const [], this.objects = const []});
+            this.byteLength = 0, this.records = const [], this.objects = const [], this.storagePolicy});
 }
 
 Container parse(List<int> data) {
   if (data.length < 8 || String.fromCharCodes(data.sublist(0, 4)) != MAGIC) {
     throw Exception("bad magic");
   }
-  return Container(cfv: CFV, ev: EV, mode: MODE_MODERN, byteLength: data.length);
+  // Try to read storage_policy from REC_STORAGE_POLICY record after header
+  int? sp;
+  if (data.length > 8) {
+    final body = data.sublist(8);
+    if (body.length >= 5 && body[0] == 0x00 && body[1] == 0x09) {
+      // REC_STORAGE_POLICY found, read payload length at position 2
+      final plen = body[2];
+      if (plen >= 4) {
+        sp = body[7]; // FID(2) + valueLen(1) + value(1) at offset 6
+      }
+    }
+  }
+  return Container(cfv: CFV, ev: EV, mode: MODE_MODERN, byteLength: data.length, storagePolicy: sp);
 }
 
-List<int> encode(int mode, int gen) =>
-    <int>[0x56, 0x53, 0x4e, 0x2d, 0x00, 0x01, 0x00, 0x01];
+List<int> encode(int mode, int gen, {int storagePolicy = STORAGE_POLICY_VERTICAL}) =>
+    [0x56, 0x53, 0x4e, 0x2d, 0x00, 0x01, 0x00, 0x01,
+     // REC_STORAGE_POLICY record (0x0009) with FID_STORAGE_POLICY (0x0901) + u8 value
+     0x00, 0x09,        // record type = 0x0009
+     0x04,              // payload length = 4 bytes
+     0x09, 0x01,        // FID_STORAGE_POLICY = 0x0901
+     0x01,              // value length = 1 byte
+     storagePolicy >= 1 && storagePolicy <= 4 ? storagePolicy : 2];
 
 bool validateStructural(Container c) =>
     c.cfv == CFV && (c.mode == MODE_MODERN || c.mode == MODE_ENTERPRISE);
@@ -45,6 +73,7 @@ class Transaction { final List<List<dynamic>> ops = []; }
 
 class MutableStore {
   int mode, generation = 0, _nextRevId = 1, _nextObjSerial = 1;
+  int storagePolicy = STORAGE_POLICY_VERTICAL;
   bool closed = false;
   final Map<String, String> files = {};
   final Map<String, int> heads = {};
@@ -55,12 +84,22 @@ class MutableStore {
 
   static MutableStore create([int mode = MODE_MODERN]) => MutableStore(mode);
 
+  // Writer Storage Policy chain -- OBSOLETE: cancelled mode mapping removed.
+  static MutableStore createWithStoragePolicy(int spolicy) {
+    var s = MutableStore(MODE_MODERN);
+    s.storagePolicy = spolicy;
+    return s;
+  }
+
+  static MutableStore open(List<int> data) {
   static MutableStore open(List<int> data) {
     if (data.length < 8 || String.fromCharCodes(data.sublist(0, 4)) != MAGIC) {
       throw Exception("bad magic");
     }
-    return MutableStore(MODE_MODERN);
-  }
+    var container = parse(data);
+    var s = MutableStore(container.mode);
+    if (container.storagePolicy != null) s.storagePolicy = container.storagePolicy;
+    return s;
 
   void close() => closed = true;
   int getMode() => mode;
@@ -209,7 +248,7 @@ class MutableStore {
     generation = 0;
   }
 
-  List<int> exportBytes() => encode(mode, generation);
+  List<int> exportBytes() => encode(mode, generation, storagePolicy: storagePolicy);
   void writeLargeObject(String path, List<int> content) => createFile(path, content);
   bool integrityVerify() => validateStructural();
 

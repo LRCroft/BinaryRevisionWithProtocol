@@ -70,8 +70,15 @@ vsn.REC_REVISION_SET = 0x0003
 vsn.REC_FILE_HEAD = 0x0004
 vsn.REC_CONTENT_OBJECT = 0x0005
 vsn.REC_COMMIT_MARKER = 0x0006
-vsn.REC_MODE_DECLARATION = 0x0007
+vsn.REC_MODE_DECLARATION = 0x0007  -- OBSOLETE: deprecated, kept for reader compatibility only
+vsn.REC_STORAGE_POLICY   = 0x0009  -- StoragePolicy record type (authoritative on wire)
 vsn.REC_REPRESENTATION_DESCRIPTOR = 0x0008
+
+-- Storage Policy values -- authoritative classification (directly on wire)
+vsn.STORAGE_HIGHLY_VERTICAL    = 1
+vsn.STORAGE_VERTICAL           = 2
+vsn.STORAGE_HORIZONTAL         = 3
+vsn.STORAGE_HIGHLY_HORIZONTAL  = 4
 
 vsn.FID_RECORDS_END = 0x0000
 vsn.FID_FILE_ID = 0x0101
@@ -97,6 +104,15 @@ vsn.REP_VERSION_1 = 1
 vsn.PRESENT = 1
 vsn.DELETED = 2
 vsn.DIRECTORY = 3
+
+-- -- Writer Storage Policy (informative, NOT on wire) --
+vsn.STORAGE_POLICY_HIGHLY_VERTICAL   = 1
+vsn.STORAGE_POLICY_VERTICAL         = 2
+vsn.STORAGE_POLICY_HORIZONTAL       = 3
+vsn.STORAGE_POLICY_HIGHLY_HORIZONTAL = 4
+
+-- Storage Policy record type and field ID (new)
+vsn.FID_STORAGE_POLICY       = 0x0901
 
 vsn.OP_LITERAL_BYTES = 0
 vsn.OP_OBJECT_SOURCE = 1
@@ -265,6 +281,9 @@ local function parse_container(data)
     if records[i].rtype == vsn.REC_MODE_DECLARATION then
       local m = field_of(records[i].fields, vsn.FID_MODE)
       if m and #m.value > 0 then cont.mode = string.byte(m.value, 1) end
+    elseif records[i].rtype == vsn.REC_STORAGE_POLICY then
+      local sp = field_of(records[i].fields, vsn.FID_STORAGE_POLICY)
+      if sp and #sp.value > 0 then cont.storage_policy = string.byte(sp.value, 1) end
     end
   end
   return cont
@@ -305,7 +324,7 @@ function vsn.encode(records, objects, generation)
   out[#out + 1] = put_uvarint(0)
   local canonical_count = 0
   for i = 1, #records do
-    if records[i].rtype ~= vsn.REC_MODE_DECLARATION then canonical_count = canonical_count + 1 end
+    if records[i].rtype ~= vsn.REC_STORAGE_POLICY then canonical_count = canonical_count + 1 end
   end
   out[#out + 1] = put_uvarint(canonical_count)
   out[#out + 1] = put_uvarint(generation)
@@ -417,16 +436,18 @@ local function new_file_id()
   return table.concat(out)
 end
 
-function Store.new(data, mode)
+function Store.new(data, mode, spolicy)
   local self = setmetatable({}, Store)
   if data ~= nil then
     self.data = data
     self.parsed = vsn.parse(data)
     self.mode = self.parsed.mode or (mode or vsn.MODE_MODERN)
+    self.storage_policy = self.parsed.storage_policy or 2 -- default VERTICAL
   else
     self.data = nil
     self.parsed = nil
     self.mode = mode or vsn.MODE_MODERN
+    self.storage_policy = spolicy or 2 -- default VERTICAL
   end
   self.closed = false
   self.file_order = {}
@@ -488,6 +509,9 @@ function Store:build_state()
     elseif rec.rtype == vsn.REC_COMMIT_MARKER then
       local gen_f = vsn.field_of(rec.fields, vsn.FID_COMMIT_GENERATION)
       if gen_f then self.generation = vsn.field_uvarint(gen_f) end
+    elseif rec.rtype == vsn.REC_STORAGE_POLICY then
+      local sp = vsn.field_of(rec.fields, vsn.FID_STORAGE_POLICY)
+      if sp and #sp.value > 0 then self.storage_policy = string.byte(sp.value, 1) end
     end
   end
   for i = 1, #self.parsed.objects do
@@ -500,6 +524,13 @@ end
 
 vsn.Store = Store
 vsn.create = function(mode) return Store.new(nil, mode or vsn.MODE_MODERN) end
+
+-- Writer Storage Policy chain -- Canonical writer: stores policy directly on wire.
+vsn.create_with_storage_policy = function(spolicy)
+  local val = spolicy or vsn.STORAGE_VERTICAL
+  return Store.new(nil, vsn.MODE_MODERN, val)
+end
+
 vsn.open = function(data) return Store.new(data) end
 
 function Store:close()
@@ -797,9 +828,10 @@ function Store:to_bytes()
   self:check_open()
   self.generation = self.generation + 1
   local records = {}
+  -- Storage Policy (canonical) -- REC_STORAGE_POLICY with FID_STORAGE_POLICY
   records[#records + 1] = {
-    rtype = vsn.REC_MODE_DECLARATION,
-    fields = { { fid = vsn.FID_MODE, value = string.char(self.mode) } },
+    rtype = vsn.REC_STORAGE_POLICY,
+    fields = { { fid = vsn.FID_STORAGE_POLICY, value = string.char(self.storage_policy) } },
   }
   for _, fid in ipairs(self.file_order) do
     records[#records + 1] = {
@@ -1283,6 +1315,7 @@ end
 
 local function check_mode(parsed)
   local modes, mode_val = 0, nil
+  local has_sp = false
   for i = 1, #parsed.records do
     if parsed.records[i].rtype == vsn.REC_MODE_DECLARATION then
       modes = modes + 1
@@ -1291,9 +1324,16 @@ local function check_mode(parsed)
         vsn.fail(0x000C, "ModeDeclaration missing mode value")
       end
       mode_val = string.byte(f.value, 1)
+    elseif parsed.records[i].rtype == vsn.REC_STORAGE_POLICY then
+      has_sp = true
     end
   end
-  if modes ~= 1 then vsn.fail(0x000C, "expected exactly one ModeDeclaration, got " .. modes) end
+  -- Accept either one ModeDeclaration OR a StoragePolicy record (canonical form)
+  if modes ~= 1 and not has_sp then
+    vsn.fail(0x000C, "expected exactly one ModeDeclaration or StoragePolicy")
+  end
+  -- Mode validation: only applies when we have a ModeDeclaration
+  if modes == 1 then
   if mode_val ~= vsn.MODE_MODERN and mode_val ~= vsn.MODE_ENTERPRISE then
     vsn.fail(0x0001, string.format("reserved mode value 0x%02X", mode_val))
   end
@@ -1304,6 +1344,7 @@ local function check_mode(parsed)
         vsn.fail(0x000C, "ENTERPRISE mode forbids EXTENTS-1 (GR-43)")
       end
     end
+  end
   end
 end
 

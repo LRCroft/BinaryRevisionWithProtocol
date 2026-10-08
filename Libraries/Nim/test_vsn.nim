@@ -101,4 +101,26 @@ proc main() =
     else: echo "CAP ", i, " FAIL assertions=0 ops=1"
   echo "PASS ", passed
 
+  # ---- Storage Policy P01-P12 inline wire test ----
+  var spFail = false
+  var allWire: seq[string] = @[]
+
+  for (name, mode) in [
+    ("HIGHLY_VERTICAL", 1), ("VERTICAL", 1),
+    ("HORIZONTAL", 2), ("HIGHLY_HORIZONTAL", 2)
+  ]:
+    let s = newStore(mode)
+    let fid = allocateFile(s, "sp.txt")
+    let buf = "storage-policy-wire-test"
+    _ = writeFileSync(s, fid, cast[ptr UncheckedArray[char]](buf.toOpenArrayByte(0,buf.len-1)))
+    let data = commit(s)
+    allWire.add($data)
+
+  # P05: HV vs HOR must differ
+  if allWire.len >= 2: spFail = true  # Nim doesn't expose raw bytes in commit easily
+
+  if spFail: echo "SP FAILED"
+  else: echo "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance"
+  if(spFail): quit(1)
+
 main()

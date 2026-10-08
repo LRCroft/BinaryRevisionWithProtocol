@@ -50,7 +50,8 @@ module RT =
     let FILE_HEAD = 0x0004us
     let OBJ = 0x0005us
     let COMMIT = 0x0006us
-    let MODE = 0x0007us
+    let REC_MODE_DECLARATION   = 0x0007us     // OBSOLETE: deprecated, kept for reader compatibility
+    let REC_STORAGE_POLICY = 0x0009us           // StoragePolicy.record_type (new)
 
 // Field IDs
 module FID =
@@ -67,6 +68,7 @@ module FID =
     let OBJ_SIZE = 0x0511us
     let COMMIT_GEN = 0x0601us
     let MODE = 0x0701us
+    let FID_STORAGE_POLICY   = 0x0901us         // StoragePolicy.field_id (new)
 
 // Modes / Representations / Operands
 module M =
@@ -82,6 +84,11 @@ module M =
     let MAX_FILES = 64
     let MAX_REVISIONS = 256
     let MAX_OBJECTS = 64
+
+// --- Writer Storage Policy (authoritative classification) ---
+module StoragePolicyConfig =
+    type Policy = HIGHLY_VERTICAL | VERTICAL | HORIZONTAL | HIGHLY_HORIZONTAL
+    // OBSOLETE: wireMode removed -- cancelled mode mapping. Store policy value directly.
 
 // --- Data model ---
 type FileId = { Id: byte[] }
@@ -158,6 +165,7 @@ type Container(mode: int) =
     // The mode is stored verbatim; an out-of-range value is rejected by
     // validation (mirrors C# Store/ContainerBuilder, which keep the raw byte).
     let mutable mode = mode
+    let mutable storagePolicy : int = 2 // default VERTICAL
     member _.Files = files
     member _.Revisions = revs
     member _.Objects = objects
@@ -173,6 +181,9 @@ type Container(mode: int) =
     member _.Mode 
         with get() = mode
         and set(v: int) = Monitor.Enter(lockObj); mode <- v; Monitor.Exit(lockObj)
+    member _.StoragePolicy 
+        with get() = storagePolicy
+        and set(v: int) = Monitor.Enter(lockObj); storagePolicy <- v; Monitor.Exit(lockObj)
     member _.Closed 
         with get() = Monitor.Enter(lockObj); let v = closed in Monitor.Exit(lockObj); v
         and set(v: bool) = Monitor.Enter(lockObj); closed <- v; Monitor.Exit(lockObj)
@@ -228,7 +239,9 @@ module Parser =
             elif recType = RT.COMMIT && fid = FID.COMMIT_GEN then
                 let (gen, _) = Primitives.readUvarint data vstart
                 c.Generation <- uint32 gen
-            elif recType = RT.MODE && fid = FID.MODE && flen >= 1UL then
+            elif recType = RT.REC_STORAGE_POLICY && fid = FID.FID_STORAGE_POLICY && flen >= 1UL then
+                c.StoragePolicy <- int data.[vstart]
+            elif recType = RT.REC_MODE_DECLARATION && fid = FID.MODE && flen >= 1UL then
                 c.Mode <- int data.[vstart]
             elif recType = RT.OBJ && fid = FID.OBJ_SERIAL then
                 let (os, _) = Primitives.readUvarint data vstart
@@ -317,8 +330,8 @@ module Encoder =
         w.U16 1us  // cfv
         w.U16 1us  // ev
         w.Field(FID.RECORDS_END, [| |])
-        // Mode declaration
-        w.Record(RT.MODE, fieldBytes [ (FID.MODE, [| byte c.Mode |]) ])
+        // Storage Policy (canonical) -- REC_STORAGE_POLICY with FID_STORAGE_POLICY
+        w.Record(RT.REC_STORAGE_POLICY, fieldBytes [ (FID.FID_STORAGE_POLICY, [| byte (min 255 c.StoragePolicy) |]) ])
         // File identities
         for f in c.Files do
             w.Record(RT.FILE_ID, fieldBytes [ (FID.FILE_ID, f.Id) ])
@@ -380,6 +393,18 @@ module Store =
         let c = Container(M.MODERN)
         try Parser.parse data len c
         with VsnException(_) -> raise (VsnException(Malformed))
+        c
+
+    let createWithPolicy (policy: StoragePolicyConfig.Policy) : Container =
+        // Canonical writer: stores policy value as u8 directly.
+        let pval =
+            match policy with
+            | StoragePolicyConfig.Policy.HIGHLY_VERTICAL -> 1
+            | StoragePolicyConfig.Policy.VERTICAL -> 2
+            | StoragePolicyConfig.Policy.HORIZONTAL -> 3
+            | StoragePolicyConfig.Policy.HIGHLY_HORIZONTAL -> 4
+        let c = Container(M.MODERN)
+        do c.StoragePolicy <- pval
         c
 
     let newestRev (c: Container) (fid: FileId) : Revision option =

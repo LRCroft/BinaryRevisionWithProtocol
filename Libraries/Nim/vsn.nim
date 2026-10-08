@@ -9,6 +9,13 @@ const
   REP_DIRECT_1* = 1
   REP_EXTENTS_1* = 2
   REP_VERSION_1* = 1
+  # Storage Policy values -- authoritative classification (directly on wire)
+const REC_STORAGE_POLICY* = 0x0009
+const FID_STORAGE_POLICY* = 0x0901  #
+  STORAGE_POLICY_HIGHLY_VERTICAL* = 1
+  STORAGE_POLICY_VERTICAL* = 2
+  STORAGE_POLICY_HORIZONTAL* = 3
+  STORAGE_POLICY_HIGHLY_HORIZONTAL* = 4
   ERR_TRUNCATED* = 0x0002
   ERR_UNKNOWN_FILE_ID* = 0x0009
   ERR_INVALID_CANONICAL_STATE* = 0x000C
@@ -30,6 +37,18 @@ proc parse*(data: string): tuple[cfv: int, ev: int, mode: int, byteLength: int] 
 proc encode*(mode, gen: int): string =
   ## Frozen 8-byte VSN-1 header.
   MAGIC & "\x00\x01\x00\x01"
+
+proc encodeWithSP*(mode, gen, sp: int): string =
+  ## Header with StoragePolicy record (REC_STORAGE_POLICY / FID_STORAGE_POLICY).
+  result = newString(13)
+  result[0] = 'V'; result[1] = 'S'; result[2] = 'N'; result[3] = '-'
+  result[4] = chr(0); result[5] = chr(1)     # CFV=1, EV=1
+  result[6] = chr(0); result[7] = chr(9)     # REC_STORAGE_POLICY = 0x0009
+  result[8] = chr(4)                           # payload length = 4
+  result[9] = chr(9); result[10] = chr(1)    # FID_STORAGE_POLICY = 0x0901
+  result[11] = chr(1)                          # value length = 1
+  let val = if sp >= 1 and sp <= 4: chr(sp) else: chr(2)
+  result[12] = val
 
 proc validateStructural*(c: tuple[cfv: int, ev: int, mode: int, byteLength: int]): bool =
   c.cfv == CFV and (c.mode == MODE_MODERN or c.mode == MODE_ENTERPRISE)
@@ -58,6 +77,7 @@ type
 
   MutableStore* = ref object
     mode: int
+    storagePolicy: int
     generation: int
     nextRevId: int
     nextObjSerial: int
@@ -69,13 +89,20 @@ type
 
 proc newStore(mode: int = MODE_MODERN): MutableStore =
   result = MutableStore(
-    mode: mode, generation: 0, nextRevId: 1, nextObjSerial: 1, closed: false,
+    mode: mode, storagePolicy: STORAGE_POLICY_VERTICAL, generation: 0, nextRevId: 1, nextObjSerial: 1, closed: false,
     files: initTable[string, FileEntry](),
     revisions: initTable[int, Revision](),
     objects: initTable[int, string](),
     txnOps: @[])
 
 proc create*(mode: int = MODE_MODERN): MutableStore = newStore(mode)
+
+# Writer Storage Policy chain -- OBSOLETE: cancelled mode mapping removed.
+proc createWithStoragePolicy*(spolicy: int): MutableStore =
+  var s = newStore(MODE_MODERN)
+  s.storagePolicy = spolicy
+  return s
+
 proc newBuilder*(mode: int = MODE_MODERN): MutableStore = newStore(mode)
 
 proc open*(data: string): MutableStore =
@@ -220,7 +247,7 @@ proc commit*(s: MutableStore, expectedGeneration: int = -1): string =
     else: s.deleteFile(op.b)
   s.txnOps = @[]
   inc s.generation
-  encode(s.mode, s.generation)
+  encodeWithSP(s.mode, s.generation, s.storagePolicy)
 
 # --- Diff / Merge ----------------------------------------------------------
 
@@ -256,8 +283,28 @@ proc mergeThreeWay*(base, ours, theirs: string): tuple[merged: string, conflicts
 proc importBytes*(s: MutableStore, data: string) =
   if not integrityVerifyRaw(data): raise newException(VsnError, "bad magic")
   s.generation = 0
+  # Parse storage policy from REC_STORAGE_POLICY record
+  if data.len >= 13:
+    for i in 8 .. data.len - 6:
+      let rtype = ord(data[i]) * 256 + ord(data[i+1])
+      if rtype == 0x0009:
+        let plen = ord(data[i+2])
+        let ppos = i + 3
+        for j in 0 ..< plen - 3:
+          if ppos + j + 3 < data.len and
+             ord(data[ppos+j]) == 0x09 and
+             ord(data[ppos+j+1]) == 0x01:
+            let vlen = ord(data[ppos+j+2])
+            if vlen == 1:
+              s.storagePolicy = ord(data[ppos+j+3])
+              return
+      let plen2 = if i + 2 < data.len: ord(data[i+2]) else: 0
+      if i + 3 + plen2 > data.len: break
+      i += (if i + 3 + plen2 > data.len: 0 else: 3 + plen2 - 1)
 
-proc exportBytes*(s: MutableStore): string = encode(s.mode, s.generation)
+proc exportBytes*(s: MutableStore): string = encodeWithSP(s.mode, s.generation, s.storagePolicy)
+
+proc exportStoragePolicy*(s: MutableStore): int = s.storagePolicy
 
 proc writeLargeObject*(s: MutableStore, path, data: string): string = s.createFile(path, data)
 

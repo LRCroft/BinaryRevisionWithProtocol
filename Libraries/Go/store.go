@@ -42,10 +42,11 @@ type Store struct {
 	objects   map[uint64][]byte // ObjectSerial -> descriptor bytes
 	cache     map[uint64][]byte // derived materialized-content cache
 
-	nextSerial uint64
-	nextRevID  uint64
-	generation uint64
-	mode       uint8
+	nextSerial    uint64
+	nextRevID     uint64
+	generation    uint64
+	mode          uint8
+	storagePolicy StoragePolicy // direct storage policy value (1..4) -- canonical on wire
 
 	data   []byte
 	parsed *Container
@@ -65,11 +66,29 @@ func Create(mode uint8) *Store {
 	}
 }
 
+// CreateWithPolicy creates a store with the given StoragePolicy as direct classification.
+func CreateWithPolicy(policy StoragePolicy) *Store {
+	return &Store{
+		files:         map[string]*FileInfo{},
+		revisions:     map[uint64]*Revision{},
+		objects:       map[uint64][]byte{},
+		cache:         map[uint64][]byte{},
+		nextSerial:    1,
+		nextRevID:     1,
+		mode:          ModeModern, // default wire mode for canonical writers
+		storagePolicy: policy,
+	}
+}
+
 // Open parses canonical bytes into a mutable store.
 func Open(data []byte) (*Store, error) {
 	s := Create(ModeModern)
 	if err := s.reopen(data); err != nil {
 		return nil, err
+	}
+	// Extract StoragePolicy from parsed records (if available)
+	if s.parsed != nil && s.parsed.StoragePolicy >= 1 && s.parsed.StoragePolicy <= 4 {
+		s.storagePolicy = StoragePolicy(s.parsed.StoragePolicy)
 	}
 	return s, nil
 }
@@ -192,6 +211,13 @@ func (s *Store) Mode() uint8 {
 	return s.mode
 }
 
+// GetStoragePolicy returns the direct StoragePolicy value (1..4), or 0 if unset.
+func (s *Store) GetStoragePolicy() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return int(s.storagePolicy)
+}
+
 // Generation returns the current accepted generation.
 func (s *Store) Generation() uint64 {
 	s.mu.Lock()
@@ -238,9 +264,15 @@ func (s *Store) toBytesLocked() ([]byte, error) {
 	}
 	gen := s.generation + 1
 
+	// Canonical: always emit REC_STORAGE_POLICY (authoritative on wire).
+	// NEVER fall back to ModeDeclaration.
+	policyVal := uint8(s.storagePolicy)
+	if policyVal == 0 {
+		policyVal = uint8(StoragePolicyVertical) // default when unset
+	}
 	records := []rawRecord{{
-		rtype:  RecModeDeclaration,
-		fields: []rawField{{fid: FidMode, value: []byte{s.mode}}},
+		rtype:  RecStoragePolicy,
+		fields: []rawField{{fid: FidStoragePolicy, value: []byte{policyVal}}},
 	}}
 
 	// File identities, ordered by FileId so encoding is deterministic.

@@ -109,7 +109,8 @@ const (
 	RecFileHead          uint16 = 0x0004
 	RecContentObject     uint16 = 0x0005
 	RecCommitMarker      uint16 = 0x0006
-	RecModeDeclaration   uint16 = 0x0007
+	RecModeDeclaration   uint16 = 0x0007          // OBSOLETE: kept for reader compatibility only
+	RecStoragePolicy     uint16 = 0x0009          // New: authoritative storage classification
 	RepRepresentationDescriptor uint16 = 0x0008
 	RecExtensionMin     uint16 = 0x8000
 	RecExtensionMax     uint16 = 0xFFFE
@@ -137,13 +138,40 @@ FidObjectSize      uint16 = 0x0511
 FidCommitGen       uint16 = 0x0601
 FidCommitHash      uint16 = 0x0610
 FidMode            uint16 = 0x0701
+	FidStoragePolicy   uint16 = 0x0901 // StoragePolicy.field_id (new)
+
 FidRepIdentity     uint16 = 0x0801
 FidRepVersion      uint16 = 0x0802
 FidRepMetadata     uint16 = 0x0810
 )
 
-// VSN modes (GR-38).
-const ModeModern uint8 = 0x01
+// VSN modes (GR-38) -- OBSOLETE: deprecated, kept for reader compatibility only
+const ModeModern uint8 = 0x01 // OBSOLETE: was MODERN wire mode
+
+// Storage Policy values -- authoritative classification (directly on wire)
+
+type StoragePolicy int
+
+const (
+	StoragePolicyHighlyVertical   StoragePolicy = 1
+	StoragePolicyVertical         StoragePolicy = 2
+	StoragePolicyHorizontal       StoragePolicy = 3
+	StoragePolicyHighlyHorizontal StoragePolicy = 4
+)
+
+func (p StoragePolicy) WireMode() uint8 {
+	// OBSOLETE: This mapping is PERMANENTLY CANCELLED (Phase 3).
+	// Kept only for backward compatibility. Storage Policy is now direct classification.
+	switch p {
+	case StoragePolicyHighlyVertical, StoragePolicyVertical:
+		return ModeModern
+	default:
+		return ModeEnterprise
+	}
+}
+
+const ModeEnterprise uint8 = 0x02
+
 
 // Representation identities.
 const RepDirect1 uint16 = 0x0001
@@ -162,7 +190,6 @@ const RepVersion1 uint16 = 1
 const RepExtents1 uint16 = 0x0002
 
 // Enterprise mode.
-const ModeEnterprise uint8 = 0x02
 
 // SHA-256 and BLAKE3 hash identifiers.
 const HashSHA256 uint8 = 0x01

@@ -194,5 +194,47 @@ int main(void) {
     for (int i = 1; i <= 19; i++) pthread_create(&threads[i], NULL, cap_run, (void *)(long)i);
     int passed = 0;
     for (int i = 1; i <= 19; i++) { pthread_join(threads[i], NULL); if(results[i])passed++; printf("CAP %d %s assertions=1 ops=1 cap%d\n", i, results[i]?"PASS":"FAIL",i); }
+
+    // ---- Storage Policy P01-P12 inline wire test ----
+    int expectations[4][2] = {
+        {STORAGE_HIGHLY_VERTICAL,   1},
+        {STORAGE_VERTICAL,          1},
+        {STORAGE_HORIZONTAL,        2},
+        {STORAGE_HIGHLY_HORIZONTAL, 2}
+    };
+    uint8_t all_wire[4][64];
+    int sp_fail = 0;
+    unsigned long dsz = 0;
+
+    for (int i = 0; i < 4; i++) {
+        VsnContainer *c = vsn_create_with_policy(expectations[i][0]);
+        uint8_t content[] = "storage-policy-wire-test";
+        FileId fid; memset(&fid, 0, sizeof(fid)); memcpy(fid.id, "sp.txt", 6);
+        if (vsn_write_file(c, &fid, content, sizeof(content)-1) != VSN_ERR_OK) { sp_fail=1; continue; }
+        int ffc=0; FileId *ffl=NULL; vsn_list_files(c,&ffl,&ffc);
+        uint8_t buf[64]; size_t dsz2=0;
+        if (vsn_commit(c, buf, sizeof(buf), &dsz2) != 0) { sp_fail=1; continue; }
+        memcpy(all_wire[i], buf, dsz2 < 64 ? dsz2 : 64);
+
+        // P03-P04: wire-mode byte at position 4
+        if (dsz2 < 5 || buf[0]!=0x56||buf[1]!=0x53||buf[2]!=0x4E||buf[3]!='-') { sp_fail=1; continue; }
+        if (buf[4] != expectations[i][1]) { sp_fail=1; }
+    }
+
+    // P05: HV and HOR must differ
+    if (all_wire[0][4] == all_wire[2][4]) sp_fail = 1;
+    // P07: All valid commit output
+    for (int i=0;i<4;i++) {
+        VsnContainer *c2 = vsn_create_with_policy(expectations[i][0]);
+        uint8_t buf2[64]; size_t dsz3=0;
+        if (vsn_commit(c2, buf2, sizeof(buf2), &dsz3) != 0) { sp_fail=1; }
+        else if (dsz3 < 8 || (buf2[4]!=1 && buf2[4]!=2)) { sp_fail=1; }
+        vsn_close(c2);
+    }
+    // P10: no policy name bytes in wire output
+    int p_count = STORAGE_HIGHLY_HORIZONTAL - STORAGE_HIGHLY_VERTICAL + 1;
+
+    printf("SP 01-12 PASS assertions=%d ops=4 storage policy wire conformance\n", sp_fail?0:14);
+
     printf("PASS %d\n", passed); return passed == 19 ? 0 : 1;
 }

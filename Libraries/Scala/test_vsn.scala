@@ -68,6 +68,21 @@ object TestVSN {
     val flags = Await.result(Future.sequence(results), Duration.Inf)
     val passed = flags.count(identity)
     println(s"SUMMARY $passed/19")
-    if (passed < 19) sys.exit(1)
+
+    // Storage Policy P01-P12 inline wire test
+    val policies = List((Constants.MODE_MODERN, "HIGHLY_VERTICAL"), (Constants.MODE_ENTERPRISE, "HORIZONTAL"))
+    var spFail = false
+    for ((mode, name) <- policies) {
+      val s = new MutableStore(mode)
+      s.createFile("sp.txt", Array[Byte]())
+      val data = s.commit()
+      if (data.length < 5 || data(0).toInt != 86 || data(4).toInt != mode) {
+        println(s"P03/P04 $name failed"); spFail = true
+      }
+    }
+
+    if (!spFail) println("SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance")
+    else println("SP FAILED")
+    if (passed < 19 || spFail) sys.exit(1)
   }
 }

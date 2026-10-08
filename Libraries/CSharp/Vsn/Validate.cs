@@ -16,16 +16,45 @@ public static class Validate
     private static void CheckMode(ParsedContainer parsed)
     {
         var modes = parsed.Records.Where(r => r.RType == Constants.RecModeDeclaration).ToList();
-        if (modes.Count != 1)
-            throw new VsnException(0x000C, $"expected exactly one ModeDeclaration, got {modes.Count}");
-        var m = modes[0].GetField(Constants.FidMode);
-        if (m == null || m.Value.Length != 1)
-            throw new VsnException(0x000C, "ModeDeclaration missing mode value");
-        byte mode = m.Value.Span[0];
-        if (mode != Constants.ModeModern && mode != Constants.ModeEnterprise)
-            throw new VsnException(0x0001, $"reserved mode value 0x{mode:X2}");
+        var spRecords = parsed.Records.Where(r => r.RType == Constants.RecStoragePolicy).ToList();
+        
+        byte modeToCheck;
+        if (spRecords.Count >= 1)
+        {
+            // Canonical path: derive wire mode from storage policy
+            byte? spVal = null;
+            foreach (var spRec in spRecords)
+            {
+                var spField = spRec.GetField(Constants.FidStoragePolicy);
+                if (spField != null && spField.Value.Length >= 1)
+                {
+                    spVal = spField.Value.Span[0];
+                    break;
+                }
+            }
+            if (spVal == null)
+                throw new VsnException(0x000C, "REC_STORAGE_POLICY missing storage_policy value");
+            if (spVal < 1 || spVal > 4)
+                throw new VsnException(0x0001, $"invalid storage policy {spVal}");
+            // Vertical policies (1,2) -> MODERN; Horizontal (3,4) -> ENTERPRISE
+            modeToCheck = (spVal >= 3) ? Constants.ModeEnterprise : Constants.ModeModern;
+        }
+        else if (modes.Count == 1)
+        {
+            var m = modes[0].GetField(Constants.FidMode);
+            if (m == null || m.Value.Length != 1)
+                throw new VsnException(0x000C, "ModeDeclaration missing mode value");
+            modeToCheck = m.Value.Span[0];
+        }
+        else
+        {
+            throw new VsnException(0x000C, "expected exactly one ModeDeclaration or REC_STORAGE_POLICY");
+        }
+        
+        if (modeToCheck != Constants.ModeModern && modeToCheck != Constants.ModeEnterprise)
+            throw new VsnException(0x0001, $"reserved mode value 0x{modeToCheck:X2}");
         // GR-43: ENTERPRISE must not use EXTENTS-1 reconstruction semantics.
-        if (mode == Constants.ModeEnterprise)
+        if (modeToCheck == Constants.ModeEnterprise)
         {
             foreach (var obj in parsed.Objects)
             {

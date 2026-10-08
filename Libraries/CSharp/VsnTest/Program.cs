@@ -1,4 +1,5 @@
 using Vsn;
+using VsnTest;
 
 int passed = 0, failed = 0;
 object gate = new();
@@ -148,40 +149,60 @@ tasks[12] = System.Threading.Tasks.Task.Run(() => {
     Cap(13, "import-export", 4, 7, ok && threw);
 });
 
-// 14. Streaming
+// 14. Streaming — real multi-chunk read (ReadFileStream, chunkSize=1024 -> 32 chunks),
+// byte-exact reconstruction + boundary probes. No ExportStream shortcut.
 tasks[13] = System.Threading.Tasks.Task.Run(() => {
     var st = VsnStore.Create(Constants.ModeModern);
-    var big = new byte[16384]; for (int i = 0; i < big.Length; i++) big[i]=(byte)(i%251);
+    var big = new byte[32768]; for (int i = 0; i < big.Length; i++) big[i]=(byte)(i%256);
     var fid = st.CreateFile("big", big);
-    using var ms = new System.IO.MemoryStream();
-    var n = IoOps.ExportStream(st, fid, ms);
-    Cap(14, "streaming", 2, 3, n==big.Length && ms.ToArray().SequenceEqual(big));
+    int chunkSize = 1024;
+    int chunkCount = 0;
+    System.Collections.Generic.List<byte[]> parts = new System.Collections.Generic.List<byte[]>();
+    foreach (var chunk in st.ReadFileStream(fid, chunkSize)) {
+        parts.Add(chunk);
+        chunkCount++;
+    }
+    byte[] reconstructed = new byte[32768];
+    int off = 0;
+    foreach (var chunk in parts) {
+        System.Buffer.BlockCopy(chunk, 0, reconstructed, off, chunk.Length);
+        off += chunk.Length;
+    }
+    bool streamingOk = chunkCount >= 32
+        && off == big.Length
+        && reconstructed.Length == 32768
+        && reconstructed.SequenceEqual(big)
+        && big[1023] == (byte)255
+        && big[1024] == 0
+        && big[1025] == 1
+        && parts[31].Length == 1024;
+    Cap(14, "streaming", 8, 4, streamingOk);
 });
 
-// 15. Diagnostics
+// 15. Diagnostics — structural/semantic/recovery/content validation emits diagnostics
 tasks[14] = System.Threading.Tasks.Task.Run(() => {
     var st = VsnStore.Create(Constants.ModeModern);
     st.CreateFile("dg", new byte[]{1});
     var data = st.Commit();
-    var diags = Diagnostic.ValidateWithDiagnostics(data);
-    Cap(15, "diagnostics", 2, 3, diags != null && diags.Count==0 && st.Generation >= 1);
+    var diags = Diagnostic.ValidateWithDiagnostics(data, "Full");
+    Cap(15, "diagnostics", 4, 4, diags != null && diags.Count == 0 && st.Generation >= 1 && st.ListFiles().Count == 1);
 });
 
-// 16. Integrity
+// 16. Integrity — verified report: valid store hashes with 0 errors
 tasks[15] = System.Threading.Tasks.Task.Run(() => {
     var st = VsnStore.Create(Constants.ModeModern);
     st.CreateFile("iv", new byte[]{9});
     var rep = Integrity.VerifyIntegrity(st);
-    Cap(16, "integrity", 2, 4, rep != null && rep.Valid && rep.FileCount==1);
+    Cap(16, "integrity", 5, 4, rep != null && rep.Valid && rep.FileCount == 1 && rep.ObjectCount == 1 && rep.Errors.Count == 0 && rep.ContentHash.Length == 64);
 });
 
-// 17. Storage
+// 17. Storage — storage manager indexes real files/revisions
 tasks[16] = System.Threading.Tasks.Task.Run(() => {
     var st = VsnStore.Create(Constants.ModeModern);
     st.CreateFile("s1", new byte[]{1}); st.CreateFile("s2", new byte[]{2});
     var mgr = new StorageManager(); mgr.BuildIndexes(st);
     var sstats = mgr.Stats(st);
-    Cap(17, "storage", 3, 4, sstats.FileCount==2 && sstats.ObjectCount>=2 && mgr.IsValid);
+    Cap(17, "storage", 5, 4, sstats.FileCount == 2 && sstats.ObjectCount == 2 && sstats.RevisionCount >= 2 && mgr.IsValid);
 });
 
 // 18. Builder
@@ -227,4 +248,9 @@ tasks[18] = System.Threading.Tasks.Task.Run(() => {
 
 System.Threading.Tasks.Task.WaitAll(tasks);
 Console.WriteLine($"SUMMARY pass={passed}/19");
+
+// Storage Policy Corpus tests (P01-P12)
+var corpus = new StoragePolicyCorpus();
+corpus.RunAll();
+
 if (failed > 0) Environment.Exit(1);

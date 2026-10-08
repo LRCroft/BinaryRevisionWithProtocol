@@ -107,11 +107,63 @@ package body VSN is
       return True;
    end Merge_Ok;
    function Import_Bytes (s : in out Store; data : String) return Boolean is
+      pos    : Natural := 8;
+      sp_val : Positive := STORAGE_POLICY_VERTICAL;
    begin
       if data'Length < 8 then return False; end if;
       if data (1..4) /= "VSN-" then return False; end if;
+      -- Scan for REC_STORAGE_POLICY record with FID 0x0901
+      while pos + 6 <= data'Length loop
+         declare rec_type : Positive := Character'Pos(data(pos)) * 256 + Character'Pos(data(pos+1));
+            plen_len : Natural := Character'Pos(data(pos+2));
+            pstart   : Natural := pos + 3;
+         begin
+            if pstart + plen_len > data'Length then exit; end if;
+            if rec_type = REC_STORAGE_POLICY and plen_len >= 3 then
+               declare fid_pos : Natural := pstart;
+               begin
+                  while fid_pos + 3 <= pstart + plen_len loop
+                     if Character'Pos(data(fid_pos)) = 9 and
+                        Character'Pos(data(fid_pos+1)) = 1 then
+                        declare vlen : Natural := Character'Pos(data(fid_pos+2));
+                        begin
+                           if vlen = 1 and fid_pos + 3 <= pstart + plen_len then
+                              sp_val := Character'Pos(data(fid_pos+3));
+                              exit;
+                           end if;
+                        end;
+                     end if;
+                     fid_pos := fid_pos + 1;
+                  end loop;
+               end;
+               s.storage_policy := sp_val;
+            end if;
+            pos := pstart + plen_len;
+         end;
+      end loop;
       return True;
    end Import_Bytes;
+
+   function Export_Bytes (s : Store) return String is
+      use Ada.Strings;
+      result : String(1..40) := (others => Character'Val(0));
+      p : Natural := 1;
+      procedure W(c : Character) is
+      begin if p <= result'Last then result(p) := c; p := p + 1; end if; end W;
+   begin
+      W('V'); W('S'); W('N'); W('-');
+      W(Character'Val(0)); W(Character'Val(1)); -- CFV=1, EV=1
+      W(Character'Val(0)); W(Character'Val(9)); -- REC_STORAGE_POLICY=0x0009
+      W(Character'Val(4)); -- payload length = 4
+      W(Character'Val(9)); W(Character'Val(1)); -- FID_STORAGE_POLICY=0x0901
+      W(Character'Val(1)); -- value length = 1
+      if s.storage_policy >= 1 and s.storage_policy <= 4 then
+         W(Character'Val(s.storage_policy));
+      else
+         W(Character'Val(STORAGE_POLICY_VERTICAL));
+      end if;
+      return result(1..p-1);
+   end Export_Bytes;
    function Export_Len (s : Store) return Natural is
    begin
       return 8;
@@ -132,4 +184,46 @@ package body VSN is
    begin
       return s.mval in MODE_MODERN..MODE_ENTERPRISE;
    end Builder_Ok;
+   -- Storage Policy values -- authoritative classification (directly on wire).
+   -- OBSOLETE: cancelled mode mapping removed; no wire mode inference.
+   function Create_With_Policy (policy : Positive) return Store is
+      s : Store;
+   begin
+      s.mval := MODE_MODERN;
+      s.storage_policy := policy;
+      return s;
+   end Create_With_Policy;
+   function Get_Storage_Policy (s : Store) return Positive is
+   begin
+      return s.storage_policy;
+   end Get_Storage_Policy;
+
+    -- Encode a container with StoragePolicy record (canonical format).
+    function Encode_With_Policy (mode : Positive; gen : Positive; sp : Positive) return String is
+       use Ada.Strings;
+       result : String(1..64) := (others => Character'Val(0));
+       pos    : Natural := 1;
+       procedure Emit(c : Character) is
+       begin
+          if pos <= result'Last then
+             result(pos) := c;
+             pos := pos + 1;
+          end if;
+       end Emit;
+    begin
+       Emit('V'); Emit('S'); Emit('N'); Emit('-');
+       Emit(Character'Val(0)); Emit(Character'Val(1));
+       Emit(Character'Val(0)); Emit(Character'Val(1));
+       Emit(Character'Val(0)); Emit(Character'Val(9));
+       Emit(Character'Val(4));
+       Emit(Character'Val(9)); Emit(Character'Val(1));
+       Emit(Character'Val(1));
+       if sp >= 1 and sp <= 4 then
+          Emit(Character'Val(sp));
+       else
+          Emit(Character'Val(2));
+       end if;
+       return result(1..pos-1);
+    end Encode_With_Policy;
+
 end VSN;

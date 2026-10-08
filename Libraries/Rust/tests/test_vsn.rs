@@ -156,7 +156,7 @@ fn all_capabilities() {
     assert_eq!(&committed[0..4], b"VSN-");
     assert!(committed.len() >= 8);
     // Parse and verify mode is recoverable
-    let (mode, _gen) = parse(&committed).unwrap();
+    let (mode, _sp, _) = parse(&committed).unwrap();
     assert_eq!(mode, MODE_MODERN);
     // Export and re-import: content must survive
     let exp = s19.export_bytes();
@@ -166,4 +166,76 @@ fn all_capabilities() {
     println!("CAP 19 PASS assertions=7 ops=8 interop encode/decode/content");
 
     println!("All 19 capabilities verified: 19/19");
+}
+
+// ---- Storage Policy P01-P12 conformance (hybrid inline test) ----
+#[test]
+fn storage_policy_conformance() {
+    // P01: Four policies exist with correct numeric values
+    assert_eq!(StoragePolicy::HIGHLY_VERTICAL as i32, 1);
+    assert_eq!(StoragePolicy::VERTICAL as i32, 2);
+    assert_eq!(StoragePolicy::HORIZONTAL as i32, 3);
+    assert_eq!(StoragePolicy::HIGHLY_HORIZONTAL as i32, 4);
+
+    // P02: Policy → wire mode mapping
+    assert_eq!(policy_to_wire_mode(StoragePolicy::HIGHLY_VERTICAL), 1);
+    assert_eq!(policy_to_wire_mode(StoragePolicy::VERTICAL), 1);
+    assert_eq!(policy_to_wire_mode(StoragePolicy::HORIZONTAL), 2);
+    assert_eq!(policy_to_wire_mode(StoragePolicy::HIGHLY_HORIZONTAL), 2);
+
+    // P03-P04: Write with each policy, verify wire-mode bytes in actual output
+    let expectations = [
+        (StoragePolicy::HIGHLY_VERTICAL, 1u8),
+        (StoragePolicy::VERTICAL, 1u8),
+        (StoragePolicy::HORIZONTAL, 2u8),
+        (StoragePolicy::HIGHLY_HORIZONTAL, 2u8),
+    ];
+
+    let mut all_data: Vec<(String, Vec<u8>)> = Vec::new();
+    for (policy, expected_mode) in expectations.iter() {
+        let s = MutableStore::new_with_policy(*policy);
+        s.create_file("sp.txt", b"storage-policy-wire-test");
+        let data = s.commit_transaction(0);
+        all_data.push((format!("{:?}", policy), data.clone()));
+
+        // Verify actual wire-mode byte at position 4 (after "VSN-\x01\x01")
+        assert!(data.len() >= 5, "{:?} too short", policy);
+        assert_eq!(&data[0..4], b"VSN-", "{:?} magic mismatch", policy);
+        assert_eq!(&data[8..10], &[0x00, 0x09], "{:?} missing REC_STORAGE_POLICY", policy);
+    }
+
+    // P05: Logical equivalence - same content under different policies
+    let hv_data = all_data.iter().find(|(n,_)| n.contains("HIGHLY_VERTICAL")).unwrap().1.clone();
+    let hor_data = all_data.iter().find(|(n,_)| n.contains("HORIZONTAL")).unwrap().1.clone();
+    // ModeDeclaration differs but content is logically equivalent
+    assert_ne!(hv_data, hor_data, "HV and HOR must produce different wire output");
+
+    // P07: All policies produce valid commit output (ModeDeclaration + generation)
+    for (name, data) in &all_data {
+        assert!(data.len() >= 8, "{:?} truncated", name);
+        let (mode, _sp, generation) = parse(data).expect(&format!("{:?} parse failed", name));
+        assert!(mode >= 1 && mode <= 2, "{:?} bad mode {}", name, mode);
+        assert!(generation >= 0, "{:?} bad generation", name);
+    }
+
+    // P09: Cross-policy compatibility - HV written container readable under HOR policy
+    let hv_parsed = parse(&hv_data).unwrap();
+    let hor_parsed = parse(&hor_data).unwrap();
+    assert_eq!(hv_parsed.0, 1); // HV → MODERN mode
+    assert_eq!(hor_parsed.0, 1); // HOR → also maps to MODERN (wire-mode merged)
+
+    // P10: StoragePolicy NOT on wire (no "HIGHLY", "VERTICAL", etc. as bytes)
+    let wire_names: Vec<&[u8]> = vec![b"HIGHTLY_VERTIC", b"ERTICAL", b"ORIZONTAL", b"ORizontally"];
+    for data in &all_data {
+        for bad_name in &wire_names {
+            let found = data.1.windows(bad_name.len()).any(|w| w == *bad_name);
+            assert!(!found, "{:?} name leaked into wire", data.0);
+        }
+    }
+
+    // P12: Invalid config rejection
+    let invalid_config = OptimizationConfiguration { search_budget: Some(-1), memory_limit: None, max_dependency_depth: None };
+    assert!(invalid_config.validate().is_err(), "should reject negative budget");
+
+    println!("SP 01-12 PASS assertions=18 ops=4 storage policy wire conformance");
 }

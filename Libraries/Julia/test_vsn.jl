@@ -90,3 +90,29 @@ for i in 1:19
 end
 println("SUMMARY $(19 - length(failed))/19")
 isempty(failed) || exit(1)
+
+# ---- Storage Policy P01-P12 inline wire test ----
+const MODE_MAP = Dict("HIGHLY_VERTICAL"=>1, "VERTICAL"=>1, "HORIZONTAL"=>2, "HIGHLY_HORIZONTAL"=>2)
+sp_fail = false
+all_wire = Vector{Vector{UInt8}}()
+for (name, mode) in MODE_MAP
+    s = MutableStore(Int(mode))
+    fid = create_file!(s, "sp.txt", UInt8[0x73,0x70])  # hex of "sp"
+    content = Vector{UInt8}("storage-policy-wire-test")
+    write_file!(s, fid, content)
+    data = commit(s)
+    push!(all_wire, data)
+    if length(data)<9 || String(data[1:4])!="VSN-" || data[9]!=UInt8(0x00) || data[10]!=UInt8(0x09)
+        println("P03/P04 $name failed"); global sp_fail=true; continue
+    end
+end
+
+# SP wire check
+if length(all_wire) >= 3
+  has_sp = all(1:3) do i; all_wire[i][9] == UInt8(0x00) && all_wire[i][10] == UInt8(0x09); end
+  if !has_sp; global sp_fail = true; println("P05 missing SP record"); end
+end
+println(sp_fail ? "SP FAILED" : "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance")
+if sp_fail
+    exit(1)
+end

@@ -8,6 +8,44 @@ Static specification site and documentation generator for the **Binary Revision 
 - `docs.html` — generated specification output (do not edit by hand; regenerate from the generator).
 - `index.html`, `style.css`, `script.js` — static site shell. `index.html` and the top of `docs.html` present VSN Mode (MODERN / Vertical and ENTERPRISE / Horizontal) as a first-class architectural concept; both link to the normative Section 11.
 - `Libraries/` — VSN Library implementations across 31 language targets. All 31 have genuine capability tests (Tier 2) and thread-safe stores (Tier 3). **31/31 fully verified** via conformance runner (2026-10-06 full suite: 31/31 VERIFIED, 0 NOT_VERIFIED) with all 19 capabilities passing. COBOL is the exception: no native threading, so Tier 2 is sequential and Tier 3 is documented as a limitation.
+
+## Canonical Library Layout Rule (HARD RULE — READ THIS FIRST)
+
+```
+Libraries/X          ← ONLY valid location for VSN-1 language implementation code
+                       X = one of the 31 language directory names
+                       Examples: Libraries/C, Libraries/Python, Libraries/Rust
+```
+
+**Every VSN-1 Library implementation and every language-specific test must live under `Libraries/<CanonicalLanguage>` ONLY.**
+
+The repository MUST NOT contain duplicate or competing VSN Library implementations under any of these locations:
+
+- `Work/X`, `work/X` — not a valid library root
+- `Libraries/Library`, `Libraries/Libraries` — not canonical language roots
+- `src/X`, `tests/X`, `test/X`, `examples/X`, `Samples/X` — not library locations
+- Any other parallel or nested directory outside `Libraries/<CanonicalLanguage>`
+
+### Conformance runner path rule
+The conformance runner at `Libraries/Conformance/run_conformance.py` resolves each language's source by:
+1. Mounting the repository root as `/work` inside Docker
+2. Setting work_dir to **`/work/<LanguageDirectory>`** (where `<LanguageDirectory>` is exactly the second path component)
+
+Example for Python:
+```
+host_mount  = /path/to/Libraries              # Libraries/ only, NOT Libraries/TestVectors
+work_dir    = /work/Python                     # Library/X, NOT Libraries/Libraries/X or work/Libraries/X
+result_path = /work/Python/conformance_test.py
+```
+
+**The ONLY valid work_subdir values are the direct child directory names under `Libraries/`.** They must match exactly:
+`Ada, C, COBOL, CSharp, Cpp, Crystal, D, Dart, Elixir, Erlang, FSharp, Fortran, Go, Haskell, Java, JavaScript-TypeScript, Julia, Kotlin, Lua, Nim, Objective-C, OCaml, Perl, PHP, Python, R, Ruby, Rust, Scala, Swift, Zig`.
+
+**Future agents MUST NOT:**
+- Create VSN Library implementations outside `Libraries/X`
+- Add fallback paths to the conformance runner that discover duplicates
+- Maintain multiple copies of the same language implementation
+- Place test files for a specific language outside its canonical directory
 - `docs_part1.html` — historical/candidate material only. **Non-authoritative; MUST NOT be promoted automatically.**
 
 ## Specification state

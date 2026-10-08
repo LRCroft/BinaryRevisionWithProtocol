@@ -100,4 +100,14 @@ StorageStats storage_stats(const VsnContainer* c) {
 void tx_commit(VsnContainer* c, VsnTx& tx) { throw_if(vsn_tx_commit(c, &tx)); }
 void tx_rollback(VsnTx& tx) { throw_if(vsn_tx_rollback(&tx)); }
 
+// ---- Storage Policy integration ----
+
+VsnContainer* create_with_storage_policy_raw(int policy, int /*default_mode*/) {
+    // Canonical writer: delegates to C vsn_create_with_policy which emits REC_STORAGE_POLICY.
+    int val = policy;
+    if (val < 1 || val > 4) val = static_cast<int>(STORAGE_HIGHLY_VERTICAL);
+    return vsn_create_with_policy(val);
+}
+
+
 }  // namespace vsn

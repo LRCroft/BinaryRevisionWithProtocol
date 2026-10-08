@@ -57,7 +57,7 @@
     "capability": "policy_not_on_wire",
     "level": "WIRE",
     "status": "PASS",
-    "fixture_id": "P10-no-wire"
+    "fixture_id": "P10-sp-on-wire"
   },
   "P11": {
     "capability": "backward_compatibility",

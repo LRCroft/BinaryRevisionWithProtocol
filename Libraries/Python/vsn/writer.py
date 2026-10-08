@@ -39,8 +39,8 @@ def encode(mode: int, records: list, objects: list, generation: int) -> bytes:
         out += descriptor
     out += put_uvarint(0)      # end-of-objects marker
 
-    # GR-13: canonical record count excludes ModeDeclaration (structural marker)
-    canonical_count = sum(1 for rtype, _ in records if rtype != C.REC_MODE_DECLARATION)
+    # GR-13: canonical record count includes all non-end-of-records records
+    canonical_count = len(records)
     out += put_uvarint(canonical_count)
     out += put_uvarint(generation)     # accepting generation
     return bytes(out)

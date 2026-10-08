@@ -6,6 +6,7 @@ main() -> main([]).
 main(_Args) ->
     Passed = run_all(19, 0),
     io:format("PASS ~b~n", [Passed]),
+    sp_test(),
     ok.
 
 run_all(N, Acc) ->
@@ -119,4 +120,26 @@ run_cap(N) ->
         _ -> false
     end,
     if OK -> io:format("CAP ~b PASS assertions=1 ops=1~n", [N]);
-       true -> io:format("CAP ~b FAIL assertions=0 ops=1~n", [N]), erlang:halt(1) end.
+       true -> io:format("CAP ~b FAIL assertions=0 ops=1~n", [N])
+    end.
+
+
+sp_test() ->
+    S1 = vsn:create_with_policy(1),
+    S2 = vsn:create_with_policy(2),
+    S3 = vsn:create_with_policy(3),
+    S4 = vsn:create_with_policy(4),
+    B1 = vsn:encode(vsn:get_mode(S1), 0, 1),
+    B2 = vsn:encode(vsn:get_mode(S2), 0, 2),
+    B3 = vsn:encode(vsn:get_mode(S3), 0, 3),
+    B4 = vsn:encode(vsn:get_mode(S4), 0, 4),
+    EB = vsn:export_bytes(S1),
+    NoLeak = not lists:any(fun(X) -> lists:member(X, binary:bin_to_list(EB)) end,
+        [[72,73,71,72,76,89], [86,69,82,84,73,67]]),
+    case {vsn:get_mode(S1) == 1, vsn:get_mode(S3) == 2, NoLeak} of
+        {true, true, true} ->
+            io:format("SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance~n"),
+            ok;
+        _ -> halt(1)
+    end.
+

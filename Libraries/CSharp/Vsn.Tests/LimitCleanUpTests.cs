@@ -240,7 +240,7 @@ public class LimitCleanUpTests
         {
             Constants.RecFileIdentity, Constants.RecRevision, Constants.RecRevisionSet,
             Constants.RecFileHead, Constants.RecContentObject, Constants.RecCommitMarker,
-            Constants.RecModeDeclaration, Constants.RecRepresentationDescriptor,
+            Constants.RecStoragePolicy, Constants.RecRepresentationDescriptor,
         };
         foreach (var rec in ContainerParser.Parse(store.Commit()).Records)
             Assert.Contains(rec.RType, allowed);

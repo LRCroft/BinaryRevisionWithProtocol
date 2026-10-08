@@ -208,5 +208,6 @@ type Container struct {
 	TrailerGeneration      uint64
 	Mode                   uint8
 	HasMode                bool
+	StoragePolicy          int // direct StoragePolicy value (1..4) from REC_STORAGE_POLICY
 	ByteLength             int
 }

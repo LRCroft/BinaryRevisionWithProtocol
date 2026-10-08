@@ -18,41 +18,43 @@
     },
     {
       "id": "P02",
-      "name": "policy_to_wire_mode",
-      "level": "API",
-      "description": "Each policy deterministically resolves to a single wire mode via effective_wire_mode / resolve_wire_mode.",
-      "mappings": {
-        "HIGHLY_VERTICAL": {"wire_mode": "MODERN", "byte": 1},
-        "VERTICAL":        {"wire_mode": "MODERN", "byte": 1},
-        "HORIZONTAL":      {"wire_mode": "ENTERPRISE", "byte": 2},
-        "HIGHLY_HORIZONTAL": {"wire_mode": "ENTERPRISE", "byte": 2}
-      },
+      "name": "storage_policy_wire_encoding",
+      "level": "WIRE",
+      "description": "Storage Policy value is directly encoded in .vsn via REC_STORAGE_POLICY (0x0009) / FID_STORAGE_POLICY (0x0901). No MODERN/ENTERPRISE mapping.",
       "expected_semantics": {
-        "none_returns_none": true,
-        "explicit_constraint_matching": true,
-        "conflict_detection": true
+        "direct_encoding": true,
+        "no_wire_mode_mapping": true,
+        "policy_value_matches_expected": true,
+        "record_type_is_0x0009": true,
+        "field_id_is_0x0901": true
       },
-      "test_pattern": "WriterOptions(storage_policy=X).effective_wire_mode == expected_byte"
+      "wire_constraints": [
+        {"policy": "HIGHLY_VERTICAL",   "expected_policy": 1, "fixture": "policy-highly_vertical.vsn"},
+        {"policy": "VERTICAL",          "expected_policy": 2, "fixture": "policy-vertical.vsn"},
+        {"policy": "HORIZONTAL",        "expected_policy": 3, "fixture": "policy-horizontal.vsn"},
+        {"policy": "HIGHLY_HORIZONTAL", "expected_policy": 4, "fixture": "policy-highly_horizontal.vsn"}
+      ],
+      "test_pattern": "parse(.vsn) -> find REC_STORAGE_POLICY record (0x0009) with FID_STORAGE_POLICY (0x0901) == expected policy value"
     },
     {
       "id": "P03",
-      "name": "mode_declaration_bytes",
+      "name": "storage_policy_in_container",
       "level": "WIRE",
-      "description": "Actual VSN containers produced under each policy carry the correct ModeDeclaration (ModeDeclaration record with FID_MODE=0x0701 value).",
+      "description": "Actual VSN containers produced under each policy carry the correct REC_STORAGE_POLICY record (record type 0x0009 with field FID_STORAGE_POLICY=0x0901). No ModeDeclaration used.",
       "fixture_prefix": "policy-",
       "expected_semantics": {
-        "mode_field_present": true,
-        "mode_fid": 2817,
-        "allowed_mode_values": [1, 2],
-        "no_reserved_values_in_wire": [0, 3, 4]
+        "storage_policy_field_present": true,
+        "storage_policy_fid": 2305,
+        "valid_storage_policy_values": [1, 2, 3, 4],
+        "no_mode_declaration_on_wire": true
       },
       "wire_constraints": [
-        {"policy": "HIGHLY_VERTICAL",   "expected_mode": 1, "fixture": "policy-highly_vertical.vsn"},
-        {"policy": "VERTICAL",          "expected_mode": 1, "fixture": "policy-vertical.vsn"},
-        {"policy": "HORIZONTAL",        "expected_mode": 2, "fixture": "policy-horizontal.vsn"},
-        {"policy": "HIGHLY_HORIZONTAL", "expected_mode": 2, "fixture": "policy-highly_horizontal.vsn"}
+        {"policy": "HIGHLY_VERTICAL",   "expected_policy": 1, "fixture": "policy-highly_vertical.vsn"},
+        {"policy": "VERTICAL",          "expected_policy": 2, "fixture": "policy-vertical.vsn"},
+        {"policy": "HORIZONTAL",        "expected_policy": 3, "fixture": "policy-horizontal.vsn"},
+        {"policy": "HIGHLY_HORIZONTAL", "expected_policy": 4, "fixture": "policy-highly_horizontal.vsn"}
       ],
-      "test_pattern": "parse(.vsn) -> records with ModeDeclaration record containing mode byte == expected"
+      "test_pattern": "parse(.vsn) -> find REC_STORAGE_POLICY record (0x0009); verify no ModeDeclaration record; value matches expected policy"
     },
     {
       "id": "P04",

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -80,9 +80,9 @@ Application
             <li><a href="#lib-checkout"><span class="mono">15</span> Checkout, snapshot, and restore</a></li>
             <li><a href="#lib-import-export"><span class="mono">16</span> Import and export</a></li>
             <li><a href="#lib-streaming"><span class="mono">17</span> Streaming and large files</a></li>
-            <li><a href="#lib-modern"><span class="mono">18</span> Modern mode</a></li>
-            <li><a href="#lib-enterprise"><span class="mono">19</span> Enterprise mode</a></li>
-            <li><a href="#lib-storage"><span class="mono">20</span> Storage optimization</a></li>
+            <li><a href="#lib-storage-policies"><span class="mono">18</span> Storage Policies</a></li>
+            <li><a href="#lib-storage-optimization"><span class="mono">19</span> Storage Optimization</a></li>
+            <li><a href="#lib-storage"><span class="mono">20</span> Physical storage management</a></li>
             <li><a href="#lib-gc"><span class="mono">21</span> Garbage collection</a></li>
             <li><a href="#lib-integrity"><span class="mono">22</span> Integrity and security</a></li>
             <li><a href="#lib-forward-compat"><span class="mono">23</span> Forward compatibility</a></li>
@@ -115,40 +115,40 @@ Application
           <p class="section-lede">These are the <strong>31 language targets</strong> for the VSN Library API. Language support is a property of the <strong>implementation layer</strong>, not of the container format: every conforming binding targets the same API surface over the same <code class="inline-code">.vsn</code> semantics. The terms below describe the <em>intended</em> idiomatic shape of each binding, expressed in terminology natural to that language.</p>
           <div class="doc-notice">This section is deliberately separate from representation support. A programming language is <strong>not</strong> a VSN representation, and a binding is <strong>not</strong> a different VSN format. All 31 targets read and write one format governed by one specification. Supported representations are <code class="inline-code">DIRECT-1</code> and <code class="inline-code">EXTENTS-1</code>, described in the Representation management section.</div>
           <div class="grid libraries-grid">
-            <article><h3>C</h3><p class="muted">Native C library + C ABI</p><dl class="lang-detail"><dt>API surface</dt><dd>Handle-based container, file, revision, and object calls</dd><dt>Data &amp; streaming</dt><dd>Buffered and chunked I/O with bounded memory</dd><dt>Validation &amp; recovery</dt><dd>Verify and recover entry points</dd></dl><p><span class="spec-tag">Library-Complete</span></p></article>
-            <article><h3>C#</h3><p class="muted">.NET class library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Stream and async-enumerable I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover APIs</dd></dl><p><span class="spec-tag">Library-Complete</span></p></article>
-            <article><h3>C++</h3><p class="muted">Native C++ library</p><dl class="lang-detail"><dt>API surface</dt><dd>RAII container and object types</dd><dt>Data &amp; streaming</dt><dd>Stream and span-based I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover APIs</dd></dl><p><span class="spec-tag">Library-Complete</span></p></article>
-            <article><h3>Java</h3><p class="muted">Java library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Stream and channel I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover APIs</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Python</h3><p class="muted">Python package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Iterator and generator based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Library-Complete</span></p></article>
-            <article><h3>Rust</h3><p class="muted">Rust crate</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>std::io::Read and Write traits</dd><dt>Validation &amp; recovery</dt><dd>Result-based validate and recover</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Go</h3><p class="muted">Go package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>io.Reader and io.Writer based I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate levels and Recover APIs</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>JavaScript / TypeScript</h3><p class="muted">Node.js package with TypeScript types</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object classes</dd><dt>Data &amp; streaming</dt><dd>Stream and async-iterable I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover methods</dd></dl><p><span class="spec-tag">Library-Complete</span></p></article>
-            <article><h3>Julia</h3><p class="muted">Julia package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Channel and task based streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>R</h3><p class="muted">R package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object objects</dd><dt>Data &amp; streaming</dt><dd>Connection and stream based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Ada</h3><p class="muted">Ada library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object record types</dd><dt>Data &amp; streaming</dt><dd>Stream access and sequential I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover subprograms</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Kotlin</h3><p class="muted">Kotlin/JVM library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Coroutine flow and stream I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover APIs</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Swift</h3><p class="muted">Swift package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Async sequence and stream I/O</dd><dt>Validation &amp; recovery</dt><dd>Throwing validate and recover</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>D</h3><p class="muted">D library</p><dl class="lang-detail"><dt>API surface</dt><dd>Struct-based Container and File types</dd><dt>Data &amp; streaming</dt><dd>Range and iterator streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Zig</h3><p class="muted">Zig package</p><dl class="lang-detail"><dt>API surface</dt><dd>Struct-based Container and File types</dd><dt>Data &amp; streaming</dt><dd>Reader, writer, and allocator-aware I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Fortran</h3><p class="muted">Fortran module</p><dl class="lang-detail"><dt>API surface</dt><dd>Derived-type Container and File</dd><dt>Data &amp; streaming</dt><dd>Stream and array based I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover subroutines</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>COBOL</h3><p class="muted">COBOL program interface</p><dl class="lang-detail"><dt>API surface</dt><dd>Record-based Container and File layout</dd><dt>Data &amp; streaming</dt><dd>Sequential and indexed file access</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover verbs</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Objective-C</h3><p class="muted">Objective-C framework</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object classes</dd><dt>Data &amp; streaming</dt><dd>Stream-based I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover methods</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>PHP</h3><p class="muted">PHP package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object classes</dd><dt>Data &amp; streaming</dt><dd>Resource and generator based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover methods</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Ruby</h3><p class="muted">Ruby gem</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object classes</dd><dt>Data &amp; streaming</dt><dd>IO, Enumerable, and fiber streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover methods</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Dart</h3><p class="muted">Dart package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Stream and controller based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Scala</h3><p class="muted">Scala library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Lazy collection and stream I/O</dd><dt>Validation &amp; recovery</dt><dd>Total-function validate and recover</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Lua</h3><p class="muted">Lua module</p><dl class="lang-detail"><dt>API surface</dt><dd>Table-based Container and File bindings</dd><dt>Data &amp; streaming</dt><dd>File handle and coroutine streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Elixir</h3><p class="muted">Elixir package</p><dl class="lang-detail"><dt>API surface</dt><dd>Struct-based Container and File types</dd><dt>Data &amp; streaming</dt><dd>Stream and task based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Erlang</h3><p class="muted">Erlang application</p><dl class="lang-detail"><dt>API surface</dt><dd>Process-backed container and file types</dd><dt>Data &amp; streaming</dt><dd>Binary and list streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Haskell</h3><p class="muted">Haskell package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container and File operations as values</dd><dt>Data &amp; streaming</dt><dd>Lazy and strict byte-stream I/O</dd><dt>Validation &amp; recovery</dt><dd>Sum-based validate and recover</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>OCaml</h3><p class="muted">OCaml library</p><dl class="lang-detail"><dt>API surface</dt><dd>Module-based Container and File</dd><dt>Data &amp; streaming</dt><dd>Sequence and channel streaming</dd><dt>Validation &amp; recovery</dt><dd>Result-based validate and recover</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>F#</h3><p class="muted">.NET F# library</p><dl class="lang-detail"><dt>API surface</dt><dd>Discriminated-result API surface</dd><dt>Data &amp; streaming</dt><dd>Stream and task based I/O</dd><dt>Validation &amp; recovery</dt><dd>Result-based validate and recover</dd></dl><p><span class="spec-tag">Library-Complete</span></p></article>
-            <article><h3>Nim</h3><p class="muted">Nim library</p><dl class="lang-detail"><dt>API surface</dt><dd>Object-based Container and File types</dd><dt>Data &amp; streaming</dt><dd>Stream, async, and channel I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover procs</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Crystal</h3><p class="muted">Crystal shard</p><dl class="lang-detail"><dt>API surface</dt><dd>Container and File classes</dd><dt>Data &amp; streaming</dt><dd>IO, channel, and fiber streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover methods</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
-            <article><h3>Perl</h3><p class="muted">Perl distribution</p><dl class="lang-detail"><dt>API surface</dt><dd>Package-based Container and File classes</dd><dt>Data &amp; streaming</dt><dd>Filehandle and iterator streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover subs</dd></dl><p><span class="spec-tag">Conformance Partial</span></p></article>
+            <article><h3>C</h3><p class="muted">Native C library + C ABI</p><dl class="lang-detail"><dt>API surface</dt><dd>Handle-based container, file, revision, and object calls</dd><dt>Data &amp; streaming</dt><dd>Buffered and chunked I/O with bounded memory</dd><dt>Validation &amp; recovery</dt><dd>Verify and recover entry points</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>C#</h3><p class="muted">.NET class library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Stream and async-enumerable I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover APIs</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>C++</h3><p class="muted">Native C++ library</p><dl class="lang-detail"><dt>API surface</dt><dd>RAII container and object types</dd><dt>Data &amp; streaming</dt><dd>Stream and span-based I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover APIs</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Java</h3><p class="muted">Java library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Stream and channel I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover APIs</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Python</h3><p class="muted">Reference implementation + Writer Storage Policy API</p><dl class="lang-detail"><dt>API surface</dt><dd>VsnStore, Transaction, StoragePolicy, WireMode, WriterOptions, OptimizationConfiguration</dd><dt>Data &amp; streaming</dt><dd>Iterator and generator based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate/recover with diagnostics + marker-based RC-01..RC-45</dd></dl><p><span class="spec-tag">Library-Complete: 189 tests passing (37 CAP Storage Policy)</span></p></article>
+            <article><h3>Rust</h3><p class="muted">Rust crate</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Read, Iterator, and Stream traits</dd><dt>Validation &amp; recovery</dt><dd>Result-based validate and recover</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Go</h3><p class="muted">Go package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Reader-style and cancellable I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover methods</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>JavaScript / TypeScript</h3><p class="muted">Node.js package with TypeScript types</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object classes</dd><dt>Data &amp; streaming</dt><dd>Stream and async-iterable I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover methods</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Julia</h3><p class="muted">Julia package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Channel and task based streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>R</h3><p class="muted">R package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object objects</dd><dt>Data &amp; streaming</dt><dd>Connection and stream based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Ada</h3><p class="muted">Ada library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object record types</dd><dt>Data &amp; streaming</dt><dd>Stream access and sequential I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover subprograms</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Kotlin</h3><p class="muted">Kotlin/JVM library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Coroutine flow and stream I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover APIs</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Swift</h3><p class="muted">Swift package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Async sequence and stream I/O</dd><dt>Validation &amp; recovery</dt><dd>Throwing validate and recover</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>D</h3><p class="muted">D library</p><dl class="lang-detail"><dt>API surface</dt><dd>Struct-based Container and File types</dd><dt>Data &amp; streaming</dt><dd>Range and iterator streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Zig</h3><p class="muted">Zig package</p><dl class="lang-detail"><dt>API surface</dt><dd>Struct-based Container and File types</dd><dt>Data &amp; streaming</dt><dd>Reader, writer, and allocator-aware I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Fortran</h3><p class="muted">Fortran module</p><dl class="lang-detail"><dt>API surface</dt><dd>Derived-type Container and File</dd><dt>Data &amp; streaming</dt><dd>Stream and array based I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover subroutines</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>COBOL</h3><p class="muted">COBOL program interface</p><dl class="lang-detail"><dt>API surface</dt><dd>Record-based Container and File layout</dd><dt>Data &amp; streaming</dt><dd>Sequential and indexed file access</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover verbs</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Objective-C</h3><p class="muted">Objective-C framework</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object classes</dd><dt>Data &amp; streaming</dt><dd>Stream-based I/O</dd><dt>Validation &amp; recovery</dt><dd>Validate and Recover methods</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>PHP</h3><p class="muted">PHP package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object classes</dd><dt>Data &amp; streaming</dt><dd>Resource and generator based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover methods</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Ruby</h3><p class="muted">Ruby gem</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object classes</dd><dt>Data &amp; streaming</dt><dd>IO, Enumerable, and fiber streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover methods</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Dart</h3><p class="muted">Dart package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Stream and controller based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Scala</h3><p class="muted">Scala library</p><dl class="lang-detail"><dt>API surface</dt><dd>Container, File, Revision, Object types</dd><dt>Data &amp; streaming</dt><dd>Lazy collection and stream I/O</dd><dt>Validation &amp; recovery</dt><dd>Total-function validate and recover</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Lua</h3><p class="muted">Lua module</p><dl class="lang-detail"><dt>API surface</dt><dd>Table-based Container and File bindings</dd><dt>Data &amp; streaming</dt><dd>File handle and coroutine streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Elixir</h3><p class="muted">Elixir package</p><dl class="lang-detail"><dt>API surface</dt><dd>Struct-based Container and File types</dd><dt>Data &amp; streaming</dt><dd>Stream and task based I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Erlang</h3><p class="muted">Erlang application</p><dl class="lang-detail"><dt>API surface</dt><dd>Process-backed container and file types</dd><dt>Data &amp; streaming</dt><dd>Binary and list streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover functions</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Haskell</h3><p class="muted">Haskell package</p><dl class="lang-detail"><dt>API surface</dt><dd>Container and File operations as values</dd><dt>Data &amp; streaming</dt><dd>Lazy and strict byte-stream I/O</dd><dt>Validation &amp; recovery</dt><dd>Sum-based validate and recover</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>OCaml</h3><p class="muted">OCaml library</p><dl class="lang-detail"><dt>API surface</dt><dd>Module-based Container and File</dd><dt>Data &amp; streaming</dt><dd>Sequence and channel streaming</dd><dt>Validation &amp; recovery</dt><dd>Result-based validate and recover</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>F#</h3><p class="muted">.NET F# library</p><dl class="lang-detail"><dt>API surface</dt><dd>Discriminated-result API surface</dd><dt>Data &amp; streaming</dt><dd>Stream and task based I/O</dd><dt>Validation &amp; recovery</dt><dd>Result-based validate and recover</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Nim</h3><p class="muted">Nim library</p><dl class="lang-detail"><dt>API surface</dt><dd>Object-based Container and File types</dd><dt>Data &amp; streaming</dt><dd>Stream, async, and channel I/O</dd><dt>Validation &amp; recovery</dt><dd>validate and recover procs</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Crystal</h3><p class="muted">Crystal shard</p><dl class="lang-detail"><dt>API surface</dt><dd>Container and File classes</dd><dt>Data &amp; streaming</dt><dd>IO, channel, and fiber streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover methods</dd></dl><p><span class="spec-tag">Planned</span></p></article>
+            <article><h3>Perl</h3><p class="muted">Perl distribution</p><dl class="lang-detail"><dt>API surface</dt><dd>Package-based Container and File classes</dd><dt>Data &amp; streaming</dt><dd>Filehandle and iterator streaming</dd><dt>Validation &amp; recovery</dt><dd>validate and recover subs</dd></dl><p><span class="spec-tag">Planned</span></p></article>
           </div>
           <p>Each binding targets the Library API surface documented in the following sections: open and create, read and write, file operations, revision operations, object operations, representation handling, validation, recovery, diff and comparison, import and export, storage management, and diagnostics. Those capabilities are documented once, below, rather than repeated per language.</p>
-          <p><strong>Status.</strong> Python, C#, JavaScript / TypeScript, C, C++, and F# are <strong>Library-Complete</strong> — each has a passing implementation of the full documented library API, frozen-vector protocol conformance, an executed LimitCleanUp history-retention probe, and byte-level cross-language interoperability. The remaining 25 targets are <em>Conformance Partial</em>: all PASS protocol conformance, library tests, and interoperability; LibraryAPI under verification. Command-line tools, workbenches, editor integrations, and diagnostic applications are separate from these language bindings and are not part of this list.</p>
+          <p><strong>Status.</strong> Every target above is <em>Planned</em>. No binding listed here is implemented, and this repository contains the specification and its generated documentation only. Command-line tools, workbenches, editor integrations, and diagnostic applications are separate from these language bindings and are not part of this list.</p>
           <p><a href="#top">Back to top</a></p>
         </div>
       </section>
@@ -211,21 +211,7 @@ It does not create a new FileId.</code></pre>
   -&gt; RevisionId
   -&gt; ContentRef
   -&gt; ObjectSerial</code></pre>
-          </div>
-          <h3 class="subhead">History Retention &mdash; LimitCleanUp</h3>
-          <p><code class="inline-code">LimitCleanUp(fileId, N)</code> is a Library-level history-retention capability. It is <strong>not</strong> part of the VSN-1 wire protocol and introduces no new protocol RecordType, FieldId, representation, error identifier, or canonical binary semantic.</p>
-          <p><strong>Purpose.</strong> Retain exactly the newest N revisions for one specific <code class="inline-code">FileId</code> and remove all older revisions from the Library&rsquo;s accessible revision history. Per-file only: it MUST NOT affect other FileIds.</p>
-          <p><strong>Ordering.</strong> Filter revisions by FileId first, then order by ascending RevisionId. Because VSN-1 RevisionId values are permanently non-recyclable and the Revision record has no parent field, ascending RevisionId represents creation order.</p>
-          <p><strong>Limit rules.</strong> N &ge; 1 is valid. N = 0 is rejected using the existing frozen error <code class="inline-code">0x000C INVALID_CANONICAL_STATE</code>. Where the language supports signed values, negative values are rejected with the same error. C# uses <code class="inline-code">ulong</code>, so negative values are not representable at the API type level.</p>
-          <p><strong>FileHead.</strong> After cleanup, FileHead references the newest retained revision. It never dangles. If one revision remains, FileHead points to it. If no revisions were removed, FileHead remains unchanged.</p>
-          <p><strong>Deleted revisions.</strong> Removed revisions become genuinely unavailable: <code class="inline-code">get_revision()</code>, <code class="inline-code">checkout_revision()</code>, and <code class="inline-code">restore_revision()</code> raise the existing <code class="inline-code">0x0009</code> error. <code class="inline-code">get_object_serial(fileId, deletedRevision)</code> returns <code class="inline-code">None</code>/<code class="inline-code">null</code> and never returns a stale ObjectSerial.</p>
-          <p><strong>Object lifetime.</strong> <em>LimitCleanUp does NOT garbage-collect objects.</em> Removing a revision does not remove its ContentObject. Objects that remain physically present stay materializable. EXTENTS-1 COPY dependencies must not be broken. Canonical object garbage collection (Section 21) is a separate capability: <code class="inline-code">revision deletion &ne; object garbage collection</code>.</p>
-          <p><strong>Persistence and recovery.</strong> Mutates Library state, persisted through the normal commit mechanism. Recovery works from canonical state alone. Indexes and caches remain derived data.</p>
-          <p><strong>Transactions.</strong> Immediate Library mutation, not staged inside a Transaction. A prior LimitCleanUp is not undone by <code class="inline-code">rollback()</code>. <code class="inline-code">ExpectedRevisionId</code> remains a transaction precondition only and is never persisted.</p>
-          <p><strong>Idempotency.</strong> Repeated calls with the same N are idempotent; no additional revisions are removed.</p>
-          <p><strong>Monotonicity.</strong> <code class="inline-code">cleanup(file, 3)</code> then <code class="inline-code">cleanup(file, 5)</code> MUST NOT resurrect deleted history. <code class="inline-code">cleanup(file, 5)</code> then <code class="inline-code">cleanup(file, 3)</code> may remove additional older revisions. Deleted history never returns.</p>
-          <p><strong>APIs.</strong> Python: <code class="inline-code">limit_cleanup(file_id: bytes, limit: int) -&gt; list[int]</code> &middot; C#: <code class="inline-code">List&lt;ulong&gt; LimitCleanUp(byte[] fileId, ulong limit)</code> &middot; TypeScript: <code class="inline-code">number[] limitCleanup(fileId: Buffer, limit: number)</code>. All three implement the same semantic contract despite language-level type differences.</p>
-          <p><a href="#top">Back to top</a></p>
+          </div>          <p><a href="#top">Back to top</a></p>
         </div>
       </section>
       <section class="section" id="lib-content-objects" aria-labelledby="lib-content-objects-title">
@@ -359,31 +345,69 @@ RepresentationDescriptor
           <p>Streaming is an API and implementation concern. It does not alter canonical semantics, and a streamed read MUST produce the same logical bytes as a buffered read.</p>          <p><a href="#top">Back to top</a></p>
         </div>
       </section>
-      <section class="section" id="lib-modern" aria-labelledby="lib-modern-title">
+      <section class="section" id="lib-storage-policies" aria-labelledby="lib-storage-policies-title">
         <div class="container doc">
           <p class="eyebrow">18</p>
-          <h2 id="lib-modern-title">Modern mode</h2>
-          <p>Modern (Vertical) mode MAY expose deduplication, content sharing, compression, chunking, delta and diff, patch-based representations, revision reuse, indexes, caches, storage optimization, and algorithmic reconstruction.</p>
-          <div class="doc-notice">These are implementation and storage strategies. Canonical recovery remains self-contained and deterministic under the frozen VSN rules.</div>
-          <p>No cache, index, checkpoint, external database, external service, or undocumented algorithm may become required canonical state, and no single future-unavailable algorithm may be mandatory for reading accepted state.</p>          <p><a href="#top">Back to top</a></p>
+          <h2 id="lib-storage-policies-title">Storage Policies</h2>
+          <h3 class="subhead">Wire-Mode to Storage-Policy Relationship</h3>
+          <p>VSN has exactly two normative wire-mode values encoded in the ModeDeclaration — MODERN (0x01) and ENTERPRISE (0x02). A writer may select one of four storage-policy profiles to control how aggressively it optimizes physical representation within that wire mode. The four profiles do NOT appear in the container binary.</p>
+          <div class="code-card">
+            <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">hierarchy</span></div>
+            <pre class="mono tree"><code>VSN Protocol
+  |
+  +-- Normative Wire Mode (frozen, in binary)
+  |       MODERN (0x01) / ENTERPRISE (0x02)
+  |
+  +-- Writer Storage Policy (profile selection, not wire)
+  |       HIGHLY_VERTICAL / VERTICAL → MODERN family
+  |       HORIZONTAL / HIGHLY_HORIZONTAL → ENTERPRISE family
+  |
+  +-- Optimization Configuration (resource parameters)
+          search_budget, memory_limit, depth, etc.</code></pre>
+          </div>
+          <h3 class="subhead">HIGHLY_VERTICAL</h3>
+          <p><strong>Wire Mode:</strong> MODERN (0x01). <strong>Purpose:</strong> Maximum storage-efficiency effort within explicit resource and safety limits.</p>
+          <ul>
+            <li>Aggressive deduplication, content sharing, revision-to-revision reuse</li>
+            <li>Chunked representations, EXTENTS-1 permitted</li>
+            <li>Deep dependency structures allowed with limits</li>
+            <li>Expensive similarity search within budget</li>
+          </ul>
+          <h3 class="subhead">VERTICAL</h3>
+          <p><strong>Wire Mode:</strong> MODERN (0x01). <strong>Purpose:</strong> High storage efficiency with more bounded optimization.</p>
+          <ul>
+            <li>Deduplication, content sharing preferred but bounded</li>
+            <li>EXTENTS-1 permitted with depth limits</li>
+            <li>Bounded similarity analysis; full-copy fallback common</li>
+          </ul>
+          <h3 class="subhead">HORIZONTAL</h3>
+          <p><strong>Wire Mode:</strong> ENTERPRISE (0x02). <strong>Purpose:</strong> Prefer straightforward representations with limited reuse.</p>
+          <ul>
+            <li>Complete content objects preferred; basic deduplication permitted</li>
+            <li>Limited/shallow EXTENTS only if permitted by ENTERPRISE frozen semantics</li>
+            <li>Avoid deep dependency chains and expensive similarity analysis</li>
+          </ul>
+          <h3 class="subhead">HIGHLY_HORIZONTAL</h3>
+          <p><strong>Wire Mode:</strong> ENTERPRISE (0x02). <strong>Purpose:</strong> Maximum straightforwardness.</p>
+          <ul>
+            <li>DIRECT-1 required for emitted content; EXTENTS-1 forbidden</li>
+            <li>Reconstruction dependencies forbidden; each object contains complete logical content</li>
+            <li>Exact whole-object reuse MAY still be used where identity semantics allow</li>
+          </ul>
+          <p class="note">Storage-policy profiles do not appear in the container binary. A container has exactly one ModeDeclaration (GR-38); changing writer policy does not change the ModeDeclaration.</p>          <p><a href="#top">Back to top</a></p>
         </div>
       </section>
-      <section class="section" id="lib-enterprise" aria-labelledby="lib-enterprise-title">
+      <section class="section" id="lib-storage-optimization" aria-labelledby="lib-storage-optimization-title">
         <div class="container doc">
           <p class="eyebrow">19</p>
-          <h2 id="lib-enterprise-title">Enterprise mode</h2>
-          <p>Enterprise (Horizontal) mode exposes the same logical feature set as Modern mode. The difference is the canonical content model, not the Library API surface.</p>
-          <div class="code-card">
-            <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">enterprise invariant</span></div>
-            <pre class="mono tree"><code>EDIT RESULT = FULL COPY</code></pre>
-          </div>
-          <p>The Library MUST preserve this invariant. Enterprise canonical content reconstruction MUST NOT require a previous revision, a delta, a patch, an edit script, a reconstruction chain, or a deduplication algorithm. The Library reads complete logical content, writes complete logical content, and creates a complete canonical content object. Modern optimizations MUST NOT leak into Enterprise semantics, and Enterprise mode is not merely a slower Modern mode.</p>          <p><a href="#top">Back to top</a></p>
+          <h2 id="lib-storage-optimization-title">Storage Optimization</h2>
+          <p>The optimization configuration constrains the optimization behavior within each storage policy. It includes conceptual parameters such as optimization scope, search budget, optimizer memory limit, and others. These parameters define the conceptual optimization-policy layer.</p>          <p><a href="#top">Back to top</a></p>
         </div>
       </section>
       <section class="section" id="lib-storage" aria-labelledby="lib-storage-title">
         <div class="container doc">
           <p class="eyebrow">20</p>
-          <h2 id="lib-storage-title">Storage optimization</h2>
+          <h2 id="lib-storage-title">Physical storage management</h2>
           <p>A Library MAY compact, repack, compress, optimize layout, share objects, deduplicate, rebuild indexes and caches, and report storage statistics.</p>
           <div class="code-card">
             <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">storage layers</span></div>
@@ -528,7 +552,7 @@ RESOURCE_REFUSAL</code></pre>
         <div class="container doc">
           <p class="eyebrow">32</p>
           <h2 id="lib-matrix-title">Capability matrix</h2>
-          <p>The table below is the <strong>Library contract</strong> — the normative capability set that every conforming implementation must satisfy. Python, C#, JavaScript / TypeScript, C, C++, and F# are <strong>Library-Complete</strong> against this contract; the remaining 25 targets are <em>Conformance Partial</em>.</p>
+          <p>The table below is a <strong>Library contract</strong>. It describes intended capability. It is <em>not</em> a claim of implemented software: this repository contains the specification and its generated documentation, and no Library implementation.</p>
           <table>
             <thead><tr><th>Capability</th><th>Library contract</th></tr></thead>
             <tbody>
@@ -544,7 +568,6 @@ RESOURCE_REFUSAL</code></pre>
               <tr><td>Restore</td><td>Intended capability</td></tr>
               <tr><td>Revision History</td><td>Intended capability</td></tr>
               <tr><td>Revision Reconstruction</td><td>Intended capability</td></tr>
-              <tr><td>LimitCleanUp (history retention)</td><td>Library capability &mdash; retain newest N per FileId; non-GC; implemented in Python, C#, TypeScript</td></tr>
               <tr><td>Diff</td><td>Intended capability</td></tr>
               <tr><td>Merge</td><td>Intended capability</td></tr>
               <tr><td>Checkout</td><td>Intended capability</td></tr>
@@ -560,7 +583,7 @@ RESOURCE_REFUSAL</code></pre>
               <tr><td>Observability</td><td>Library facility</td></tr>
             </tbody>
           </table>
-          <p>Every row is a <strong>contract requirement</strong> or a <strong>Library facility</strong>. Python, C#, and JavaScript / TypeScript pass executable conformance gates for all rows above; the remaining 25 targets are <em>Conformance Partial</em>.</p>          <p><a href="#top">Back to top</a></p>
+          <p>Every row is an <strong>intended capability</strong> or a <strong>Library facility</strong>. None is labelled implemented, because no implementation is present in this repository.</p>          <p><a href="#top">Back to top</a></p>
         </div>
       </section>
       <section class="section" id="lib-boundary" aria-labelledby="lib-boundary-title">
@@ -573,7 +596,6 @@ RESOURCE_REFUSAL</code></pre>
             <tbody>
               <tr><td>Recovery</td><td>Scan, locate the effective marker, present the accepted state</td><td>CommitMarker and preceding canonical data only</td><td>Canonical; index and checkpoint are optional acceleration</td></tr>
               <tr><td>Revision history</td><td>Traverse, list, and present revisions and heads</td><td>Revision records and FileHead</td><td>Canonical data; traversal is a view</td></tr>
-              <tr><td>LimitCleanUp</td><td>Remove oldest revisions per FileId, retaining newest N</td><td>Mutates canonical revision set; FileHead updated</td><td>Library operation; object GC is separate</td></tr>
               <tr><td>Diff</td><td>Compute and present comparisons</td><td>None; reads canonical content</td><td>Fully derived and disposable</td></tr>
               <tr><td>Merge</td><td>Compute a merge and create a new revision</td><td>Writes new canonical revision data</td><td>Derived computation, canonical result</td></tr>
               <tr><td>Index</td><td>Build and query for speed</td><td>Must be rebuildable from canonical state</td><td>Derived acceleration</td></tr>
@@ -594,24 +616,9 @@ RESOURCE_REFUSAL</code></pre>
         <div class="container doc">
           <p class="eyebrow">34</p>
           <h2 id="lib-status-title">Implementation status</h2>
-          <div class="doc-notice">Six of 31 targets (Python, C#, JavaScript/TypeScript, C, C++, F#) are <strong>Library-Complete</strong> with full library API and all conformance gates passing. The remaining 25 targets are <em>Conformance Partial</em>: all PASS protocol conformance, library tests, and interoperability; LibraryAPI under verification.</div>
-          <h3>Shared conformance corpus</h3>
-          <p>Every target is judged by one shared corpus rather than by each language's own idea of what to test. The corpus is generated once from the frozen Python reference and committed as static data, so conformance is reproducible byte-for-byte and does not depend on which host runs it.</p>
-          <p>Each language supplies one probe program. The shared runner invokes it with the same five subcommands and aggregates the results:</p>
-          <dl class="lang-detail">
-            <dt>Frozen protocol vectors</dt>
-            <dd>All five frozen vectors are checked for byte length and SHA-256 before parsing, then decoded and materialized. A corrupted fixture can therefore never be mistaken for a parser bug.</dd>
-            <dt>Canonical scenarios</dt>
-            <dd>Four scenarios — basic, extents, enterprise, multifile — are read back into a language-neutral canonical interpretation (mode, generation, recovery status, per-file identity, head revision, representation, and base64 content) and compared against the recorded result.</dd>
-            <dt>LimitCleanUp contract</dt>
-            <dd>Executed, not asserted by name: ten-revision history, retention of the newest N, limit 0 rejected with <code class="inline-code">0x000C</code>, unknown FileId with <code class="inline-code">0x0009</code>, FileHead integrity, no object garbage collection, persistence through commit, no resurrection after reopen, idempotency, per-file isolation, and atomicity.</dd>
-            <dt>Malformed and truncated input</dt>
-            <dd>Driven from a real frozen vector: bad magic, bad format version, bad encoding version, and every strict prefix, which must all be rejected. Bytes appended <em>after</em> the trailer are outside the canonical framing and are ignored, matching the reference implementations.</dd>
-            <dt>Interoperability</dt>
-            <dd>Each scenario is regenerated from the language's own builder and compared <strong>byte-for-byte</strong> against the reference-written file. Self-consistency is explicitly not accepted as interoperability evidence.</dd>
-          </dl>
-          <p>The corpus introduces no protocol change: it only fixes the bytes and identifiers that already exist in the frozen specification.</p>
-          <p>The normative Library contract is defined in the <a href="./Libraries/Documentation/library_api_contract.md">library API contract</a>. Every capability on this page is a <strong>frozen Library contract requirement</strong> that each conforming implementation must satisfy. The three completed implementations pass all four independent conformance axes: protocol vectors, library capabilities, LimitCleanUp (executed probe), and byte-level cross-language interop. The normative specification, its frozen rules, and its frozen byte vectors are described in the <a href="./docs.html">protocol specification</a>. This page documents only the implementation and API layer above them.</p>          <p><a href="#top">Back to top</a></p>
+          <div class="doc-notice">No VSN Library implementation exists in this repository.</div>
+          <p>This repository contains the BRP-1 and VSN-1 specification and its generated documentation. Every capability on this page is an <strong>intended capability</strong> or a <strong>Library facility</strong>, described so that a conforming implementation has a clear contract. Nothing here asserts that an implementation exists, that a conformance suite has been executed, or that a byte-level test vector has been verified by running code.</p>
+          <p>The normative specification, its frozen rules, and its frozen byte vectors are described in the <a href="./docs.html">protocol specification</a>. This page documents only the implementation and API layer above them.</p>          <p><a href="#top">Back to top</a></p>
         </div>
       </section>
     </main>

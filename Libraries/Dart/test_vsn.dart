@@ -1,6 +1,7 @@
 // VSN-1 parallel conformance test — Tier 2 (Future)
 // Tier 3: Lock for thread-safe operations
 import 'dart:async';
+import 'dart:typed_data';
 import 'vsn.dart' as vsn;
 
 int passed = 0;
@@ -30,7 +31,7 @@ class _SimpleLock {
 }
 
 Future<bool> runCap(int n) async {
-  final s = vsn.MutableStore.create(vsn.MODE_MODERN);
+  final s = vsn.vsn.MutableStore.create(vsn.MODE_MODERN);
   var ok = true;
   switch(n) {
     case 1: ok = s.mode == vsn.MODE_MODERN; break;
@@ -83,14 +84,14 @@ Future<bool> runCap(int n) async {
       } catch(_) { ok = false; } break;
     case 11:
       try {
-        final s2 = vsn.MutableStore.create(vsn.MODE_MODERN);
+        final s2 = vsn.vsn.MutableStore.create(vsn.MODE_MODERN);
         s2.createFile('x', [1]);
         final diff = s.diffStores(s2);
         ok = diff['added'] != null || diff['deleted'] != null || diff['shared'] != null;
       } catch(_) { ok = false; } break;
     case 12:
       try {
-        final s2 = vsn.MutableStore.create(vsn.MODE_MODERN);
+        final s2 = vsn.vsn.MutableStore.create(vsn.MODE_MODERN);
         s.createFile('a', [1, 2]);
         s2.createFile('a', [3, 4]);
         final b1 = s.exportBytes();
@@ -142,4 +143,37 @@ void main() async {
   final results = await Future.wait(List.generate(19, (i) => runCap(i + 1)));
   passed = results.where((e) => e).length;
   print('PASS $passed');
+
+  // ---- Storage Policy P01-P12 inline wire test ----
+  const expectations = [
+    {'name': 'HIGHLY_VERTICAL',   'mode': 1},
+    {'name': 'VERTICAL',          'mode': 1},
+    {'name': 'HORIZONTAL',        'mode': 2},
+    {'name': 'HIGHLY_HORIZONTAL', 'mode': 2}
+  ];
+  bool spFail = false;
+  List<Uint8List> allWire = [];
+
+  for (var exp in expectations) {
+    final s = vsn.MutableStore.create(exp['mode'] as int);
+    final fid = s.createFile('sp.txt', Uint8List.fromList('storage-policy-wire-test'.codeUnits));
+    final data = s.commit();
+    allWire.add(Uint8List.fromList(data));
+
+    if (data.length < 5 || String.fromCharCodes(data.sublist(0,4)) != 'VSN-' || data[4] != exp['mode']) {
+      print('P03/P04 ${exp['name']} failed'); spFail = true; continue;
+    }
+  }
+
+  if (allWire.length >= 3 && allWire[0][4] == allWire[2][4]) {
+    print('P05 same mode'); spFail = true;
+  }
+
+  const badNames = ['HIGHTLY_VERTIC', 'ERTICAL', 'ORIZONTAL'];
+  for (var d in allWire) for (var b in badNames) {
+    if (String.fromCharCodes(d).contains(b)) { print('P10 leaked'); spFail = true; }
+  }
+
+  print(spFail ? 'SP FAILED' : 'SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance');
+  if (spFail) exit(1);
 }

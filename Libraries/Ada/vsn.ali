@@ -12,13 +12,13 @@ RV NO_DEFAULT_INITIALIZATION
 RV NO_DYNAMIC_SIZED_OBJECTS
 RV NO_ELABORATION_CODE
 
-U vsn%b			vsn.adb			f8062606 NE OO PK IU
+U vsn%b			vsn.adb			d8e5889d NE OO PK IU
 W ada%s			ada.ads			ada.ali
 W ada.strings%s		a-string.ads		a-string.ali
 Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
 Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
 
-U vsn%s			vsn.ads			c02769d8 EE OO PF PR PK IU
+U vsn%s			vsn.ads			59875b3b EE OO PF PR PK IU
 Z ada.exceptions%s	a-except.adb		a-except.ali
 Z ada.streams%s		a-stream.adb		a-stream.ali
 Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
@@ -51,142 +51,184 @@ D s-stratt.ads		20220819080952 f7dfd786 system.stream_attributes%s
 D s-traent.ads		20220819080952 c81cbf8c system.traceback_entries%s
 D s-unstyp.ads		20220819080952 fa2a7f59 system.unsigned_types%s
 D unchconv.ads		20220819080952 ca2f9e18 unchecked_conversion%s
-D vsn.ads		20261005171046 c02769d8 vsn%s
-D vsn.adb		20261005171046 a88d2849 vsn%b
+D vsn.ads		20261008143313 59875b3b vsn%s
+D vsn.adb		20261008113643 11ceb431 vsn%b
 G a e
-G c Z s b [parse vsn 16 13 none]
-G c Z s b [encode vsn 17 13 none]
-G c Z s b [validate vsn 18 13 none]
-G c Z s b [recover vsn 19 13 none]
-G c Z s b [magic_check vsn 20 13 none]
-G c Z s b [create vsn 23 13 none]
-G c Z s b [close vsn 24 14 none]
-G c Z s b [get_mode vsn 25 13 none]
-G c Z s b [create_file vsn 26 14 none]
-G c Z s b [file_exists vsn 27 13 none]
-G c Z s b [read_file_len vsn 28 13 none]
-G c Z s b [write_file vsn 29 14 none]
-G c Z s b [delete_file vsn 30 14 none]
-G c Z s b [current_revision vsn 31 13 none]
-G c Z s b [list_revisions vsn 32 13 none]
-G c Z s b [limit_cleanup vsn 33 13 none]
-G c Z s b [list_objects vsn 34 13 none]
-G c Z s b [begin_txn vsn 35 13 none]
-G c Z s b [commit_txn vsn 36 13 none]
-G c Z s b [diff_count vsn 37 13 none]
-G c Z s b [merge_ok vsn 38 13 none]
-G c Z s b [import_bytes vsn 39 13 none]
-G c Z s b [export_len vsn 40 13 none]
-G c Z s b [integrity_ok vsn 41 13 none]
-G c Z s b [stats_files vsn 42 13 none]
-G c Z s b [stats_revs vsn 43 13 none]
-G c Z s b [builder_ok vsn 44 13 none]
-G c Z s s [vsn_containerIP vsn 10 9 none]
-G c Z s s [storeDA vsn 46 9 none]
-G c Z s s [storeDF vsn 46 9 none]
-G c Z s s [storeIP vsn 46 9 none]
+G c Z s b [parse vsn 30 13 none]
+G c Z s b [encode vsn 31 13 none]
+G c Z s b [validate vsn 32 13 none]
+G c Z s b [recover vsn 33 13 none]
+G c Z s b [magic_check vsn 34 13 none]
+G c Z s b [create vsn 37 13 none]
+G c Z s b [close vsn 38 14 none]
+G c Z s b [get_mode vsn 39 13 none]
+G c Z s b [create_file vsn 40 14 none]
+G c Z s b [file_exists vsn 41 13 none]
+G c Z s b [read_file_len vsn 42 13 none]
+G c Z s b [write_file vsn 43 14 none]
+G c Z s b [delete_file vsn 44 14 none]
+G c Z s b [current_revision vsn 45 13 none]
+G c Z s b [list_revisions vsn 46 13 none]
+G c Z s b [limit_cleanup vsn 47 13 none]
+G c Z s b [list_objects vsn 48 13 none]
+G c Z s b [begin_txn vsn 49 13 none]
+G c Z s b [commit_txn vsn 50 13 none]
+G c Z s b [diff_count vsn 51 13 none]
+G c Z s b [merge_ok vsn 52 13 none]
+G c Z s b [import_bytes vsn 53 13 none]
+G c Z s b [export_len vsn 54 13 none]
+G c Z s b [export_bytes vsn 55 13 none]
+G c Z s b [integrity_ok vsn 56 13 none]
+G c Z s b [stats_files vsn 57 13 none]
+G c Z s b [stats_revs vsn 58 13 none]
+G c Z s b [builder_ok vsn 59 13 none]
+G c Z s b [create_with_policy vsn 61 13 none]
+G c Z s b [get_storage_policy vsn 62 13 none]
+G c Z s s [vsn_containerIP vsn 24 9 none]
+G c Z s s [storeDA vsn 64 9 none]
+G c Z s s [storeDF vsn 64 9 none]
+G c Z s s [storeIP vsn 64 9 none]
+G c Z b b [encode_with_policy vsn 202 14 none]
 X 1 ada.ads
-16K9*Ada 20e8 25|1r6 1r23
+16K9*Ada 20e8 25|1r6 1r23 148r11 203r12
 X 4 a-string.ads
-16K13*Strings 35e16 25|1w10 1r27
+16K13*Strings 35e16 25|1w10 1r27 148r15 203r16
 X 24 vsn.ads
-1K9*VSN 46E9 56l5 56e8 25|2b14 135l5 135t8
+1K9*VSN 64E9 75l5 75e8 25|2b14 229l5 229t8
 3a4*Magic{string}
 4i4*CFV{positive}
 5i4*EV{positive}
-6i4*MODE_MODERN{positive} 13r26 47r26 25|133r24
-7i4*MODE_ENTERPRISE{positive} 25|133r37
-8i4*REP_DIRECT_1{positive}
-9i4*REP_EXTENTS_1{positive}
-10R9*Vsn_Container 15e14
-11i7*cfv{positive}
-12i7*ev{positive}
-13i7*mode{positive}
-14i7*byte_length{natural}
-16V13*Parse{integer} 16>20 25|3b13 8l8 8t13
-16a20 data{string} 25|3b20 5r10 6r10
-17V13*Encode{string} 17>21 17>38 25|9b13 12l8 12t14
-17i21 mode{positive} 25|9b21
-17i38 gen{positive} 25|9b38
-18V13*Validate{boolean} 18>23 25|13b13 18l8 18t16
-18a23 data{string} 25|13b23 15r10 16r10 17r28 17r59
-19V13*Recover{integer} 19>22 25|19b13 24l8 24t15
-19a22 data{string} 25|19b22 21r10 22r10
-20V13*Magic_Check{boolean} 20>26 25|25b13 29l8 29t19
-20a26 data{string} 25|25b26 27r10 28r14
-22R9*Store 23p13 23r45 24p14 24r32 25p13 25r27 26p14 26r38 27p13 27r30 28p13
-. 28r32 29p14 29r37 30p14 30r38 31p13 31r35 32p13 32r33 33p13 33r39 34p13
-. 34r31 35p13 35r28 36p13 36r36 37p13 37r29 38p13 38r27 39p13 39r38 40p13
-. 40r29 41p13 41r31 42p13 42r30 43p13 43r29 44p13 44r29 46c9 55e14 25|30r45
-. 31r11 36r32 40r27 44r38 52r30 56r32 61r37 66r38 70r35 74r33 78r39 87r31
-. 91r28 95r36 100r29 105r27 109r38 115r29 119r31 123r30 127r29 131r29
-23V13*Create{22R9} 23>21 25|30b13 35l8 35t14
-23i21 mode{positive} 25|30b21 33r17
-24U14*Close 24=21 25|36b14 39l8 39t13
-24r21 s{22R9} 25|36b21 38m7
-25V13*Get_Mode{positive} 25>23 25|40b13 43l8 43t16
-25r23 s{22R9} 25|40b23 42r14
-26U14*Create_File 26=27 26>45 26>60 25|44b14 51l8 51t19
-26r27 s{22R9} 25|44b27 46r10 47m7 47r23 48m7 48r22 49m7 49r22 50m7 50r21
-26a45 name{string} 25|44b45
-26a60 content{string} 25|44b60
-27V13*File_Exists{boolean} 27>26 27>37 25|52b13 55l8 55t19
-27r26 s{22R9} 25|52b26 54r14
-27a37 fid{string} 25|52b37
-28V13*Read_File_Len{integer} 28>28 28>39 25|56b13 60l8 60t21
-28r28 s{22R9} 25|56b28 58r10
-28a39 fid{string} 25|56b39
-29U14*Write_File 29=26 29>44 29>58 25|61b14 65l8 65t18
-29r26 s{22R9} 25|61b26 63m7 63r22 64m7 64r21
-29a44 fid{string} 25|61b44
-29a58 content{string} 25|61b58
-30U14*Delete_File 30=27 30>45 25|66b14 69l8 69t19
-30r27 s{22R9} 25|66b27 68r10 68m32 68r48
-30a45 fid{string} 25|66b45
-31V13*Current_Revision{integer} 31>31 31>42 25|70b13 73l8 73t24
-31r31 s{22R9} 25|70b31 72r14
-31a42 fid{string} 25|70b42
-32V13*List_Revisions{integer} 32>29 32>40 25|74b13 77l8 77t22
-32r29 s{22R9} 25|74b29 76r14
-32a40 fid{string} 25|74b40
-33V13*Limit_Cleanup{integer} 33=28 33>46 33>60 25|78b13 86l8 86t21
-33r28 s{22R9} 25|78b28 81r10 82m10 82r25
-33a46 fid{string} 25|78b46
-33i60 limit{positive} 25|78b60 80r10 81r24 82r39 83r17
-34V13*List_Objects{integer} 34>27 25|87b13 90l8 90t20
-34r27 s{22R9} 25|87b27 89r14
-35V13*Begin_Txn{natural} 35>24 25|91b13 94l8 94t17
-35r24 s{22R9} 25|91b24 93r14
-36V13*Commit_Txn{boolean} 36=25 25|95b13 99l8 99t18
-36r25 s{22R9} 25|95b25 97m7 97r23
-37V13*Diff_Count{natural} 37>25 37>36 25|100b13 104l8 104t18
-37r25 s{22R9} 25|100b25 102r10 102r49 103r28
-37i36 other_count{natural} 25|100b36 102r25 102r64 103r14
-38V13*Merge_Ok{boolean} 38>23 25|105b13 108l8 108t16
-38r23 s{22R9} 25|105b23
-39V13*Import_Bytes{boolean} 39=27 39>45 25|109b13 114l8 114t20
-39r27 s{22R9} 25|109b27
-39a45 data{string} 25|109b45 111r10 112r10
-40V13*Export_Len{natural} 40>25 25|115b13 118l8 118t18
-40r25 s{22R9} 25|115b25
-41V13*Integrity_Ok{boolean} 41>27 25|119b13 122l8 122t20
-41r27 s{22R9} 25|119b27 121r18
-42V13*Stats_Files{natural} 42>26 25|123b13 126l8 126t19
-42r26 s{22R9} 25|123b26 125r14
-43V13*Stats_Revs{natural} 43>25 25|127b13 130l8 130t18
-43r25 s{22R9} 25|127b25 129r14
-44V13*Builder_Ok{boolean} 44>25 25|131b13 134l8 134t18
-44r25 s{22R9} 25|131b25 133r14
-47i7*mval{positive} 25|33m9 42r16 133r16
-48i7*generation{natural} 25|93r16 97m9 97r25
-49i7*file_count{natural} 25|47m9 47r25 54r16 58r12 68r12 68m34 68r50 102r12
-. 102r51 103r30 125r16
-50i7*rev_count{natural} 25|48m9 48r24 63m9 63r24 76r16 81r12 82m12 82r27
-. 129r16
-51i7*obj_count{natural} 25|49m9 49r24 89r16
-52i7*next_rev{positive} 25|50m9 50r23 64m9 64r23 72r16
-53b7*isclosed{boolean} 25|38m9 46r12 121r20
-54i7*next_obj{positive}
+7i5*MODE_MODERN{positive} 27r26 65r26 25|185r24 192r17
+11i4*STORAGE_POLICY_HIGHLY_VERTICAL{positive}
+12i4*STORAGE_POLICY_VERTICAL{positive} 73r36 25|111r28 163r26
+13i4*STORAGE_POLICY_HORIZONTAL{positive}
+14i4*STORAGE_POLICY_HIGHLY_HORIZONTAL{positive}
+16i4*REC_STORAGE_POLICY{positive} 25|122r27
+17i4*FID_STORAGE_POLICY{positive}
+19i5*MODE_ENTERPRISE{positive} 25|185r37
+22i4*REP_DIRECT_1{positive}
+23i4*REP_EXTENTS_1{positive}
+24R9*Vsn_Container 29e14
+25i7*cfv{positive}
+26i7*ev{positive}
+27i7*mode{positive}
+28i7*byte_length{natural}
+30V13*Parse{integer} 30>20 25|3b13 8l8 8t13
+30a20 data{string} 25|3b20 5r10 6r10
+31V13*Encode{string} 31>21 31>38 25|9b13 12l8 12t14
+31i21 mode{positive} 25|9b21
+31i38 gen{positive} 25|9b38
+32V13*Validate{boolean} 32>23 25|13b13 18l8 18t16
+32a23 data{string} 25|13b23 15r10 16r10 17r28 17r59
+33V13*Recover{integer} 33>22 25|19b13 24l8 24t15
+33a22 data{string} 25|19b22 21r10 22r10
+34V13*Magic_Check{boolean} 34>26 25|25b13 29l8 29t19
+34a26 data{string} 25|25b26 27r10 28r14
+36R9*Store 37p13 37r45 38p14 38r32 39p13 39r27 40p14 40r38 41p13 41r30 42p13
+. 42r32 43p14 43r37 44p14 44r38 45p13 45r35 46p13 46r33 47p13 47r39 48p13
+. 48r31 49p13 49r28 50p13 50r36 51p13 51r29 52p13 52r27 53p13 53r38 54p13
+. 54r29 55p13 55r31 56p13 56r31 57p13 57r30 58p13 58r29 59p13 59r29 61p13
+. 61r59 62p13 62r37 64c9 74e14 25|30r45 31r11 36r32 40r27 44r38 52r30 56r32
+. 61r37 66r38 70r35 74r33 78r39 87r31 91r28 95r36 100r29 105r27 109r38 147r31
+. 167r29 171r31 175r30 179r29 183r29 189r59 190r11 196r37
+37V13*Create{36R9} 37>21 25|30b13 35l8 35t14
+37i21 mode{positive} 25|30b21 33r17
+38U14*Close 38=21 25|36b14 39l8 39t13
+38r21 s{36R9} 25|36b21 38m7
+39V13*Get_Mode{positive} 39>23 25|40b13 43l8 43t16
+39r23 s{36R9} 25|40b23 42r14
+40U14*Create_File 40=27 40>45 40>60 25|44b14 51l8 51t19
+40r27 s{36R9} 25|44b27 46r10 47m7 47r23 48m7 48r22 49m7 49r22 50m7 50r21
+40a45 name{string} 25|44b45
+40a60 content{string} 25|44b60
+41V13*File_Exists{boolean} 41>26 41>37 25|52b13 55l8 55t19
+41r26 s{36R9} 25|52b26 54r14
+41a37 fid{string} 25|52b37
+42V13*Read_File_Len{integer} 42>28 42>39 25|56b13 60l8 60t21
+42r28 s{36R9} 25|56b28 58r10
+42a39 fid{string} 25|56b39
+43U14*Write_File 43=26 43>44 43>58 25|61b14 65l8 65t18
+43r26 s{36R9} 25|61b26 63m7 63r22 64m7 64r21
+43a44 fid{string} 25|61b44
+43a58 content{string} 25|61b58
+44U14*Delete_File 44=27 44>45 25|66b14 69l8 69t19
+44r27 s{36R9} 25|66b27 68r10 68m32 68r48
+44a45 fid{string} 25|66b45
+45V13*Current_Revision{integer} 45>31 45>42 25|70b13 73l8 73t24
+45r31 s{36R9} 25|70b31 72r14
+45a42 fid{string} 25|70b42
+46V13*List_Revisions{integer} 46>29 46>40 25|74b13 77l8 77t22
+46r29 s{36R9} 25|74b29 76r14
+46a40 fid{string} 25|74b40
+47V13*Limit_Cleanup{integer} 47=28 47>46 47>60 25|78b13 86l8 86t21
+47r28 s{36R9} 25|78b28 81r10 82m10 82r25
+47a46 fid{string} 25|78b46
+47i60 limit{positive} 25|78b60 80r10 81r24 82r39 83r17
+48V13*List_Objects{integer} 48>27 25|87b13 90l8 90t20
+48r27 s{36R9} 25|87b27 89r14
+49V13*Begin_Txn{natural} 49>24 25|91b13 94l8 94t17
+49r24 s{36R9} 25|91b24 93r14
+50V13*Commit_Txn{boolean} 50=25 25|95b13 99l8 99t18
+50r25 s{36R9} 25|95b25 97m7 97r23
+51V13*Diff_Count{natural} 51>25 51>36 25|100b13 104l8 104t18
+51r25 s{36R9} 25|100b25 102r10 102r49 103r28
+51i36 other_count{natural} 25|100b36 102r25 102r64 103r14
+52V13*Merge_Ok{boolean} 52>23 25|105b13 108l8 108t16
+52r23 s{36R9} 25|105b23
+53V13*Import_Bytes{boolean} 53=27 53>45 25|109b13 145l8 145t20
+53r27 s{36R9} 25|109b27 139m16
+53a45 data{string} 25|109b45 113r10 114r10 116r24 117r55 117r88 118r49 121r36
+. 126r39 127r39 128r65 131r55
+54V13*Export_Len{natural} 54>25 25|167b13 170l8 170t18
+54r25 s{36R9} 25|167b25
+55V13*Export_Bytes{string} 55>27 25|147b13 166l8 166t20
+55r27 s{36R9} 25|147b27 160r10 160r36 161r26
+56V13*Integrity_Ok{boolean} 56>27 25|171b13 174l8 174t20
+56r27 s{36R9} 25|171b27 173r18
+57V13*Stats_Files{natural} 57>26 25|175b13 178l8 178t19
+57r26 s{36R9} 25|175b26 177r14
+58V13*Stats_Revs{natural} 58>25 25|179b13 182l8 182t18
+58r25 s{36R9} 25|179b25 181r14
+59V13*Builder_Ok{boolean} 59>25 25|183b13 186l8 186t18
+59r25 s{36R9} 25|183b25 185r14
+61V13*Create_With_Policy{36R9} 61>33 25|189b13 195l8 195t26
+61i33 policy{positive} 25|189b33 193r27
+62V13*Get_Storage_Policy{positive} 62>33 25|196b13 199l8 199t26
+62r33 s{36R9} 25|196b33 198r14
+65i7*mval{positive} 25|33m9 42r16 185r16 192m9
+66i7*generation{natural} 25|93r16 97m9 97r25
+67i7*file_count{natural} 25|47m9 47r25 54r16 58r12 68r12 68m34 68r50 102r12
+. 102r51 103r30 177r16
+68i7*rev_count{natural} 25|48m9 48r24 63m9 63r24 76r16 81r12 82m12 82r27
+. 181r16
+69i7*obj_count{natural} 25|49m9 49r24 89r16
+70i7*next_rev{positive} 25|50m9 50r23 64m9 64r23 72r16
+71b7*isclosed{boolean} 25|38m9 46r12 173r20
+72i7*next_obj{positive}
+73i7*storage_policy{positive} 25|139m18 160r12 160r38 161r28 193m9 198r16
 X 25 vsn.adb
-31r7 s{24|22R9} 33m7 34r14
+31r7 s{24|36R9} 33m7 34r14
+110i7 pos{natural} 116r13 117r60 117r93 118r54 119r35 141m13
+111i7 sp_val{positive} 131m31 139r36
+117i18 rec_type{positive} 122r16
+118i13 plen_len{natural} 121r25 122r50 125r49 130r68 141r29
+119i13 pstart{natural} 121r16 123r45 125r40 130r59 141r20
+123i24 fid_pos{natural} 125r25 126r44 127r44 128r70 130r44 131r60 136m22
+. 136r33
+128i33 vlen{natural} 130r31
+149a7 result{string} 152r21 152m38 165r14
+150i7 p{natural} 152r16 152r45 152m54 152r59 165r24
+151U17 W 151b17 151>19 152l78 152t79 154s7 154s15 154s23 154s31 155s7 155s28
+. 156s7 156s28 157s7 158s7 158s28 159s7 161s10 163s10
+151e19 c{character} 152r51
+190r7 s{24|36R9} 192m7 193m7 194r14
+202V14 Encode_With_Policy{string} 202b14 202>34 202>51 202>67 227l9 227t27
+202i34 mode{positive}
+202i51 gen{positive}
+202i67 sp{positive} 221r11 221r23 222r30
+204a8 result{string} 208r21 209m14 226r15
+205i8 pos{natural} 208r14 209r21 210m14 210r21 226r25
+206U18 Emit 206b18 206>23 212l12 212t16 214s8 214s19 214s30 214s41 215s8
+. 215s32 216s8 216s32 217s8 217s32 218s8 219s8 219s32 220s8 222s11 224s11
+206e23 c{character} 209r29
 

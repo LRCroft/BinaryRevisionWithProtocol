@@ -51,84 +51,154 @@
   `-- BRP Conformance</code></pre>
           </div>
           <p><strong>Core principle.</strong> BRP defines protocol semantics, canonical data representation, binary encoding rules, revision semantics, transactional semantics, integrity rules, compatibility rules, and conformance requirements. <code class="inline-code">.vsn</code> is a standardized self-contained container representation of BRP revision data — it is not the protocol itself. Libraries are implementations of BRP; applications consume BRP libraries. <strong>No implementation is authoritative over the specification.</strong></p>
-          <p><strong>VSN Mode.</strong> A VSN container selects one of exactly two modes &mdash; <a href="#modes"><strong>MODERN</strong></a> (Vertical Representation) or <a href="#modes"><strong>ENTERPRISE</strong></a> (Horizontal Representation). The mode determines the resource-consumption architecture for persisted content, not library capability. See <a href="#brp-11">Section 11</a>.</p>
+          <p><strong>VSN Storage Policy.</strong> VSN has exactly two normative wire-mode values encoded in the ModeDeclaration — <a href="#brp-11"><strong>MODERN (0x01)</strong></a> and <a href="#brp-11"><strong>ENTERPRISE (0x02)</strong></a>. Within each wire mode, a writer may select one of four storage-policy profiles — <a href="#modes"><strong>HIGHLY_VERTICAL</strong></a>, <a href="#modes"><strong>VERTICAL</strong></a>, <a href="#modes"><strong>HORIZONTAL</strong></a>, or <a href="#modes"><strong>HIGHLY_HORIZONTAL</strong></a> — to control optimization aggressiveness, not library capability or reader grammar. Wire Mode determines the representation architecture; Storage Policy selects a writer preference inside that architecture. See <a href="#brp-11">Section 11</a>.</p>
           <p class="muted">Status labels: <span class="spec-tag">Normative — Frozen</span> <span class="spec-tag">Normative — Review</span> <span class="spec-tag">Planned</span> <span class="spec-tag">Implementation Pending</span> <span class="spec-tag">Experimental</span></p>
         </div>
       </section>
       <section class="section modes-intro" id="modes" aria-labelledby="modes-title">
         <div class="container">
-          <p class="eyebrow">Core architecture &middot; content representation modes</p>
-          <h2 id="modes-title">VSN Mode</h2>
-          <p class="section-lede">A VSN container selects one of exactly two modes: <strong>MODERN</strong> (Vertical Representation) or <strong>ENTERPRISE</strong> (Horizontal Representation). Both use the same VSN library and support the same library features. What differs is the resource-consumption architecture for persisted content.</p>
-          <p class="parity-strip" aria-label="Both modes use the same VSN library and the same features"><span>Same VSN library</span><span>Same features</span><span>Different representation</span></p>
+          <p class="eyebrow">Normative wire modes: MODERN (0x01) and ENTERPRISE (0x02); writer-side storage-policy profiles: HIGHLY_VERTICAL, VERTICAL, HORIZONTAL, HIGHLY_HORIZONTAL</p>
+          <h2 id="modes-title">VSN Storage Policy</h2>
+          <p class="section-lede">Two normative wire modes govern all containers — MODERN (0x01) and ENTERPRISE (0x02). A writer selects one storage-policy profile to control how aggressively it optimizes physical representation within that wire mode. Each policy restricts or permits different physical strategies while keeping canonical semantics identical.</p>
+          <p class="parity-strip" aria-label="All modes use the same VSN library and the same features"><span>Same VSN library</span><span>Same features</span><span>Different storage policy</span></p>
           <div class="mode-grid">
             <article class="mode-card">
-              <p class="panel-label">vsn mode</p>
-              <h3>MODERN</h3>
-              <p class="mode-sub mono">VERTICAL REPRESENTATION</p>
-              <p>Computation-oriented representation. The Computation Unit performs content representation and reconstruction work, which may reduce storage consumption.</p>
-              <pre class="mono mode-flow" role="img" aria-label="Modern flow: logical content, computation unit, compact representation, reconstruction, logical content">Logical content
+              <p class="panel-label">writer-side storage policy</p>
+              <h3>HIGHLY_VERTICAL</h3>
+              <p class="mode-wire">Wire Mode: MODERN (0x01)</p>
+              <p class="mode-wire">Wire Mode: MODERN (0x01)</p>
+              <p class="mode-sub mono">MAXIMUM STORAGE EFFICIENCY</p>
+              <p>Aggressive deduplication, content sharing, and revision-to-revision reuse within declared optimization scope. The Computation Unit performs extensive representation work to minimize storage consumption subject to resource budgets.</p>
+              <pre class="mono mode-flow" role="img" aria-label="Highly Vertical flow: logical content, computation unit, optimized representation, reconstruction, logical content">Logical content
   &darr;
 Computation Unit
   &darr;
-Compact representation
+Optimized representation (shared/chunked/deduplicated)
   &darr;
 Reconstruction
   &darr;
 Logical content</pre>
-              <p class="mode-meter"><span>May reduce storage</span><span>Uses Computation Unit</span></p>
+              <p class="mode-meter"><span>May significantly reduce storage</span><span>Uses Computation Unit extensively</span></p>
               <ul class="mode-list">
-                <li>Deduplication, content sharing, and revision-to-revision reuse are permitted</li>
-                <li>Delta/diff and patch representations are permitted</li>
-                <li>Representation-flexible; no single algorithm is mandated</li>
+                <li>Aggressive deduplication and content sharing permitted</li>
+                <li>Delta/diff, patch, chunked representations permitted</li>
+                <li>Revision-to-revision reuse aggressively pursued</li>
                 <li>Deterministic recovery through the Computation Unit</li>
+                <li>Resource budget constrains optimization scope</li>
               </ul>
-              <p class="mode-sum mono">computation &rarr; storage</p>
+              <p class="mode-sum mono">computation &rarr; minimum storage</p>
             </article>
             <article class="mode-card">
-              <p class="panel-label">vsn mode</p>
-              <h3>ENTERPRISE</h3>
-              <p class="mode-sub mono">HORIZONTAL REPRESENTATION</p>
-              <p>Compatibility-oriented representation. File edits are persisted as pre-materialized full copies, so content recovery does not consume the Computation Unit.</p>
-              <pre class="mono mode-flow" role="img" aria-label="Enterprise flow: edit, full copy, pre-materialized storage, materialize, logical file">Edit
+              <p class="panel-label">writer-side storage policy</p>
+              <h3>VERTICAL</h3>
+              <p class="mode-wire">Wire Mode: MODERN (0x01)</p>
+              <p class="mode-wire">Wire Mode: MODERN (0x01)</p>
+              <p class="mode-sub mono">HIGH STORAGE EFFICIENCY</p>
+              <p>Preference for deduplication, content sharing, and revision-to-revision reuse with bounded optimization effort. The Computation Unit performs moderate representation work to reduce storage consumption.</p>
+              <pre class="mono mode-flow" role="img" aria-label="Vertical flow: logical content, computation unit, compact representation, reconstruction, logical content">Logical content
   &darr;
-FULL COPY
+Computation Unit
   &darr;
-Pre-materialized
+Compact representation (shared/deduplicated)
   &darr;
-Materialize
+Reconstruction
   &darr;
-Logical file</pre>
-              <p class="mode-meter"><span>Potentially higher storage</span><span>No Computation Unit for recovery</span></p>
+Logical content</pre>
+              <p class="mode-meter"><span>May reduce storage</span><span>Uses Computation Unit moderately</span></p>
               <ul class="mode-list">
-                <li>Edit result persisted by full copy only</li>
-                <li>Direct, straightforward content recovery</li>
-                <li>Minimal content reconstruction dependency</li>
-                <li>Pre-materialized content is canonical, not a cache</li>
+                <li>Deduplication, content sharing, and revision-to-revision reuse preferred</li>
+                <li>Delta/diff and patch representations permitted within bounds</li>
+                <li>Revision-to-revision reuse preferred when beneficial</li>
+                <li>Deterministic recovery through the Computation Unit</li>
+                <li>Moderate optimization effort preferred</li>
               </ul>
-              <p class="mode-sum mono">storage &rarr; computation</p>
+              <p class="mode-sum mono">computation &rarr; reduced storage</p>
+            </article>
+            <article class="mode-card">
+              <p class="panel-label">writer-side storage policy</p>
+              <h3>HORIZONTAL</h3>
+              <p class="mode-wire">Wire Mode: ENTERPRISE (0x02)</p>
+              <p class="mode-wire">Wire Mode: ENTERPRISE (0x02)</p>
+              <p class="mode-sub mono">BALANCED STORAGE AND COMPUTATION</p>
+              <p>Preference for straightforward physical representations with limited optimization. Complete content objects are preferred; basic deduplication and shallow sharing may be used when clearly beneficial.</p>
+              <pre class="mono mode-flow" role="img" aria-label="Horizontal flow: logical content, limited computation, direct representation, recovery, logical content">Logical content
+  &darr;
+Limited Computation
+  &darr;
+Direct representation (complete objects)
+  &darr;
+Recovery (direct/materialize)
+  &darr;
+Logical content</pre>
+              <p class="mode-meter"><span>Balanced storage/computation</span><span>Limited Computation Unit use</span></p>
+              <ul class="mode-list">
+                <li>Complete content objects preferred</li>
+                <li>Basic deduplication and shallow sharing permitted when beneficial</li>
+                <li>Deep dependency chains avoided</li>
+                <li>Expensive similarity analysis generally avoided</li>
+                <li>Full-copy fallback strategy preferred</li>
+                <li>Limited optimization effort</li>
+              </ul>
+              <p class="mode-sum mono">limited computation &rarr; straightforward storage</p>
+            </article>
+            <article class="mode-card">
+              <p class="panel-label">writer-side storage policy</p>
+              <h3>HIGHLY_HORIZONTAL</h3>
+              <p class="mode-wire">Wire Mode: ENTERPRISE (0x02)</p>
+              <p class="mode-wire">Wire Mode: ENTERPRISE (0x02)</p>
+              <p class="mode-sub mono">MAXIMUM STRAIGHTFORWARDNESS</p>
+              <p>DIRECT-1 representation required for emitted content; EXTENTS-1 forbidden; reconstruction dependencies forbidden; each canonical content object contains complete logical content in directly recoverable form.</p>
+              <pre class="mono mode-flow" role="img" aria-label="Highly Horizontal flow: logical content, no computation, direct representation, direct recovery, logical content">Logical content
+  &darr;
+No Computation Unit
+  &darr;
+DIRECT-1 representation (complete content)
+  &darr;
+Direct recovery (copy only)
+  &darr;
+Logical content</pre>
+              <p class="mode-meter"><span>No storage reduction</span><span>No Computation Unit use</span></p>
+              <ul class="mode-list">
+                <li>DIRECT-1 MUST be used for emitted content</li>
+                <li>EXTENTS-1 MUST NOT be used</li>
+                <li>Reconstruction dependencies MUST NOT be required</li>
+                <li>Compression wrappers NOT required for canonical recovery</li>
+                <li>Each canonical content object contains complete logical content</li>
+                <li>Exact whole-object reuse MAY still be used where identity semantics allow</li>
+                <li>Expensive similarity analysis MUST NOT be required</li>
+                <li>Deep dependency graphs MUST NOT be created</li>
+              </ul>
+              <p class="mode-sum mono">no computation &rarr; direct storage</p>
             </article>
           </div>
         </div>
         <div class="container doc modes-detail">
-          <h3 class="subhead">Mode comparison</h3>
+          <h3 class="subhead">Storage Policy Profile Comparison (Writer-Side Preferences within Wire Modes)</h3>
           <table>
-            <thead><tr><th>Property</th><th>MODERN &mdash; Vertical</th><th>ENTERPRISE &mdash; Horizontal</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Property</th
+                  <th>HIGHLY_VERTICAL</th
+                  <th>VERTICAL</th
+                  <th>HORIZONTAL</th
+                  <th>HIGHLY_HORIZONTAL</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td>VSN library</td><td>Same</td><td>Same</td></tr>
-              <tr><td>Library features</td><td>All</td><td>All</td></tr>
+              <tr><td>VSN library</td><td>Same</td><td>Same</td><td>Same</td><td>Same</td></tr>
+              <tr><td>Library features</td><td>All</td><td>All</td><td>All</td><td>All</td></tr>
               <tr><td>Content representation</td><td>Flexible</td><td>Full copy (pre-materialized)</td></tr>
-              <tr><td>Deduplication</td><td>Permitted</td><td>Not required for edit persistence</td></tr>
-              <tr><td>Delta / patch</td><td>Permitted</td><td>Not used for edit persistence</td></tr>
-              <tr><td>Reconstruction</td><td>May be required</td><td>Not required for edited content</td></tr>
-              <tr><td>Storage efficiency</td><td>May be higher</td><td>Lower, in exchange for simplicity</td></tr>
-              <tr><td>Computation Unit</td><td>Required for representation and reconstruction</td><td>Not required for content reconstruction</td></tr>
-              <tr><td>Compatibility orientation</td><td>Modern, representation-flexible</td><td>Compatibility-oriented</td></tr>
-              <tr><td>Canonical recovery</td><td>Required</td><td>Required</td></tr>
-              <tr><td>Recovered logical content</td><td colspan="2">Identical for the same canonical content state</td></tr>
+              <tr><td>Compute allowance</td><td>Highest</td><td>High</td><td>Low/Moderate</td><td>Lowest</td></tr>
+              <tr><td>Object sharing</td><td>Aggressive</td><td>Preferred</td><td>Limited</td><td>Limited</td></tr>
+              <tr><td>Chunking</td><td>Allowed</td><td>Allowed</td><td>Limited</td><td>No</td></tr>
+              <tr><td>EXTENTS-1</td><td>Allowed</td><td>Allowed</td><td>Limited/shallow</td><td>Forbidden</td></tr>
+              <tr><td>Deep dependencies</td><td>Allowed with limits</td><td>Limited</td><td>Avoided</td><td>Forbidden</td></tr>
+              <tr><td>Similarity search</td><td>Aggressive</td><td>Bounded</td><td>Generally avoided</td><td>Forbidden</td></tr>
+              <tr><td>Full copy</td><td>Fallback</td><td>Common fallback</td><td>Preferred</td><td>Required baseline</td></tr>
+              <tr><td>DIRECT-1</td><td>Allowed</td><td>Allowed</td><td>Preferred</td><td>Required</td></tr>
             </tbody>
           </table>
-          <p class="small muted">The defining difference is edit-content representation: <strong>Enterprise Mode file editing is full copy only</strong>. An Enterprise container still carries ordinary VSN structural metadata, references, framing, and integrity metadata, and Modern Mode remains able to store a full copy.</p>
+          <tr><td>Compression optimization</td><td>Allowed</td><td>Allowed</td><td>Optional</td><td>Not required/for canonical baseline</td></tr>
           <div class="code-card">
             <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">resource architecture</span></div>
             <pre class="mono tree"><code>                    VSN LIBRARY
@@ -136,28 +206,29 @@ Logical file</pre>
               SAME FEATURES / SAME SEMANTICS
                          |
            +-------------+-------------+
-           |                           |
+           |<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>|
    MODERN / VERTICAL        ENTERPRISE / HORIZONTAL
-           |                           |
+           |<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>|
    Computation Unit            Pre-Materialized
            |                        Content
    Compute representation            |
            |                     FULL COPY
    Reconstruct when needed           |
            |                     Direct materialization
-           |                           |
+           |<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>|
            +-------------+-------------+
                          |
                  Logical File Content</code></pre>
           </div>
-          <h3 class="subhead">Why two modes</h3>
+                     <div class="policy-mapping"><h4>Wire-Mode to Storage-Policy Mapping</h4><table class="mono-table"><thead><tr><th>Wire Mode</th><th>Normative Value</th><th>Permitted Writer Policies</th></tr></thead><tbody><tr><td>MODERN</td><td>0x01</td><td>HIGHLY_VERTICAL, VERTICAL</td></tr><tr><td>ENTERPRISE</td><td>0x02</td><td>HORIZONTAL, HIGHLY_HORIZONTAL</td></tr></tbody></table></div>
+<h3 class="subhead">Why two modes</h3>
           <p>Different deployments have different resource constraints. Some can spend storage so that recovery is as straightforward and computationally inexpensive as possible. Others prioritize storage efficiency and can afford additional reconstruction computation. VSN lets the resource architecture be selected without changing the library feature set or the semantic model.</p>
           <p><strong>Archival angle.</strong> Enterprise Mode offers the simplest recovery path: stored pre-materialized content, then direct materialization. That simplicity is a property of the representation, not a standalone longevity guarantee: framing, identifiers, versioning, field encoding, and recovery rules remain governed by the wider specification, and those byte-level decisions are still open (Section 53).</p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="#brp-11">Read the VSN Mode specification</a>
             <a class="btn btn-secondary" href="#brp-10">Canonical / derived boundary</a>
           </div>
-          <p class="small muted">This overview is informative. Section 11 &mdash; VSN Mode: Modern and Enterprise &mdash; is the normative source.</p>
+          <p class="small muted">Wire modes (MODERN, ENTERPRISE) are normative and frozen in the ModeDeclaration / Mode registry (GR-38, VR-16). The four storage-policy profiles are writer-side preferences layered over those wire modes — they do not appear in the container binary and are not separate protocol modes.</p>
         </div>
       </section>
       <section class="section" id="brp-01" aria-labelledby="brp-01-title">
@@ -405,27 +476,27 @@ Logical file</pre>
   |
   v
 FileHead  ---(head RevisionId)--->  RevisionId
-                                          |
+<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>               |
                           +---------------+---------------+
-                          |                               |
+                          |<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>    |
                 parent RevisionId (0..n)         ContentRef
-                          |                               |
-                          v                               v
+                          |<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>    |
+                          v<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>    v
                   Revision graph                 ObjectSerial
                 (explicit edges only)                    |
-                                                          v
-                                            Canonical Content Object
-                                                          |
-                            +-----------------------------+-----------------------------+
-                            |                                                           |
-                  MODERN: canonical representation                             ENTERPRISE: pre-materialized content
-                            |                                                           |
-                            v                                                           |
-                   Computation Unit                                                    |
-                            |                                                           |
-                            +-----------------------------+-----------------------------+
-                                                          v
-                                                Logical file content</code></pre>
+<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr><tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>    v
+<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>                 Canonical Content Object
+<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr><tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>    |
+<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> +-----------------------------+-----------------------------+
+<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> |<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr><tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>     |
+                  MODERN: canonical representation<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>  ENTERPRISE: pre-materialized content
+<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> |<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr><tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>     |
+<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> v<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr><tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>     |
+                   Computation Unit<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>                         |
+<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> |<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr><tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>     |
+<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> +-----------------------------+-----------------------------+
+<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr><tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>    v
+<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>                     Logical file content</code></pre>
           <p>Every arrow above is carried by canonical data. No arrow depends on a hash, an offset, an index, a cache, a diff algorithm, or a VSN Mode.</p>
 <h4>Semantic test vectors: minimal valid states</h4>
           <table>
@@ -572,7 +643,7 @@ FileHead  ---(head RevisionId)--->  RevisionId
           <p>This subsection freezes the semantic layer: what the decoded canonical data <em>means</em>, which record combinations form a valid state, and what information is required to recover that state. It does not alter the identity model frozen as ID-01 to ID-62 or the binary grammar frozen as GR-01 to GR-53; where a semantic rule would require a binary change, that is identified as a dependency rather than applied.</p>
           <p>The processing layers are strictly separated and MUST NOT be collapsed:</p>
           <pre class="mono tree"><code>Physical Bytes -> Binary Structure -> Canonical Records -> Canonical Semantic State
-                                                      -> Logical File State -> Logical File Bytes
+<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr><tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr>-> Logical File State -> Logical File Bytes
 
 Derived Data (independent branch, never an input to canonical state):
 indexes, caches, accelerators, physical-location hints,
@@ -1337,8 +1408,8 @@ EF 01 23 45 67 89 AB CD EF 04 02 02 C8 01 00 06 04 06 01 01 01 00 00 14 0F 00 02
           <p>The following grammar is the single normative canonical binary grammar of the VSN container. It is the common grammar for both MODERN and ENTERPRISE Mode. Every byte required for decoding is covered by a rule below; no byte position, width, or value is left to implementation choice.</p>
           <pre class="mono tree"><code>Container ::= Magic ContainerFormatVersion EncodingVersion HeaderFields RecordsEnd
 Magic               ::= 0x56 0x53 0x4E 0x2D            ; "VSN-" signature, 4 bytes
-ContainerFormatVersion ::= u16be                            ; 1 = VSN-1
-EncodingVersion     ::= u16be                            ; 1 = RCMP-1
+ContainerFormatVersion ::= u16be<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> ; 1 = VSN-1
+EncodingVersion     ::= u16be<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> ; 1 = RCMP-1
 <table>
             <thead><tr><th>Vector</th><th>Exercises</th><th>Canonical state</th><th>Required result</th></tr></thead>
             <tbody>
@@ -1539,7 +1610,7 @@ EncodingVersion     ::= u16be                            ; 1 = RCMP-1
             <li><strong>GR-13 — Container trailer.</strong> The container MUST end with a trailer carrying the <em>canonical record count</em> and the accepting <code>Generation</code>, so that a torn write leaves a structurally detectable incomplete tail (Section 24, Step 5). The canonical record count is the number of canonical records in the accepted generation, excluding the <code>ModeDeclaration</code> record because it is a structural mode marker carrying canonical metadata rather than a canonical state record counted by the trailer (Record role classification table). Torn-write acceptance semantics are deferred to Step 5; the framing requirement here is only that truncation be structurally detectable.</li>
             <li><strong>GR-14 — No record length substitution.</strong> <code>RecordHash</code>, <code>ContentHash</code>, or any integrity value MUST NOT be used in place of, or to cross-check the extent of, a structural length. Structure MUST be parseable with every hash algorithm disabled.</li>
           </ul>
-HeaderFields        ::= Field*                            ; until RecordsEnd marker
+HeaderFields        ::= Field*<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> ; until RecordsEnd marker
 Field               ::= FieldId FieldLength FieldValue
 FieldId             ::= u16be
 FieldLength         ::= uvarint
@@ -1551,12 +1622,12 @@ RecordsEnd          ::= FieldId 0x0000, FieldLength uvarint 0x0000
 Records             ::= Record*
 Record              ::= RecordType RecordLength RecordPayload
 RecordType          ::= u16be
-RecordLength        ::= uvarint                            ; bytes of RecordPayload only
+RecordLength        ::= uvarint<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> ; bytes of RecordPayload only
 RecordPayload       ::= byte[RecordLength]
 ObjectSection       ::= Object*
 Object              ::= ObjectSerial ObjectLength ObjectDescriptor
 ObjectSerial        ::= uvarint
-ObjectLength        ::= uvarint                            ; bytes of ObjectDescriptor only
+ObjectLength        ::= uvarint<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> ; bytes of ObjectDescriptor only
 ObjectDescriptor    ::= byte[ObjectLength]</code></pre>
           <p>Structural constants: a record boundary is the byte range beginning at its <code>RecordType</code> and ending after exactly <code>RecordLength</code> bytes of <code>RecordPayload</code>. The length value never counts its own encoding bytes. A reader locates the next record by skipping exactly <code>RecordLength</code> payload bytes, requiring no knowledge of that record's semantics (GR-02).</p>
           <p>The grammar is self-delimiting at every level: container, header field, record, and object each carry an independent declared extent. No level requires a sentinel other than the header <code>RecordsEnd</code> marker, and no level requires a cryptographic hash, index, cache, offset, compression algorithm, or diff algorithm to be parsed.</p>
@@ -1682,12 +1753,12 @@ previous file state -&gt; EDIT -&gt; resulting logical content -&gt; FULL COPY -
 recovery:
 VSN storage -&gt; pre-materialized content -&gt; COPY / MATERIALIZE -&gt; logical file</code></pre>
           </div>
-          <p><strong>No content reconstruction dependency.</strong> A Horizontal edit MUST NOT depend on diff computation, delta reconstruction, patch application, deduplication reconstruction, algorithmic content synthesis, previous-revision reconstruction, content reconstruction instructions, a storage-optimization engine, or a proprietary optimization algorithm in order to obtain the resulting file content. The resulting logical content MUST be directly represented by the stored pre-materialized content representation.</p>
+          <p><strong>Canonical recovery requirement.</strong> All four storage-policy profiles require complete canonical recovery using only protocol-contained information and supported protocol mechanisms. No profile may depend on external optimizer state, unavailable plugins, or future algorithms for canonical recovery.</p>
           <h3>Pre-Materialized Content (Normative &mdash; Review)</h3>
-          <p><strong>Pre-Materialized Content</strong> is the normative term for content stored in a Horizontal Representation whose complete logical content, required for the corresponding revision and file state, is already present in the VSN representation. Recovery of that state is a copy or materialization of stored bytes and consumes no Computation Unit reconstruction work.</p>
+          <p><strong>Storage policy guidelines.</strong> Each storage-policy profile defines constraints and preferences for physical representation strategies while maintaining identical logical semantics and canonical recovery requirements. The optimization budget layer constrains the scope of permitted strategies within each mode.</p>
           <p>Pre-Materialized Content is <strong>canonical persisted content</strong>. It MUST NOT be classified as a cache, a checkpoint, a derived artifact, an optional optimization, or a materialized snapshot (Section 10). Because it is required for Enterprise Mode recovery, deleting it is deleting canonical recovery data and MUST be reported as a missing object or integrity failure under Section 38, never as a harmless cache eviction. The increased storage consumption is an intentional architectural trade-off, not waste. Enterprise Mode MAY share one pre-materialized object between revisions whose complete logical content is identical, because sharing complete content introduces no reconstruction dependency; it MUST NOT store a partial content object whose completeness depends on other stored data. Enterprise recovery MUST work without <code class="inline-code">SHA-256</code>, <code class="inline-code">BLAKE3-256</code>, or any other cryptographic hash algorithm (Sections 10 and 19), and compression and encryption remain orthogonal physical transforms of the stored bytes (Sections 34 and 35).</p>
           <h3>Modern Mode (Vertical Representation) &mdash; Normative &mdash; Review</h3>
-          <p><strong>Central rule.</strong> Modern Mode is the storage-efficient, computation-oriented mode. It uses the Computation Unit to reduce storage consumption and performs permitted content representation and reconstruction work. The Computation Unit is an intentional and normative part of the architecture, not an implementation detail: a reader that supports a declared Vertical Representation MUST invoke the Computation Unit to reconstruct the logical content from that representation and the canonical source data it names.</p>
+          <p><strong>Storage policy definitions.</strong> The four storage-policy profiles define constrained optimization scopes for physical representation strategies. All modes require identical canonical recovery and maintain identical logical VSN semantics.</p>
           <div class="code-card" role="img" aria-label="Modern edit and recovery flow">
             <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">modern / vertical: edit and recovery</span></div>
             <pre class="mono tree"><code>edit:
@@ -1698,7 +1769,20 @@ logical content -&gt; COMPUTATION UNIT (analyze, transform, deduplicate,
 recovery:
 VSN representation -&gt; COMPUTATION UNIT (reconstruct) -&gt; logical content</code></pre>
           </div>
-          <p><strong>Permitted techniques.</strong> Modern Mode MAY use deduplication, content sharing, delta/diff representation, patch representation, compressed or shared representations, chunking, revision-to-revision reuse, indexing, caching, algorithmic reconstruction, other supported storage-efficient algorithms, and future representation algorithms. <strong>No single optimization algorithm is mandated.</strong> This specification defines the required semantics and recovery properties, not one implementation algorithm, and MUST NOT require one specific algorithm.</p>
+          <p><strong>Mode-specific guidelines.</strong> Each storage-policy profile has specific constraints and preferences:
+              <ul>
+                <li><strong>HIGHLY_VERTICAL</strong>: Aggressive deduplication, content sharing, and revision-to-revision reuse within declared optimization scope. The Computation Unit performs extensive representation work.</li>
+                <li><strong>VERTICAL</strong>: Preference for deduplication, content sharing, and revision-to-revision reuse with bounded optimization effort. The Computation Unit performs moderate representation work.</li>
+                <li><strong>HORIZONTAL</strong>: Preference for straightforward physical representations with limited optimization. Complete content objects preferred; basic deduplication and shallow sharing permitted when beneficial.</li>
+                <li><strong>HIGHLY_HORIZONTAL</strong>: DIRECT-1 representation required for emitted content; EXTENTS-1 forbidden; reconstruction dependencies forbidden; each canonical content object contains complete logical content in directly recoverable form.</li>
+              </ul>
+              <p><strong>Important notes:</strong></p>
+              <ul>
+                <li>No single optimization algorithm is mandated in any mode.</li>
+                <li>This specification defines required semantics and recovery properties, not implementation algorithms.</li>
+                <li>Future or implementation-specific methods are permitted only when the representation provides sufficient information for deterministic recovery.</li>
+                <li>Every representation MUST carry a representation identity and version so readers can decide whether they support it.</li>
+              </ul>
           <p><strong>Permitted is not unspecified.</strong> Future or implementation-specific Vertical methods are permitted only when the representation provides sufficient information and normative semantics for deterministic recovery by an implementation that supports it. Every Vertical Representation MUST carry a representation identity and representation version so a reader can decide before attempting reconstruction whether it supports that representation; an unsupported representation MUST be reported as an unsupported transform and never as corrupt data (Section 38). Representation identity and version values are registry-backed and unallocated (Section 46); their encoding is a freeze blocker (Section 53).</p>
           <p><strong>Language discipline.</strong> Modern Mode <em>may</em> reduce storage consumption and <em>may</em> require additional computation. This specification MUST NOT state that Modern Mode always produces smaller VSN files, and MUST NOT present either mode as better or worse; the two are an architectural resource choice with different storage and computation characteristics and no measured benchmark data exists (Section 43).</p>
           <h3>Vertical computation contract (Normative &mdash; Review)</h3>
@@ -1725,16 +1809,16 @@ VSN representation -&gt; COMPUTATION UNIT (reconstruct) -&gt; logical content</c
           <table>
             <thead><tr><th>Property</th><th>MODERN &mdash; Vertical</th><th>ENTERPRISE &mdash; Horizontal</th></tr></thead>
             <tbody>
-              <tr><td>VSN library</td><td>Same</td><td>Same</td></tr>
-              <tr><td>Library features</td><td>All</td><td>All</td></tr>
+              <tr><td>VSN library</td><td>Same</td><td>Same</td><td>Same</td><td>Same</td></tr>
+              <tr><td>Library features</td><td>All</td><td>All</td><td>All</td><td>All</td></tr>
               <tr><td>Content representation</td><td>Flexible</td><td>Full copy</td></tr>
-              <tr><td>Deduplication</td><td>Permitted</td><td>Not required for edit persistence</td></tr>
+              <tr><td>Compute allowance</td><td>Highest</td><td>High</td><td>Low/Moderate</td><td>Lowest</td></tr>
               <tr><td>Delta / diff</td><td>Permitted</td><td>Not used for edit persistence</td></tr>
-              <tr><td>Reconstruction</td><td>May be required</td><td>Not required for edited content</td></tr>
-              <tr><td>Storage efficiency</td><td>May be higher</td><td>Lower, in exchange for simplicity</td></tr>
+              <tr><td>Chunking</td><td>Allowed</td><td>Allowed</td><td>Limited</td><td>No</td></tr>
+              <tr><td>EXTENTS-1</td><td>Allowed</td><td>Allowed</td><td>Limited/shallow</td><td>Forbidden</td></tr>
               <tr><td>Computation Unit requirement</td><td>Required for content representation and reconstruction</td><td>Not required for content reconstruction</td></tr>
-              <tr><td>Compatibility orientation</td><td>Modern, representation-flexible</td><td>Compatibility-oriented</td></tr>
-              <tr><td>Canonical recovery</td><td>Required</td><td>Required</td></tr>
+              <tr><td>Similarity search</td><td>Aggressive</td><td>Bounded</td><td>Generally avoided</td><td>Forbidden</td></tr>
+              <tr><td>Full copy</td><td>Fallback</td><td>Common fallback</td><td>Preferred</td><td>Required baseline</td></tr>
             </tbody>
           </table>
           <p>This table defines the <em>edit-content representation</em> difference only. It MUST NOT be read to imply that Modern Mode is incapable of storing a full copy, that Enterprise Mode cannot contain ordinary container metadata, indexes, references, or framing, or that either mode is less capable. Both modes support every defined library operation over the same semantic model.</p>

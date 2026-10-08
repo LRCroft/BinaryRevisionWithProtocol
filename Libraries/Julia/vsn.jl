@@ -10,7 +10,8 @@ const REC_REVISION = 2
 const REC_FILE_HEAD = 4
 const REC_CONTENT_OBJECT = 5
 const REC_COMMIT_MARKER = 6
-const REC_MODE_DECLARATION = 7
+const REC_MODE_DECLARATION = 7                                    # OBSOLETE: was ModeDeclaration record (deprecated)
+const REC_STORAGE_POLICY = 0x0009                                 # StoragePolicy record type
 
 const FID_FILE_ID = 0x101
 const FID_REV_ID = 0x201
@@ -23,7 +24,7 @@ const FID_HEAD_REV_ID = 0x402
 const FID_COMMIT_GENERATION = 0x601
 const FID_OBJECT_SERIAL = 0x501
 const FID_OBJECT_SIZE = 0x511
-const FID_MODE = 0x701
+const FID_MODE = 0x701                                            # OBSOLETE: was ModeDeclaration field (deprecated)\nconst FID_STORAGE_POLICY = 0x0901                                  # StoragePolicy.field_id
 
 const MODE_MODERN = 1
 const MODE_ENTERPRISE = 2
@@ -31,6 +32,12 @@ const MODE_ENTERPRISE = 2
 const REP_DIRECT_1 = 1
 const REP_EXTENTS_1 = 2
 const REP_VERSION_1 = 1
+
+# Storage Policy values -- authoritative classification (directly on wire)
+const STORAGE_POLICY_HIGHLY_VERTICAL   = 1
+const STORAGE_POLICY_VERTICAL         = 2
+const STORAGE_POLICY_HORIZONTAL       = 3
+const STORAGE_POLICY_HIGHLY_HORIZONTAL = 4
 
 const ERR_TRUNCATED = 0x0002
 const ERR_UNKNOWN_FILE_ID = 0x0009
@@ -59,20 +66,54 @@ struct Container
     trailer_generation::UInt64
     mode::Int
     byte_length::Int
+    storage_policy::Int
 end
 
 # --- frozen protocol layer -------------------------------------------------
+
+function _read_sp_from_bytes(data::Vector{UInt8}, start::Int)::Int
+    pos = start
+    len = length(data)
+    while pos + 2 <= len
+        rt = Int(data[pos]) << 8 | Int(data[pos+1]); pos += 2
+        if rt == 0x0000 break end  # RecordsEnd — stop scanning records
+        if pos + 1 > len break end
+        plen = Int(data[pos]); pos += 1
+        if pos + plen > len break end
+        # Scan payload fields for FID_STORAGE_POLICY (0x0901)
+        ppos = pos
+        while ppos + 2 <= pos + plen
+            fid = Int(data[ppos]) << 8 | Int(data[ppos+1]); ppos += 2
+            if ppos > pos + plen break end
+            vlen = Int(data[ppos]); ppos += 1
+            if vlen == 1 && ppos <= pos + plen
+                if fid == 0x0901
+                    return Int(data[ppos])  # Extract storage policy byte
+                end
+            end
+            ppos += max(vlen, 1)
+        end
+        pos += plen
+    end
+    return 2  # default VERTICAL if no record found
+end
 
 function parse(data::Vector{UInt8})::Container
     length(data) < 8 && throw(ArgumentError("truncated container"))
     data[1:4] == MAGIC || throw(ArgumentError("bad magic"))
     cfv = Int(data[5]) << 8 | Int(data[6])
     ev = Int(data[7]) << 8 | Int(data[8])
-    Container(cfv, ev, Record[], ObjectEntry[], UInt64(0), UInt64(0), MODE_MODERN, length(data))
+    sp = _read_sp_from_bytes(data, 8)
+    Container(cfv, ev, Record[], ObjectEntry[], UInt64(0), UInt64(0), MODE_MODERN, length(data), sp)
 end
 
-encode(mode::Integer, gen::Integer)::Vector{UInt8} =
-    vcat(MAGIC, UInt8[0x00, 0x01, 0x00, 0x01])
+encode(mode::Integer, gen::Integer, sp::Int = 2)::Vector{UInt8} =
+    vcat(MAGIC, UInt8[0x00, 0x01], UInt8[0x00, 0x01],
+         UInt8[0x00, 0x09],     # REC_STORAGE_POLICY
+         UInt8[4],               # payload length
+         UInt8[0x09], UInt8[0x01],  # FID_STORAGE_POLICY
+         UInt8[1],               # value length
+         sp >= 1 && sp <= 4 ? UInt8(sp) : UInt8(2))
 
 validate_structural(c::Container)::Bool =
     c.cfv == CFV && (c.mode == MODE_MODERN || c.mode == MODE_ENTERPRISE)
@@ -131,6 +172,7 @@ end
 
 mutable struct MutableStore
     mode::Int
+    storage_policy::Int
     generation::Int
     next_rev_id::Int
     next_obj_serial::Int
@@ -142,7 +184,7 @@ mutable struct MutableStore
 end
 
 MutableStore(mode::Integer=MODE_MODERN) = MutableStore(
-    Int(mode), 0, 1, 1, false,
+    Int(mode), STORAGE_POLICY_VERTICAL, 0, 1, 1, false,
     Dict{Vector{UInt8}, FileEntry}(),
     Dict{Int, Revision}(),
     Dict{Int, Vector{UInt8}}(),
@@ -354,7 +396,7 @@ function import_bytes!(s::MutableStore, data::Vector{UInt8})
     return s
 end
 
-export_bytes(s::MutableStore)::Vector{UInt8} = encode(s.mode, s.generation)
+export_bytes(s::MutableStore)::Vector{UInt8} = encode(s.mode, s.generation, s.storage_policy)
 
 write_large_object!(s::MutableStore, path::String, data::Vector{UInt8}) =
     create_file!(s, path, data)
@@ -401,5 +443,15 @@ export MAGIC, CFV, EV, MODE_MODERN, MODE_ENTERPRISE,
        diagnostics, integrity_verify, get_stats,
        get_object_count, get_revision_count, get_file_count,
        new_builder, rep_direct_1, rep_extents_1
+
+# ---- Writer Storage Policy chain -- OBSOLETE: cancelled mode mapping removed.
+# Canonical writer: stores policy directly in store; encode uses it.
+function create_with_storage_policy(spolicy::Integer)::MutableStore
+    s = MutableStore(MODE_MODERN)
+    s.storage_policy = spolicy
+    return s
+end
+
+create_with_policy = create_with_storage_policy
 
 end # module

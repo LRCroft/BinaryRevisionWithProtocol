@@ -53,3 +53,28 @@ run_cap <- function(n) {
 
 results <- sapply(1:19, run_cap)
 cat(sprintf("PASS %d\n", sum(results)))
+
+# ---- Storage Policy wire check ----
+sp_fail <- FALSE
+all_wire <- list()
+for (sp in c(STORAGE_POLICY_HIGHLY_VERTICAL, STORAGE_POLICY_VERTICAL, 
+              STORAGE_POLICY_HORIZONTAL, STORAGE_POLICY_HIGHLY_HORIZONTAL)) {
+  s <- create(MODE_MODERN)
+  s$storagePolicy <- as.integer(sp)
+  data <- export_bytes(s)
+  if (length(data) >= 8 && rawToChar(data[1:4]) == "VSN-") {
+    all_wire[[as.character(sp)]] <- data
+  } else {
+    sp_fail <- TRUE; break
+  }
+}
+if (length(all_wire) < 4) sp_fail <- TRUE
+bad_names <- c("HIGHTLY_VERTIC","ERTICAL","ORIZONTAL")
+for (d in all_wire) for (b in bad_names) {
+  b_raw <- charToRaw(b)
+  if (any(sapply(1:(length(d)-length(b_raw)+1), function(j) identical(d[j:(j+length(b_raw)-1)], b_raw)))) { 
+    cat("P10 leaked\n"); sp_fail <<- TRUE 
+  }
+}
+cat(if(sp_fail) "SP FAILED\n" else "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance\n")
+if (sp_fail) quit(status=1)

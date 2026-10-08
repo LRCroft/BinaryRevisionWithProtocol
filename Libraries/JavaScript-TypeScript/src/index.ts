@@ -70,3 +70,6 @@ export function inspectContainer(store: VsnStore): {
   return store.inspect();
 }
 
+// Re-export StoragePolicy enum for conformance tests
+export { StoragePolicy, MODE_MODERN, MODE_ENTERPRISE } from "./constants.js";
+

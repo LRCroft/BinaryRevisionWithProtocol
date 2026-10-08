@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+﻿# frozen_string_literal: true
 require 'thread'
 
 module VSN
@@ -10,17 +10,51 @@ module VSN
   FID_REV_OBJECT_SERIAL = 0x203; FID_REV_PATH = 0x210; FID_REV_PRESENCE = 0x211
   FID_HEAD_FILE_ID = 0x401; FID_HEAD_REV_ID = 0x402
   FID_COMMIT_GENERATION = 0x601; FID_OBJECT_SERIAL = 0x501; FID_OBJECT_SIZE = 0x511
-  FID_MODE = 0x701
+  FID_MODE = 0x701                                     # OBSOLETE: was ModeDeclaration field (deprecated)
+  FID_STORAGE_POLICY = 0x0901                          # StoragePolicy.field_id (new)
+  REC_STORAGE_POLICY = 0x0009                         # StoragePolicy record type (new)
   MODE_MODERN = 1; MODE_ENTERPRISE = 2
+  
+  # Storage Policy values -- authoritative classification (directly on wire)
+  STORAGE_POLICY_HIGHLY_VERTICAL = 1
+  STORAGE_POLICY_VERTICAL = 2
+  STORAGE_POLICY_HORIZONTAL = 3
+  STORAGE_POLICY_HIGHLY_HORIZONTAL = 4
   REP_DIRECT_1 = 1; REP_EXTENTS_1 = 2; REP_VERSION_1 = 1
 
   class Container
-    attr_reader :cfv, :ev, :records, :objects, :mode, :byte_length
-    def initialize(cfv: CFV, ev: EV, mode: MODE_MODERN, byte_length: 0)
+    attr_reader :cfv, :ev, :records, :objects, :mode, :byte_length, :storage_policy
+    def initialize(cfv: CFV, ev: EV, mode: MODE_MODERN, byte_length: 0, storage_policy: nil)
       @cfv = cfv; @ev = ev; @mode = mode; @records = []; @objects = []; @byte_length = byte_length
+      @storage_policy = storage_policy
       @lock = Mutex.new
     end
     def with_lock; @lock.synchronize { yield }; end
+  end
+
+  # --- Storage Policy reader helper ---
+  def self._read_sp_from_bytes(data)
+    pos = 8
+    len = data.bytesize
+    while pos + 2 <= len
+      rt = (data[pos].ord << 8) | data[pos+1].ord
+      return STORAGE_POLICY_VERTICAL if rt == 0x0000  # RecordsEnd — stop
+      pos += 2
+      plen = data[pos].ord; pos += 1
+      break if pos + plen > len
+      ppos = pos
+      while ppos + 2 <= pos + plen
+        fid = (data[ppos].ord << 8) | data[ppos+1].ord; ppos += 2
+        break if ppos > pos + plen
+        vlen = data[ppos].ord; ppos += 1
+        if vlen == 1 && ppos <= pos + plen && fid == FID_STORAGE_POLICY
+          return data[ppos].ord  # Extract storage policy byte
+        end
+        ppos += [vlen, 1].max
+      end
+      pos += plen
+    end
+    nil  # no record found — caller chooses default
   end
 
   def self.parse(data)
@@ -28,11 +62,14 @@ module VSN
     c = Container.new(byte_length: data.bytesize)
     c.instance_variable_set(:@cfv, data.byteslice(4, 2).unpack1("n"))
     c.instance_variable_set(:@ev, data.byteslice(6, 2).unpack1("n"))
+    sp = self._read_sp_from_bytes(data)
+    c.instance_variable_set(:@storage_policy, sp) if sp
     c
   end
 
-  def self.encode(mode, _gen)
-    MAGIC + [CFV].pack("n") + [EV].pack("n")
+  def self.encode(mode, _gen, sp = 2)
+    rec = [REC_STORAGE_POLICY].pack("n") + [4].pack("C") + [FID_STORAGE_POLICY].pack("n") + [1, sp >= 1 && sp <= 4 ? sp : 2].pack("CC")
+    MAGIC + [CFV].pack("n") + [EV].pack("n") + rec
   end
 
   def self.validate(c)
@@ -48,10 +85,19 @@ module VSN
 
     def initialize(mode = MODE_MODERN)
       @mode = mode; @generation = 0; @next_rev_id = 1; @next_obj_serial = 1
+      @storage_policy = STORAGE_POLICY_VERTICAL
       @files = {}; @heads = {}; @revisions = {}; @objects = {}
     end
 
     def self.create(mode = MODE_MODERN); new(mode); end
+
+    # Writer Storage Policy chain -- OBSOLETE: cancelled mode mapping removed.
+    # Canonical writer: stores policy directly in store; encode uses it.
+    def self.create_with_storage_policy(spolicy)
+      s = new(MODE_MODERN)
+      s.instance_variable_set(:@storage_policy, spolicy)
+      s
+    end
 
     def self.open(data)
       raise "bad magic" unless data.bytesize >= 8 && data.byteslice(0, 4) == MAGIC
@@ -232,7 +278,7 @@ module VSN
       @generation = 0
     end
 
-    def export_bytes; VSN.encode(@mode, @generation); end
+    def export_bytes; VSN.encode(@mode, @generation, @storage_policy); end
     def write_large_object(path, content); create_file(path, content); end
     def integrity_verify; validate_structural; end
 

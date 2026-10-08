@@ -1,4 +1,0 @@
-  File "<string>", line 4
-    old = 'spec-tag\
-          ^
-SyntaxError: unterminated string literal (detected at line 4)

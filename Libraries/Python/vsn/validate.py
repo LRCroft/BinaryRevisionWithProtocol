@@ -26,17 +26,36 @@ def validate_semantic(data: bytes) -> None:
 
 
 def _check_mode(parsed):
+    # Accept either ModeDeclaration (legacy reader) or REC_STORAGE_POLICY (canonical writer)
     modes = [r for r in parsed.records if r.rtype == C.REC_MODE_DECLARATION]
-    if len(modes) != 1:
-        raise VsnError(0x000C, "expected exactly one ModeDeclaration, got %d" % len(modes))
-    m = modes[0].field(C.FID_MODE)
-    if m is None or len(m.value) != 1:
-        raise VsnError(0x000C, "ModeDeclaration missing mode value")
-    mode = m.value[0]
-    if mode not in (C.MODE_MODERN, C.MODE_ENTERPRISE):
-        raise VsnError(0x0001, "reserved mode value 0x%02x" % mode)
+    sp_records = [r for r in parsed.records if r.rtype == C.REC_STORAGE_POLICY]
+    
+    if len(sp_records) >= 1:
+        # Canonical path: use REC_STORAGE_POLICY to derive mode
+        sp_val = None
+        for sp_rec in sp_records:
+            sp_field = sp_rec.field(C.FID_STORAGE_POLICY)
+            if sp_field and len(sp_field.value) == 1:
+                sp_val = sp_field.value[0]
+                break
+        if sp_val is None:
+            raise VsnError(0x000C, "REC_STORAGE_POLICY missing storage_policy value")
+        # Determine wire mode from storage policy
+        if sp_val not in (1, 2, 3, 4):
+            raise VsnError(0x0001, "invalid storage policy %d" % sp_val)
+        # GR-43: HORIZONTAL policies (3,4) must not use EXTENTS-1 reconstruction
+        mode_to_check = C.MODE_ENTERPRISE if sp_val in (3, 4) else C.MODE_MODERN
+    elif len(modes) == 1:
+        mode_to_check = modes[0].field(C.FID_MODE).value[0] if modes[0].field(C.FID_MODE) and len(modes[0].field(C.FID_MODE).value) == 1 else None
+        if mode_to_check is None:
+            raise VsnError(0x000C, "ModeDeclaration missing mode value")
+    else:
+        raise VsnError(0x000C, "expected exactly one ModeDeclaration or REC_STORAGE_POLICY")
+    
+    if mode_to_check not in (C.MODE_MODERN, C.MODE_ENTERPRISE):
+        raise VsnError(0x0001, "reserved mode value 0x%02x" % mode_to_check)
     # GR-43: ENTERPRISE must not use EXTENTS-1 reconstruction
-    if mode == C.MODE_ENTERPRISE:
+    if mode_to_check == C.MODE_ENTERPRISE:
         for obj in parsed.objects:
             from .representations import parse_object_header
             ident, ver, _ = parse_object_header(obj.descriptor)

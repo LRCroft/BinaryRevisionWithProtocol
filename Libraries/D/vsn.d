@@ -6,8 +6,20 @@ private bool _lockHeld = false;
 void lockGuard() { while (_lockHeld) {} _lockHeld = true; }
 void unlockGuard() { _lockHeld = false; }
 
-enum MODE_MODERN = 1, MODE_ENTERPRISE = 2;
-enum REP_DIRECT_1 = 1, REP_EXTENTS_1 = 2;
+enum MODE_MODERN = 1, MODE_ENTERPRISE = 2;          // OBSOLETE: kept for reader compatibility only
+// Storage Policy values -- authoritative classification (directly on wire)
+enum STORAGE_HIGHLY_VERTICAL = 1;                     // maximum optimization effort
+enum STORAGE_VERTICAL = 2;                            // bounded optimization effort
+enum STORAGE_HORIZONTAL = 3;                          // low optimization effort
+enum STORAGE_HIGHLY_HORIZONTAL = 4;                   // minimal optimization effort
+// Record type constants
+const REC_END_OF_RECORDS = 0, REC_FILE_IDENTITY = 1, REC_REVISION = 2;
+const REC_FILE_HEAD = 4, REC_CONTENT_OBJECT = 5, REC_COMMIT_MARKER = 6;
+const REC_MODE_DECLARATION = 7;                       // OBSOLETE: kept for reader compatibility only
+const REC_STORAGE_POLICY = 9;                         // New: authoritative storage classification (0x0009)
+// Field IDs
+const FID_MODE = 0x0701;                              // OBSOLETE: ModeDeclaration field (deprecated)
+const FID_STORAGE_POLICY = 0x0901;                    // StoragePolicy.field_id (new)
 
 ubyte[] encode(uint mode, ulong gen) {
     ubyte[] buf = new ubyte[8];
@@ -28,12 +40,28 @@ bool magicCheck(ubyte[] data) {
     if (data.length < 4) return false;
     return data[0] == 'V' && data[1] == 'S' && data[2] == 'N' && data[3] == '-';
 }
+
+// Encode with StoragePolicy record: header + REC_STORAGE_POLICY + FID_STORAGE_POLICY + u8 value
+ubyte[] encodeWithPolicy(uint mode, ulong gen, ubyte sp) {
+    ubyte[] buf = new ubyte[19];
+    buf[0]='V'; buf[1]='S'; buf[2]='N'; buf[3]='-';
+    buf[4]=0; buf[5]=1;  // CFV=1, EV=1
+    buf[6]=0; buf[7]=9;  // REC_STORAGE_POLICY = 0x0009
+    buf[8]=4;             // payload length = 4
+    buf[9]=0x09; buf[10]=0x01;  // FID_STORAGE_POLICY = 0x0901
+    buf[11]=1;            // value length = 1
+    ubyte val;
+    if (sp >= 1 && sp <= 4) val = sp; else val = cast(ubyte)2;
+    buf[12] = val;
+    return buf[0..13];
+}
 class MutableStore {
     int mode; uint generation = 0;
     int fileCount = 0, revCount = 0, objCount = 0, nextRev = 1;
     bool closed = false;
     string[] paths;
     ubyte[][] contents;
+    ubyte storagePolicy = cast(ubyte)STORAGE_VERTICAL;
     
     this(int m) { mode = m; }
     static MutableStore create(int m) { return new MutableStore(m); }
@@ -94,12 +122,40 @@ class MutableStore {
     bool importBytes(ubyte[] data) {
         if (data.length < 8) throw new Exception("bad");
         if (data[0] != 'V') throw new Exception("bad magic");
+        // Parse storage policy from REC_STORAGE_POLICY record in payload
+        ubyte sp = cast(ubyte)STORAGE_VERTICAL;  // default
+        for (size_t i = 8; i + 6 < data.length; ) {
+            auto rtype = data[i] * 256 + data[i+1];
+            if (rtype == 0x0009) {
+                auto plen = data[i+2];
+                auto ppos = i + 3;
+                for (size_t j = 0; j + 3 < plen && ppos < data.length; j++) {
+                    if (data[ppos] == 0x09 && data[ppos+1] == 0x01) {
+                        auto vlen = data[ppos+2];
+                        if (vlen == 1 && ppos + 3 < data.length) sp = data[ppos+3];
+                        break;
+                    }
+                    ppos++;
+                }
+            }
+            auto plen = (i + 2 < data.length) ? data[i+2] : 0;
+            i += 3 + plen;
+        }
+        storagePolicy = sp;
         return true;
     }
-    ubyte[] exportBytes() { return encode(mode, generation); }
+    ubyte[] exportBytes() { return encodeWithPolicy(mode, generation, cast(ubyte)storagePolicy); }
     bool integrityOk() { return !closed; }
     int statsFiles() { return fileCount; }
     int statsRevs() { return revCount; }
     bool builderOk() { return mode >= 1 && mode <= 2; }
 }
 class Builder { static MutableStore build(int mode) { return new MutableStore(mode); } }
+
+// ---- Writer Storage Policy (informative, NOT on wire) ----
+enum StoragePolicy { HIGHLY_VERTICAL = 1, VERTICAL = 2, HORIZONTAL = 3, HIGHLY_HORIZONTAL = 4 }
+
+MutableStore createWithPolicy(int policy) {
+    int mode = (policy == 1 || policy == 2) ? MODE_MODERN : MODE_ENTERPRISE;
+    return new MutableStore(mode);
+}

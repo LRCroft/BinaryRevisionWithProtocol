@@ -1,5 +1,7 @@
 require "./vsn.cr"
 
+alias MutableStore = VSN::Store
+
 # Crystal forbids top-level globals, so counters live in class variables.
 class Harness
   @@passed = 0
@@ -188,7 +190,40 @@ chk(18, "builder creates store", VSN::Store.new_builder(1).mode == 1)
 s19=VSN::Store.create; f19=s19.create_file("i", b("interop-data-42")); chk(19, "interop content round-trip", s19.read_file(f19) == b("interop-data-42"))
 chk(19, "interop magic bytes", VSN.check_magic_bytes?(VSN.encode(1, 0)))
 
+# 6b. Transactions ExpectedRevision mismatch (before exit so it always runs)
+chk_raises(6, "transactions ExpectedRevision mismatch") { s.commit(999_u64) }
+
 puts "---"
 puts "Crystal capabilities: #{Harness.passed} passed, #{Harness.failed} failed"
+
+# ---- Storage Policy P01-P12 inline wire test ----
+MODE_MAP = [{"HIGHLY_VERTICAL",   1}, {"VERTICAL",          1},
+            {"HORIZONTAL",        2}, {"HIGHLY_HORIZONTAL", 2}]
+sp_fail = false
+all_wire : Array(String) = [] of String
+
+MODE_MAP.each do |name, mode|
+  s = MutableStore.create(mode)
+  fid = s.create_file("sp.txt")
+  s.write(fid, "storage-policy-wire-test")
+  data = s.commit()
+  all_wire << data
+
+  if data.length < 5 || data[0,4] != "VSN-" || data[4] != mode
+    puts "P03/P04 #{name} failed"; sp_fail = true; next
+  end
+end
+
+if all_wire.length >= 3 && all_wire[0][4] == all_wire[2][4]
+  puts "P05 same mode"; sp_fail = true
+end
+
+bad_names = ["HIGHTLY_VERTIC", "ERTICAL", "ORIZONTAL"]
+all_wire.each do |d|
+  bad_names.each { |b| if d.to_s.include?(b); puts "P10 leaked"; sp_fail = true; end }
+end
+
+puts sp_fail ? "SP FAILED" : "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance"
+exit(1) if sp_fail
+
 exit(1) if Harness.failed > 0
-chk_raises(6, "transactions ExpectedRevision mismatch") { s.commit(999_u64) }

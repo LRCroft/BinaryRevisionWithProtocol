@@ -1,0 +1,80 @@
+{
+  "corpus_version": "2.0",
+  "description": "Negative test cases for Storage Policy binary contract. All fixtures test protocol-level validation rules.",
+  "authority": "VSN1_Storage_Policy_Normative_Binary_Format.md Section 8",
+  "date": "2026-10-08",
+  "negative_cases": [
+    {
+      "id": "NEG-SP-001",
+      "name": "storage_policy_value_zero",
+      "description": "Storage Policy value = 0 (invalid, must be in range 1..4)",
+      "fixture_file": "neg_storage_policy_0.vsn",
+      "expected_outcome": "INVALID_STORAGE_POLICY",
+      "rule": "Value < 1 is invalid"
+    },
+    {
+      "id": "NEG-SP-002",
+      "name": "storage_policy_value_five",
+      "description": "Storage Policy value = 5 (invalid, outside known range 1..4)",
+      "fixture_file": "neg_storage_policy_5.vsn",
+      "expected_outcome": "INVALID_STORAGE_POLICY",
+      "rule": "Value > 4 is invalid"
+    },
+    {
+      "id": "NEG-SP-003",
+      "name": "malformed_fid",
+      "description": "REC_STORAGE_POLICY record with wrong Field ID (0x0902 instead of 0x0901)",
+      "fixture_file": "neg_malformed_fid.vsn",
+      "expected_outcome": "MALFORMED_RECORD",
+      "rule": "FID_STORAGE_POLICY must be exactly 0x0901"
+    },
+    {
+      "id": "NEG-SP-004",
+      "name": "truncated_field",
+      "description": "Field length claims 2 bytes but only 1 byte of value present",
+      "fixture_file": "neg_truncated_field.vsn",
+      "expected_outcome": "TRUNCATED_CONTAINER",
+      "rule": "Field value must contain declared number of bytes"
+    },
+    {
+      "id": "NEG-SP-005",
+      "name": "truncated_record",
+      "description": "Record length claims 5 bytes payload but only 3 bytes present",
+      "fixture_file": "neg_truncated_record.vsn",
+      "expected_outcome": "TRUNCATED_CONTAINER",
+      "rule": "Record payload must contain declared number of bytes"
+    },
+    {
+      "id": "NEG-SP-006",
+      "name": "duplicate_storage_policy",
+      "description": "Container with two REC_STORAGE_POLICY records",
+      "fixture_file": "neg_duplicate_sp.vsn",
+      "expected_outcome": "INVALID_STORAGE_POLICY",
+      "rule": "Exactly one StoragePolicy record per container"
+    },
+    {
+      "id": "NEG-SP-007",
+      "name": "missing_storage_policy",
+      "description": "Canonical writer container without any REC_STORAGE_POLICY record",
+      "fixture_file": "neg_missing_sp.vsn",
+      "expected_outcome": "MISSING_STORAGE_POLICY",
+      "rule": "Canonical containers MUST include StoragePolicy record"
+    },
+    {
+      "id": "NEG-SP-008",
+      "name": "obsolete_mode_declaration",
+      "description": "Container with only obsolete REC_MODE_DECLARATION (0x0007), no StoragePolicy",
+      "fixture_file": "neg_obsolete_mode_decl.vsn",
+      "expected_outcome": "LEGACY_FORMAT",
+      "rule": "ModeDeclaration is obsolete; canonical writers MUST emit StoragePolicy instead"
+    },
+    {
+      "id": "NEG-SP-009",
+      "name": "malformed_record_length",
+      "description": "Storage Policy record with non-minimal uvarint length encoding",
+      "fixture_file": "neg_malformed_length.vsn",
+      "expected_outcome": "MALFORMED_RECORD",
+      "rule": "Length must use minimal uvarint encoding (GR-24)"
+    }
+  ]
+}

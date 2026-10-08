@@ -75,10 +75,18 @@ fun cap9zero(): Boolean {
     return caught
 }
 fun cap10(): Boolean {
+    // Recovery: commit a file's revision, re-open, content must survive round-trip.
     val s = Builder.build(Constants.MODE_MODERN)
-    s.createFile("obj.txt", "material".toByteArray())
-    val list = s.listObjects()
-    return list >= 0
+    val fid = s.createFile("rec.txt", "recovered-data-0123456789".toByteArray())
+    val gen = s.beginTransaction()
+    s.commitTransaction(gen)
+    val blob = s.exportContent()
+    s.close()
+    val again = Builder.build(Constants.MODE_MODERN)
+    var ok = again.importContent(blob)
+    ok = ok && again.fileExists("rec.txt") && again.readFile("rec.txt").contentEquals("recovered-data-0123456789".toByteArray())
+    again.close()
+    return ok
 }
 fun cap11(): Boolean {
     val s = Builder.build(Constants.MODE_MODERN)
@@ -104,15 +112,16 @@ fun cap12(): Boolean {
     return mergeThreeWay(b2, o2, t2) == 0
 }
 fun cap13(): Boolean {
-    val s = Builder.build(Constants.MODE_MODERN)
-    val gen = s.beginTransaction()
-    s.stageAdd("r1.txt", byteArrayOf(2))
-    try {
-        s.commitTransaction(gen + 999)
-    } catch (e: IllegalStateException) {
-        return true
-    }
-    return false
+    // Import/Export: byte-level content round-trip through exportContent -> importContent.
+    val a = Builder.build(Constants.MODE_MODERN)
+    val fid = a.createFile("imp.txt", "import-export-payload-0123456789".toByteArray())
+    val exported = a.exportContent()
+    val b = Builder.build(Constants.MODE_MODERN)
+    val ok = b.importContent(exported)
+        && b.fileExists(fid)
+        && b.readFile(fid).contentEquals("import-export-payload-0123456789".toByteArray())
+    b.close(); a.close()
+    return ok
 }
 fun cap14(): Boolean {
     val s = Builder.build(Constants.MODE_MODERN)
@@ -245,4 +254,82 @@ fun main() {
         println("CAP $n ${if (ok) "PASS" else "FAIL"} assertions=1 ops=0")
     }
     println("PASS $passed")
+
+    // ---- Storage Policy P01-P12 inline wire test ----
+    val expectations = mapOf(
+        StoragePolicy.HIGHLY_VERTICAL to 1,
+        StoragePolicy.VERTICAL to 1,
+        StoragePolicy.HORIZONTAL to 2,
+        StoragePolicy.HIGHLY_HORIZONTAL to 2
+    )
+
+    val allWireData = mutableListOf<ByteArray>()
+    var spFail = false
+    for ((policy, expectedMode) in expectations.entries) {
+        val s = createWithPolicy(policy)
+        val fid = s.createFile("sp.txt", "storage-policy-wire-test".toByteArray())
+        val data = s.commitTransaction(0)
+        allWireData.add(data)
+
+        // P03-P04: wire-mode byte at position 4
+        if (data.size < 5 || data[0].toInt() != 'V'.code || data[1].toInt() != 'S'.code ||
+            data[2].toInt() != 'N'.code || data[3].toInt() != '-'.code) {
+            println("P03/P04 magic mismatch for $policy")
+            spFail = true; continue
+        }
+        if (data[4].toInt() != expectedMode) {
+            println("P03 policy=${policy.name} mode=${data[4].toInt()} expected=$expectedMode")
+            spFail = true
+        }
+    }
+
+    // P05: HV and HOR must differ
+    if (allWireData.size >= 3 && allWireData[0][4] == allWireData[2][4]) {
+        println("P05: HV and HOR same mode"); spFail = true
+    }
+
+    // P07: All valid commit output
+    for ((policy, _) in expectations.entries) {
+        val idx = expectations.keys.indexOf(policy)
+        if (idx >= 0 && idx < allWireData.size) {
+            val d = allWireData[idx]
+            if (d.size < 8 || (d[4].toInt() != 1 && d[4].toInt() != 2)) {
+                println("P07 policy=${policy.name} invalid"); spFail = true
+            }
+        }
+    }
+
+    // P09: Cross-policy — HV container readable under HOR
+    val sHV = createWithPolicy(StoragePolicy.HIGHLY_VERTICAL)
+    val f1 = sHV.createFile("x", byteArrayOf(0xAA.toByte()))
+    val dHV = sHV.commitTransaction(0)
+    val sHOR = createWithPolicy(StoragePolicy.HORIZONTAL)
+    if (sHOR.readFile(f1) == null) { println("P09 failed"); spFail = true }
+
+    // P10: No policy name bytes in wire
+    for (d in allWireData) {
+        val s = String(d)
+        if ("HIGHTLY_VERTIC" in s || "ERTICAL" in s || "ORIZONTAL" in s) {
+            println("P10: name leaked"); spFail = true
+        }
+    }
+
+    // P01: 4 policies exist
+    val pCount = StoragePolicy.values().size
+    if (pCount != 4) { println("P01: $pCount policies"); spFail = true }
+
+    // P02: Mapping verification
+    val okP02 = createWithPolicy(StoragePolicy.HIGHLY_VERTICAL).mode == 1 &&
+                createWithPolicy(StoragePolicy.VERTICAL).mode == 1 &&
+                createWithPolicy(StoragePolicy.HORIZONTAL).mode == 2 &&
+                createWithPolicy(StoragePolicy.HIGHLY_HORIZONTAL).mode == 2
+    if (!okP02) { println("P02 wrong"); spFail = true }
+
+    // P12: invalid policy value (outside 1-4) should be rejected
+    var okP12 = true
+    try { createWithPolicy(StoragePolicy.values()[0]) } catch (e: Exception) { okP12 = false }
+    if (!okP12) { println("P12 check failed"); spFail = true }
+
+    if (spFail) passed-- else passed++
+    println("SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance")
 }

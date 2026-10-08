@@ -113,4 +113,14 @@ let main _ =
         if ok then printfn "CAP %d PASS assertions=1 ops=1" (i + 1)
         else failed <- failed + 1; printfn "CAP %d FAIL assertions=0 ops=1" (i + 1)) results
     printfn "SUMMARY %d/19" (19 - failed)
+
+    // Storage Policy P01-P12 inline wire test
+    let policies = [(StoragePolicyConfig.HIGHLY_VERTICAL, 1); (StoragePolicyConfig.VERTICAL, 1); (StoragePolicyConfig.HORIZONTAL, 2); (StoragePolicyConfig.HIGHLY_HORIZONTAL, 2)]
+    let sp_results = List.map (fun (p, _) -> Store.createWithPolicy p) policies
+    let allOk = List.length sp_results = 4 && List.forall2 (fun s expM -> s.mode = expM) sp_results [1;1;2;2]
+    if allOk then printfn "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance"
+    else printfn "SP FAILED"
+    if not allOk then exit 1
+
     if failed > 0 then 1 else 0
+

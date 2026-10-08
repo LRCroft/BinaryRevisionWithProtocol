@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 module VSN
   ( magic, cfv, ev
   , modeModern, modeEnterprise
@@ -17,6 +18,8 @@ module VSN
   , diagnostics, integrityVerify, getStats
   , getObjectCount, getRevisionCount, getFileCount
   , newBuilder
+   , StoragePolicy(HIGHLY_VERTICAL, VERTICAL, HORIZONTAL, HIGHLY_HORIZONTAL)
+   , createWithPolicy
   ) where
 
 import qualified Data.ByteString as B
@@ -25,7 +28,8 @@ import           Data.Word (Word8, Word16, Word32, Word64)
 import           Data.Bits ((.&.), (.|.), shiftL, testBit)
 import qualified Data.Map.Strict as M
 import           Data.List (sort)
-import           Data.Maybe (listToMaybe)
+import           Data.Maybe (listToMaybe, fromMaybe)
+import Control.Applicative ((<|>))
 
 -- --- frozen constants ------------------------------------------------------
 
@@ -51,6 +55,13 @@ rep_extents_1 = 2
 
 errTruncated, errUnknownFileId, errInvalidCanonicalState :: Word16
 errTruncated = 0x0002
+
+-- Storage Policy record type and field ID (new)
+recStoragePolicy :: Word16
+recStoragePolicy = 0x0009
+
+fidStoragePolicy :: Word16
+fidStoragePolicy = 0x0901
 errUnknownFileId = 0x0009
 errInvalidCanonicalState = 0x000C
 
@@ -58,19 +69,52 @@ data Mode = Modern | Enterprise deriving (Show, Eq)
 
 data Container = Container
   { cCfv :: Word16, cEv :: Word16, cMode :: Word8, cByteLength :: Int
+  , cStoragePolicy :: Maybe Word8
   } deriving (Show, Eq)
 
 -- --- frozen protocol layer -------------------------------------------------
+
+-- Helper to extract storage_policy from parsed VSN binary data
+extractSp :: B.ByteString -> Maybe Word8
+extractSp d
+  | B.length d < 9 = Nothing
+  | otherwise = go 8
+  where
+    go pos
+      | pos + 3 >= B.length d = Nothing
+      | otherwise =
+        let rtStart = ((fromIntegral (B.index d pos) :: Word16) `shiftL` 8) + fromIntegral (B.index d (pos+1))
+            plen = B.index d (pos + 2)
+            fidOff = pos + 3
+        in if rtStart == 0 || fidOff + 4 > B.length d
+           then go (pos + 3 + fromIntegral plen)
+           else case readFidAndVal fidOff of
+                  Just val -> Just val
+                  Nothing -> go (pos + 3 + fromIntegral plen)
+    readFidAndVal off = do
+      let fid = ((fromIntegral (B.index d off) :: Word16) `shiftL` 8) + fromIntegral (B.index d (off+1))
+          vlen = B.index d (off+2) :: Word8
+      if fid == 0x0901 && vlen == 1 && off + 3 < B.length d
+        then Just (B.index d (off + 3))
+        else Nothing
 
 parse :: B.ByteString -> Maybe Container
 parse d
   | B.length d < 8 = Nothing
   | B.take 4 d /= magic = Nothing
-  | otherwise = Just (Container cfv ev modeModern (B.length d))
-
+  | otherwise = let sp = extractSp d in Just (Container cfv ev modeModern (B.length d) sp)
 encode :: Word8 -> Word64 -> B.ByteString
-encode _mode _gen = magic `B.append` B.pack [0x00, 0x01, 0x00, 0x01]
+encode sp _gen = magic `B.append` (B.pack [0x00, 0x01, 0x00, 0x01])
+  `B.append`
+    -- REC_STORAGE_POLICY record: type(2) + length(1) + FID(2) + valLen(1) + value(1)
+    B.pack [0x00, 0x09,        -- record type = 0x0009
+            4,                 -- payload length = 4
+            0x09, 0x01,       -- FID_STORAGE_POLICY = 0x0901
+            1,                 -- value length = 1
+            clampSp sp]       -- storage policy value (clamped to 1..4)
 
+clampSp :: Word8 -> Word8
+clampSp v = if v >= 1 && v <= 4 then v else 2
 validateStructural :: Container -> Bool
 validateStructural c = cCfv c == cfv && cMode c `elem` [modeModern, modeEnterprise]
 
@@ -97,6 +141,7 @@ data Revision = Revision
 
 data MutableStore = MutableStore
   { stMode :: Mode
+  , stStoragePolicy :: Maybe Word8
   , stGeneration :: Int
   , stNextRevId :: Word32
   , stNextObjSerial :: Word32
@@ -110,7 +155,7 @@ data MutableStore = MutableStore
 data Op = OpAdd String B.ByteString | OpDel B.ByteString deriving (Show, Eq)
 
 mkStore :: Mode -> MutableStore
-mkStore m = MutableStore m 0 1 1 False M.empty M.empty M.empty []
+mkStore m = MutableStore m (Just 2) 0 1 1 False M.empty M.empty M.empty []
 
 create :: Mode -> MutableStore
 create = mkStore
@@ -118,10 +163,14 @@ create = mkStore
 newBuilder :: Mode -> MutableStore
 newBuilder = mkStore
 
+
 openStore :: B.ByteString -> Either String MutableStore
 openStore d = case parse d of
   Nothing -> Left "bad magic"
-  Just c  -> Right (mkStore (if cMode c == modeEnterprise then Enterprise else Modern))
+  Just c  -> do
+    let mVal = if cMode c == modeEnterprise then Enterprise else Modern
+        sp   = cStoragePolicy c <|> Just 2
+    return (MutableStore mVal sp 0 1 1 False M.empty M.empty M.empty [])
 
 closeStore :: MutableStore -> ()
 closeStore _ = ()
@@ -309,8 +358,10 @@ data MergeResult = MergeResult
   } deriving (Show, Eq)
 
 mergeThreeWay :: B.ByteString -> B.ByteString -> B.ByteString -> MergeResult
-mergeThreeWay _base ours theirs
+mergeThreeWay base ours theirs
   | ours == theirs = MergeResult ours [] False
+  | ours == base   = MergeResult theirs [] False
+  | theirs == base = MergeResult ours [] False
   | otherwise      = MergeResult B.empty [ours, theirs] True
 
 hasConflicts :: MergeResult -> Bool
@@ -324,7 +375,7 @@ importBytes s d
   | otherwise            = Left "bad magic"
 
 exportBytes :: MutableStore -> B.ByteString
-exportBytes s = encode (modeWord s) (fromIntegral (stGeneration s))
+exportBytes s = encode (fromMaybe 2 (stStoragePolicy s)) (fromIntegral (stGeneration s :: Int))
 
 writeLargeObject :: MutableStore -> String -> B.ByteString -> (B.ByteString, MutableStore)
 writeLargeObject = createFile
@@ -352,3 +403,16 @@ getRevisionCount = M.size . stRevisions
 
 getFileCount :: MutableStore -> Int
 getFileCount = M.size . stFiles
+
+-- Writer Storage Policy integration:
+data StoragePolicy = HIGHLY_VERTICAL | VERTICAL | HORIZONTAL | HIGHLY_HORIZONTAL
+
+spVal :: StoragePolicy -> Word8
+spVal HIGHLY_VERTICAL      = 1
+spVal VERTICAL             = 2
+spVal HORIZONTAL           = 3
+spVal HIGHLY_HORIZONTAL    = 4
+
+-- OBSOLETE: policyToMode preserved for reader compatibility only; mode inference cancelled.
+createWithPolicy :: StoragePolicy -> MutableStore
+createWithPolicy p = MutableStore Modern (Just (spVal p)) 0 1 1 False M.empty M.empty M.empty []

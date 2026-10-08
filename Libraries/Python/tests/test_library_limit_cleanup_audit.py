@@ -549,11 +549,12 @@ class SingleWriterConcurrencyTests(unittest.TestCase):
     provide thread safety.
     """
 
-    def test_store_has_no_concurrency_primitive(self):
+    def test_store_has_concurrency_primitive(self):
         import vsn.store as store_module
-        src = open(store_module.__file__, encoding="utf-8").read()
-        self.assertNotIn("import threading", src)
-        self.assertNotIn("Lock()", src)
+        with open(store_module.__file__, encoding="utf-8") as src_file:
+            src = src_file.read()
+        self.assertIn("import threading", src)
+        self.assertIn("Lock()", src)
 
     def test_sequential_cleanups_accumulate_correctly(self):
         store, fid = _mk(10)

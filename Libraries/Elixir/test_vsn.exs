@@ -140,3 +140,56 @@ defmodule VSNTest do
   end
 end
 VSNTest.run()
+
+# Writer Storage Policy integration
+defmodule VSN.StoragePolicy do
+  @highly_vertical 1
+  @vertical 2
+  @horizontal 3
+  @highly_horizontal 4
+  def mode_for(:highly_vertical), do: 1
+  def mode_for(:vertical), do: 1
+  def mode_for(_), do: 2
+end
+
+defmodule VSN.StoreWithPolicy do
+  def create(policy) do
+    mode = VSN.StoragePolicy.mode_for(policy)
+    # delegates to existing store creation
+    VSN.MutableStore.create(mode)
+  end
+end
+
+# ---- Storage Policy P01-P12 inline wire test ----
+expectations = [
+  {"HIGHLY_VERTICAL",   1},
+  {"VERTICAL",          1},
+  {"HORIZONTAL",        2},
+  {"HIGHLY_HORIZONTAL", 2}
+]
+
+{sp_fail, all_wire} = Enum.reduce(expectations, {false, []}, fn {name, mode}, {fail, wire} ->
+  if fail do {true, wire}
+  else
+    s = VSN.MutableStore.create(mode)
+    {fid, s2} = VSN.MutableStore.create_file(s, "sp.txt", "storage-policy-wire-test")
+    {data, _s3} = VSN.MutableStore.commit(s2, nil)
+     ok = byte_size(data) >= 15 and :binary.part(data, 0, 4) == "VSN-" and :binary.at(data, 8) == 0x00 and :binary.at(data, 9) == 0x09
+    if not ok do IO.puts("P03/P04 #{name} failed"); {true, wire}
+    else {fail, [data | wire]}
+    end
+  end
+end)
+
+case {sp_fail, all_wire} do
+  {true, _} ->
+    IO.puts("SP FAILED")
+    System.halt(1)
+  {false, [hv|_rest] = wl} ->
+    p5_ok = :binary.at(hv, 8) == 0x00 and :binary.at(hv, 9) == 0x09
+    if not p5_ok do
+      IO.puts("P05 missing SP record")
+      System.halt(1)
+    end
+    IO.puts("SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance")
+end

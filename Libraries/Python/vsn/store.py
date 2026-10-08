@@ -21,20 +21,30 @@ from .representations import (
     parse_object_header,
 )
 from .writer import encode, direct1_descriptor
+from .constants import StoragePolicy, STORAGE_POLICY_TO_WIRE_MODE
+from .writer_options import WriterOptions
 
 
 class VsnStore:
     """Mutable VSN container with full library API."""
 
-    def __init__(self, data: bytes | None = None, mode: int = C.MODE_MODERN):
+    def __init__(self, data: bytes | None = None, mode: int = C.MODE_MODERN, *,
+                 storage_policy: StoragePolicy | None = None,
+                 optimization_config=None):  # type: ignore[no-untyped-def] -- Optional[OptimizationConfiguration] would self-import
         if data is not None:
             self._data = bytes(data)
             self._parsed = _container.parse(self._data)
             self._mode = self._parsed.mode or mode
         else:
+            # Determine wire mode from storage policy when no explicit mode given.
+            if storage_policy is not None:
+                self._mode = C.MODE_MODERN  # default wire mode for canonical writers
+            else:
+                self._mode = mode
             self._data = b""
             self._parsed = None
-            self._mode = mode
+        self._storage_policy: StoragePolicy | None = storage_policy
+        self._optimization_config = optimization_config
         self._closed = False
         self._lock = threading.Lock()
         self._build_state()
@@ -90,6 +100,60 @@ class VsnStore:
             self._objects[obj.serial] = obj.descriptor
             if obj.serial >= self._next_object_serial:
                 self._next_object_serial = obj.serial + 1
+
+    def preferred_rep(self) -> int:
+        """Determine preferred representation from storage policy.
+
+        HIGHLY_VERTICAL / VERTICAL  (MODERN): prefer EXTENTS-1 when beneficial.
+        HORIZONTAL                  (ENTERPRISE): DIRECT-1 baseline.
+        HIGHLY_HORIZONTAL           (ENTERPRISE): DIRECT-1 required only.
+        None (legacy): always DIRECT-1.
+        """
+        if self._storage_policy is None:
+            return C.REP_DIRECT_1
+        policy = self._storage_policy
+        if policy == StoragePolicy.HIGHLY_HORIZONTAL:
+            return C.REP_DIRECT_1
+        if policy == StoragePolicy.HORIZONTAL:
+            return C.REP_DIRECT_1
+        return C.REP_EXTENTS_1
+
+    def _content_saves_over_extents(self, content: bytes) -> bool:
+        """Heuristic: would EXTENTS-1 save space vs DIRECT-1?"""
+        opt = self._optimization_config
+        min_savings = None
+        if opt is not None:
+            min_savings = getattr(opt, "min_savings_bytes", None)
+        if min_savings is not None and min_savings > 0:
+            overhead_extents = 4 + 1 + 3
+            return len(content) - overhead_extents >= min_savings
+        return len(content) >= 64
+
+    def _resolve_optimization(self, content: bytes) -> int:
+        """Choose representation with fallback (per contract Section 11)."""
+        preferred = self.preferred_rep()
+        if preferred == C.REP_DIRECT_1:
+            return C.REP_DIRECT_1
+        if not self._content_saves_over_extents(content):
+            return C.REP_DIRECT_1
+        if self._optimization_config is not None:
+            md = getattr(self._optimization_config, "max_dependency_depth", None)
+            if md is not None and md < 1:
+                return C.REP_DIRECT_1
+        return preferred
+
+    def _to_inspection_dict(self) -> dict:
+        """Return a dict of container-level metadata (for test capabilities)."""
+        if self._parsed is None or not self._parsed.records:
+            return {"file_count": 0, "object_count": 0, "generation": 0}
+        file_count = sum(1 for r in self._parsed.records if hasattr(r, 'rtype') and r.rtype == C.REC_FILE_IDENTITY)
+        obj_count = len(self._parsed.objects)
+        gen = 0
+        for r in self._parsed.records:
+            f = r.field(C.FID_COMMIT_GENERATION) if hasattr(r, 'field') else None
+            if f is not None and hasattr(f, 'value_uvarint'):
+                gen = f.value_uvarint
+        return {"file_count": file_count, "object_count": obj_count, "generation": gen}
 
     @classmethod
     def create(cls, mode: int = C.MODE_MODERN) -> "VsnStore":
@@ -417,7 +481,16 @@ class VsnStore:
         self._check_open()
         self._generation += 1
         records = []
-        records.append((C.REC_MODE_DECLARATION, [(C.FID_MODE, bytes([self._mode]))]))
+        # Canonical: always emit REC_STORAGE_POLICY. NEVER fall back to ModeDeclaration.
+        if self._storage_policy is not None:
+            policy_val = self._storage_policy.value
+        elif self._mode == C.MODE_ENTERPRISE:
+            # Derive HORIZONTAL from wire mode so round-trip recovers ENTERPRISE
+            policy_val = C.STORAGE_HORIZONTAL
+        else:
+            # Default to HIGHLY_VERTICAL for MODERN mode
+            policy_val = C.STORAGE_HIGHLY_VERTICAL
+        records.append((C.REC_STORAGE_POLICY, [(C.FID_STORAGE_POLICY, bytes([policy_val]))]))
         for fid in self._file_ids:
             records.append((C.REC_FILE_IDENTITY, [(C.FID_FILE_ID, fid)]))
         for rid in sorted(self._revisions.keys()):
