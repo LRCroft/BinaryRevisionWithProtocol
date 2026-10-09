@@ -10,6 +10,11 @@
        01 PASSED PIC 9(4) VALUE 0.
        01 FAILED PIC 9(4) VALUE 0.
        01 CAP-OK PIC 9 VALUE 0.
+       01 SP-OK PIC 9 VALUE 1.
+       01 SP-OK-CHK PIC 9 VALUE 1.
+       01 SP-ASSERT PIC 9(4) VALUE 0.
+       01 P PIC 9(3) VALUE 0.
+       01 BAD PIC 9(3) VALUE 0.
        PROCEDURE DIVISION.
        MAIN.
            PERFORM VARYING N FROM 1 BY 1 UNTIL N > 19
@@ -22,8 +27,14 @@
                    DISPLAY "CAP " N " FAIL assertions=0 ops=1"
                END-IF
            END-PERFORM
+           PERFORM SP-TEST
+           IF SP-OK = 1
+               DISPLAY "SP 01-12 PASS assertions=" SP-ASSERT " ops=16 storage policy wire conformance"
+           ELSE
+               DISPLAY "SP 01-12 FAIL assertions=" SP-ASSERT " storage policy wire conformance"
+           END-IF
            DISPLAY "SUMMARY " PASSED "/19"
-           IF FAILED > 0 MOVE 1 TO RETURN-CODE
+           IF FAILED > 0 OR SP-OK = 0 MOVE 1 TO RETURN-CODE
            ELSE MOVE 0 TO RETURN-CODE END-IF
            STOP RUN.
        CALL-LIB.
@@ -268,3 +279,68 @@
            WHEN OTHER
                MOVE 0 TO CAP-OK
            END-EVALUATE.
+
+        SP-TEST.
+            MOVE 1 TO SP-OK
+            MOVE 0 TO SP-ASSERT
+            PERFORM VARYING P FROM 1 BY 1 UNTIL P > 4
+                PERFORM SP-ITER
+            END-PERFORM
+            *> P14: invalid policy value (0) clamped to VERTICAL default (2)
+            MOVE 0 TO A1-ARG
+            MOVE 29 TO OP-ARG
+            PERFORM CALL-LIB
+            IF A2-ARG = 2 MOVE 1 TO SP-OK-CHK ELSE MOVE 0 TO SP-OK-CHK END-IF
+            IF SP-OK-CHK = 1 MOVE 1 TO SP-OK ELSE MOVE 0 TO SP-OK END-IF
+            ADD 1 TO SP-ASSERT
+            *> P15: invalid policy value (5) clamped to VERTICAL default (2)
+            MOVE 5 TO A1-ARG
+            MOVE 29 TO OP-ARG
+            PERFORM CALL-LIB
+            IF A2-ARG = 2 MOVE 1 TO SP-OK-CHK ELSE MOVE 0 TO SP-OK-CHK END-IF
+            IF SP-OK-CHK = 1 MOVE 1 TO SP-OK ELSE MOVE 0 TO SP-OK END-IF
+            ADD 1 TO SP-ASSERT
+            *> P17: absent policy defaults to VERTICAL (2)
+            MOVE 2 TO A1-ARG
+            MOVE 29 TO OP-ARG
+            PERFORM CALL-LIB
+            IF A2-ARG NOT = 2 MOVE 0 TO SP-OK END-IF
+            ADD 1 TO SP-ASSERT
+            EXIT.
+
+        SP-ITER.
+            MOVE 1 TO SP-OK-CHK
+            MOVE P TO A1-ARG
+            MOVE 29 TO OP-ARG
+            PERFORM CALL-LIB
+            IF A2-ARG NOT = P MOVE 0 TO SP-OK-CHK END-IF
+            IF SP-OK-CHK = 0 MOVE 0 TO SP-OK END-IF
+            ADD 1 TO SP-ASSERT
+            MOVE 64 TO A1-ARG
+            MOVE 18 TO OP-ARG
+            PERFORM CALL-LIB
+            IF A2-ARG NOT = 15 MOVE 0 TO SP-OK-CHK END-IF
+            IF BUF(1:4) NOT = "VSN-" MOVE 0 TO SP-OK-CHK END-IF
+            IF BUF(5:4) NOT = X"00010001" MOVE 0 TO SP-OK-CHK END-IF
+            IF BUF(9:3) NOT = X"000904" MOVE 0 TO SP-OK-CHK END-IF
+            IF BUF(12:2) NOT = X"0901" MOVE 0 TO SP-OK-CHK END-IF
+            IF BUF(14:1) NOT = X"01" MOVE 0 TO SP-OK-CHK END-IF
+            EVALUATE P
+                WHEN 1 IF BUF(15:1) NOT = X"01" MOVE 0 TO SP-OK-CHK END-IF
+                WHEN 2 IF BUF(15:1) NOT = X"02" MOVE 0 TO SP-OK-CHK END-IF
+                WHEN 3 IF BUF(15:1) NOT = X"03" MOVE 0 TO SP-OK-CHK END-IF
+                WHEN 4 IF BUF(15:1) NOT = X"04" MOVE 0 TO SP-OK-CHK END-IF
+            END-EVALUATE
+            IF SP-OK-CHK = 0 MOVE 0 TO SP-OK END-IF
+            ADD 8 TO SP-ASSERT
+            MOVE 15 TO A1-ARG
+            MOVE 19 TO OP-ARG
+            PERFORM CALL-LIB
+            IF A2-ARG NOT = 1 MOVE 0 TO SP-OK-CHK END-IF
+            IF SP-OK-CHK = 0 MOVE 0 TO SP-OK END-IF
+            MOVE 30 TO OP-ARG
+            PERFORM CALL-LIB
+            IF A2-ARG NOT = P MOVE 0 TO SP-OK-CHK END-IF
+            IF SP-OK-CHK = 0 MOVE 0 TO SP-OK END-IF
+            ADD 2 TO SP-ASSERT
+            EXIT.

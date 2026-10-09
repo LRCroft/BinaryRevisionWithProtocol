@@ -267,8 +267,8 @@ func (s *Store) toBytesLocked() ([]byte, error) {
 	// Canonical: always emit REC_STORAGE_POLICY (authoritative on wire).
 	// NEVER fall back to ModeDeclaration.
 	policyVal := uint8(s.storagePolicy)
-	if policyVal == 0 {
-		policyVal = uint8(StoragePolicyVertical) // default when unset
+	if policyVal < 1 || policyVal > 4 {
+		policyVal = uint8(StoragePolicyVertical) // normalize invalid/0 to default VERTICAL
 	}
 	records := []rawRecord{{
 		rtype:  RecStoragePolicy,

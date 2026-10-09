@@ -22,7 +22,7 @@ function flush_caps(int $op_count = 1): void {
     foreach ($GLOBALS['caps'] as $s) { $totalP += $s['passed']; $totalF += $s['failed']; }
     echo "---\n";
     echo "PHP capabilities: $totalP passed, $totalF failed\n";
-    exit($totalF > 0 ? 1 : 0);
+    if ($totalF > 0) { $GLOBALS['caps_failed'] = true; }
 }
 
 $s = \VSN\MutableStore::create(\VSN\MODE_MODERN);
@@ -158,29 +158,48 @@ chk(19, $s19->readFile($s19->getFileId("i.txt")) === "interop-data-42", 1, 2);
 
 flush_caps(1);
 
-// ---- Storage Policy P01-P12 inline wire test ----
-$expectations = array(
-    array('HIGHLY_VERTICAL',   1),
-    array('VERTICAL',          1),
-    array('HORIZONTAL',        2),
-    array('HIGHLY_HORIZONTAL', 2)
-);
-$sp_fail = false;
-$all_wire = array();
-foreach ($expectations as $exp) {
-    list($name, $mode) = $exp;
-    $s = new VSN_Store($mode);
-    $fid = $s->createFile("sp.txt", "storage-policy-wire-test");
-    $data = $s->commit();
-    $all_wire[] = $data;
-    if (strlen($data) < 5 || substr($data,0,4)!=='VSN-' || ord($data[4])!=$mode) {
-        echo "P03/P04 {$name} failed\n"; $sp_fail=true; continue;
+// ---- Storage Policy P01-P12 inline wire test (canonical REC_STORAGE_POLICY) ----
+$sp_fail = false; $sp_assertions = 0;
+$sp_check = function (bool $ok) use (&$sp_fail, &$sp_assertions) {
+    $sp_assertions++;
+    if (!$ok) { $sp_fail = true; }
+};
+// P01: the four canonical policy values are defined
+$sp_check(\VSN\STORAGE_POLICY_HIGHLY_VERTICAL === 1
+    && \VSN\STORAGE_POLICY_VERTICAL === 2
+    && \VSN\STORAGE_POLICY_HORIZONTAL === 3
+    && \VSN\STORAGE_POLICY_HIGHLY_HORIZONTAL === 4);
+// P03-P09: encode each policy and assert the exact canonical record on the wire
+$wires = [];
+foreach ([1, 2, 3, 4] as $spv) {
+    $s = \VSN\MutableStore::createWithStoragePolicy($spv);
+    $s->createFile('sp.txt', 'sp-wire-test');
+    $data = $s->exportBytes();
+    $wires[$spv] = $data;
+    $rec = pack('n', \VSN\REC_STORAGE_POLICY) . pack('C', 4)
+         . pack('n', \VSN\FID_STORAGE_POLICY) . pack('CC', 1, $spv);
+    $sp_fail = $sp_fail || strpos($data, $rec) === false;
+    // P09: reader round-trip recovers the same policy value
+    $sp_fail = $sp_fail || \VSN\parse($data)->storagePolicy !== $spv;
+    $sp_assertions += 2;
+}
+// P10: no policy name text appears anywhere on the wire
+foreach (['HIGHLY', 'VERTICAL', 'HORIZONTAL'] as $name) {
+    foreach ($wires as $data) {
+        if (strpos($data, $name) !== false) { $sp_fail = true; }
     }
 }
-if (count($all_wire) >= 3 && $all_wire[0][4] === $all_wire[2][4]) { $sp_fail = true; }
-$name_bad = ['HIGHTLY_VERTIC','ERTICAL','ORIZONTAL'];
-foreach ($all_wire as $d) foreach ($name_bad as $b) {
-    if (strpos($d,$b)!==false) { echo "P10 leaked\n"; $sp_fail=true; }
+$sp_assertions += 3;
+// P12: invalid policy values (0, 5) never appear as the record payload
+foreach ([0, 5] as $bad) {
+    $e = \VSN\encode(1, 1, $bad);
+    $pre = pack('n', \VSN\REC_STORAGE_POLICY) . pack('C', 4)
+         . pack('n', \VSN\FID_STORAGE_POLICY) . pack('C', 1);
+    $i = strpos($e, $pre);
+    if ($i === false || ord($e[$i + strlen($pre)]) === $bad) { $sp_fail = true; }
 }
-echo $sp_fail ? "SP FAILED\n" : "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance\n";
-exit($sp_fail ? 1 : 0);
+$sp_assertions += 2;
+echo $sp_fail
+    ? "SP 01-12 FAIL assertions=$sp_assertions\n"
+    : "SP 01-12 PASS assertions=$sp_assertions ops=8 storage policy wire conformance\n";
+exit(($sp_fail || !empty($GLOBALS['caps_failed'])) ? 1 : 0);

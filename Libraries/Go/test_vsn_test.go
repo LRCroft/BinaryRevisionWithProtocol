@@ -47,87 +47,76 @@ func TestCapability19Parallel(t *testing.T) {
 	}
 	t.Logf("PASS %d", passed)
 
-	// ---- Storage Policy P01-P12 inline wire test ----
-	expectations := []struct {
-		policy         StoragePolicy
-		expectedMode   uint8
-	}{
-		{StoragePolicyHighlyVertical, ModeModern},
-		{StoragePolicyVertical, ModeModern},
-		{StoragePolicyHorizontal, ModeEnterprise},
-		{StoragePolicyHighlyHorizontal, ModeEnterprise},
-	}
+	// Storage Policy wire conformance lives in TestStoragePolicyWire.
 
-	allWireData := make([][]byte, len(expectations))
-	for i, exp := range expectations {
-		s := CreateWithPolicy(exp.policy)
-		_, _ = s.CreateFile("sp.txt", []byte("storage-policy-wire-test"))
+}
+
+// TestStoragePolicyWire verifies the canonical REC_STORAGE_POLICY wire contract:
+// P01 values, P03-P09 exact record bytes + reader round-trip, P10 no name text,
+// P12 invalid policy values never emitted as the payload.
+func TestStoragePolicyWire(t *testing.T) {
+	// P01: the four canonical policy values
+	if !(StoragePolicyHighlyVertical == 1 && StoragePolicyVertical == 2 &&
+		StoragePolicyHorizontal == 3 && StoragePolicyHighlyHorizontal == 4) {
+		t.Fatal("P01: policy values must be 1..4")
+	}
+	spAssert := 1
+	for _, spv := range []StoragePolicy{1, 2, 3, 4} {
+		s := CreateWithPolicy(spv)
+		if _, err := s.CreateFile("sp.txt", []byte("sp-wire-test")); err != nil {
+			t.Fatalf("P03: createFile %d: %v", spv, err)
+		}
 		d, err := s.Commit()
-		if err != nil || len(d) < 5 {
-			t.Fatalf("P03 policy=%d commit error or short", exp.policy)
-		}
-		allWireData[i] = d
-
-	// P03-P04: Verify wire-mode via parser (Go writes FormatVersion as U16 at bytes 4-5)
-		parsed, err := Parse(allWireData[i])
 		if err != nil {
-			t.Fatalf("P03 policy=%d parse error: %v", exp.policy, err)
+			t.Fatalf("P03: commit %d: %v", spv, err)
 		}
-		mode := parsed.Mode
-		if mode != exp.expectedMode {
-			t.Fatalf("P03 policy=%d mode=%d expected=%d", exp.policy, mode, exp.expectedMode)
+		rec := []byte{0x00, 0x09, 0x04, 0x09, 0x01, 0x01, uint8(spv)}
+		if !bytes.Contains(d, rec) {
+			t.Fatalf("P05: missing canonical REC_STORAGE_POLICY for policy %d: %x", spv, d)
 		}
-	}
-
-	// P05: HV and HOR must produce different wire modes
-	pHV, _ := Parse(allWireData[0])
-	pHOR, _ := Parse(allWireData[2])
-	if pHV.Mode == pHOR.Mode {
-		t.Fatal("P05: HIGHLY_VERTICAL and HORIZONTAL must produce different wire modes")
-	}
-
-	// P07: All policies produce valid commit output
-	for idx, exp := range expectations {
-		p, err := Parse(allWireData[idx])
-		if err != nil || (p.Mode != 1 && p.Mode != 2) {
-			t.Fatalf("P07 policy=%d invalid mode or parse error", exp.policy)
+		spAssert++
+		parsed, err := Parse(d)
+		if err != nil {
+			t.Fatalf("P09: parse %d: %v", spv, err)
 		}
-	}
-
-	// P09: Cross-policy — HV written container readable under HOR policy
-	sHV := CreateWithPolicy(StoragePolicyHighlyVertical)
-	f1, _ := sHV.CreateFile("x", []byte{0xAA})
-	dHV, err3 := sHV.Commit()
-	if err3 != nil {
-		t.Fatal("P09: HV store commit error")
-	}
-	// Open the committed bytes as a reader (simulates cross-policy read)
-	sHOR, err5 := Open(dHV)
-	if err5 != nil {
-		t.Fatalf("P09: cannot parse HV wire: %v", err5)
-	}
-	// Verify content is readable
-	content, err6 := sHOR.ReadFile(f1)
-	if err6 != nil || len(content) == 0 {
-		t.Fatal("P09: HOR cannot read HV file content")
-	}
-	if content[0] != 0xAA {
-		t.Fatal("P09: content mismatch")
-	}
-
-	// P10: No policy name bytes in wire output
-	for _, d := range allWireData {
-		if bytes.Contains(d, []byte("HIGHTLY_VERTIC")) || bytes.Contains(d, []byte("ERTICAL")) ||
-			bytes.Contains(d, []byte("ORIZONTAL")) || bytes.Contains(d, []byte("ORizontally")) {
-			t.Fatal("P10: policy name leaked into wire")
+		if parsed.StoragePolicy != int(spv) {
+			t.Fatalf("P09: round-trip policy %d -> %d", spv, parsed.StoragePolicy)
 		}
+		spAssert++
 	}
-
-	// P12: WriterOptions validation (already tested via CreateWithPolicy)
-	// HV + ModeEnterprise constraint would conflict — verified by createWithPolicy mapping
-
-	passedSP := 14 // all checks above = 14 assertions
-	t.Logf("SP 01-12 PASS assertions=%d ops=4 storage policy wire conformance", passedSP)
+	// P10: no policy-name text anywhere on the wire
+	s := CreateWithPolicy(StoragePolicyHighlyHorizontal)
+	if _, err := s.CreateFile("sp.txt", []byte("x")); err != nil {
+		t.Fatal("P10: createFile: ", err)
+	}
+	d, err := s.Commit()
+	if err != nil {
+		t.Fatal("P10: commit: ", err)
+	}
+	for _, name := range []string{"HIGHLY", "VERTICAL", "HORIZONTAL"} {
+		if bytes.Contains(d, []byte(name)) {
+			t.Fatalf("P10: policy name %q leaked into wire", name)
+		}
+		spAssert++
+	}
+	// P12: invalid policy values (0, 5) are normalized to a valid payload on the wire
+	for _, bad := range []StoragePolicy{0, 5} {
+		b := CreateWithPolicy(bad)
+		if _, err := b.CreateFile("sp.txt", []byte("x")); err != nil {
+			t.Fatal("P12: createFile: ", err)
+		}
+		wd, err := b.Commit()
+		if err != nil {
+			t.Fatal("P12: commit: ", err)
+		}
+		pre := []byte{0x00, 0x09, 0x04, 0x09, 0x01, 0x01}
+		i := bytes.Index(wd, pre)
+		if i < 0 || i+len(pre) >= len(wd) || wd[i+len(pre)] == uint8(bad) {
+			t.Fatalf("P12: invalid policy %d appears as payload: %x", bad, wd)
+		}
+		spAssert++
+	}
+	fmt.Printf("SP 01-12 PASS assertions=%d ops=8 storage policy wire conformance\n", spAssert)
 }
 
 type capRunner struct {

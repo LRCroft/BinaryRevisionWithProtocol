@@ -8,6 +8,15 @@ void cap(int n, string label, bool[] checks, int assertions, int ops) {
     writefln("CAP %d PASS assertions=%d ops=%d", n, assertions, ops);
 }
 
+// Locate REC_STORAGE_POLICY record (0x0009, plen=4, FID 0x0901, vlen=1); return payload value, or -1.
+int spRecordValue(ubyte[] data) {
+    foreach (size_t i; 0 .. (data.length > 7 ? data.length - 6 : 0))
+        if (data[i] == 0x00 && data[i+1] == 0x09 && data[i+2] == 0x04 &&
+            data[i+3] == 0x09 && data[i+4] == 0x01 && data[i+5] == 0x01)
+            return data[i+6];
+    return -1;
+}
+
 void main() {
     auto s1 = MutableStore.create(MODE_MODERN); s1.close();
     cap(1, "container lifecycle", [
@@ -60,5 +69,35 @@ void main() {
     auto sb = Builder.build(MODE_ENTERPRISE);
     cap(18, "builder", [sb.getMode() == 2], 1, 1);
     auto s19 = MutableStore.create(MODE_MODERN); s19.createFile("i", [105,110,116]); auto c19 = s19.commitTransaction(0); cap(19, "interop round-trip", [c19.length >= 8, c19[0] == 0x56], 2, 2);
+    // Storage Policy P01-P12 canonical wire conformance (REC_STORAGE_POLICY)
+    bool spOk = true; int spAsserts = 0;
+    if (StoragePolicy.HIGHLY_VERTICAL != 1 || StoragePolicy.VERTICAL != 2 ||
+        StoragePolicy.HORIZONTAL != 3 || StoragePolicy.HIGHLY_HORIZONTAL != 4) spOk = false;
+    spAsserts += 4;
+    foreach (v; [1, 2, 3, 4]) {
+        ubyte[] w = encodeWithPolicy(MODE_MODERN, 1, cast(ubyte)v);
+        if (spRecordValue(w) != v) spOk = false;
+        auto rp = createWithPolicy(v);
+        if (rp.storagePolicy != cast(ubyte)v) spOk = false;
+        if (spRecordValue(rp.exportBytes()) != v) spOk = false;
+        auto imp = MutableStore.create(MODE_MODERN);
+        imp.importBytes(w);
+        if (imp.storagePolicy != cast(ubyte)v) spOk = false;
+        spAsserts += 4;
+    }
+    foreach (bad; [0, 5]) {
+        int pv = spRecordValue(encodeWithPolicy(MODE_MODERN, 1, cast(ubyte)bad));
+        if (pv != 2 || pv == bad) spOk = false;
+        spAsserts += 1;
+    }
+    ubyte[] wP10 = encodeWithPolicy(MODE_MODERN, 1, 1);
+    foreach (nm; ["HIGHLY", "VERTICAL", "HORIZONTAL"]) {
+        ubyte[] b;
+        foreach (c; nm) b ~= cast(ubyte)c;
+        foreach (size_t i; 0 .. (wP10.length > b.length ? wP10.length - b.length + 1 : 0))
+            if (wP10[i..i+b.length] == b) spOk = false;
+    }
+    if (!spOk) { writefln("SP 01-12 FAIL assertions=%d storage policy wire conformance", spAsserts); exit(1); }
+    writefln("SP 01-12 PASS assertions=%d ops=8 storage policy wire conformance", spAsserts);
     writefln("All 19 capabilities verified: 19/19");
 }

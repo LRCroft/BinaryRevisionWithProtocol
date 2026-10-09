@@ -113,7 +113,7 @@ LANG_SPECS["FSharp"] = LangSpec("FSharp", "mcr.microsoft.com/dotnet/sdk:10.0", "
 LANG_SPECS["Fortran"] = LangSpec("Fortran", "vsn-deb:latest", "Fortran",
     "gfortran -o /tmp/t vsn.f90 test_vsn.f90 && /tmp/t")
 LANG_SPECS["Go"] = LangSpec("Go", "golang:1.23-alpine", "Go",
-    "go test -v -run TestCapability19Groups ./...")
+    "go test -v -run 'TestCapability19Groups|TestStoragePolicyWire' ./...")
 LANG_SPECS["Haskell"] = LangSpec("Haskell", "vsn-deb:latest", "Haskell",
     "ghc -o /tmp/t test_vsn.hs VSN.hs && /tmp/t")
 LANG_SPECS["Java"] = LangSpec("Java", "vsn-deb:latest", "Java",

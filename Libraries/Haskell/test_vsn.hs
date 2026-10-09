@@ -4,6 +4,7 @@ import qualified Data.ByteString as B
 import Data.Word (Word8)
 import Data.Char (ord)
 import Data.Maybe (fromJust)
+import System.Exit (exitWith, ExitCode(ExitFailure))
 import VSN
 
 pk :: String -> B.ByteString
@@ -109,3 +110,22 @@ main = do
     let passed = length $ filter id allRs
         failed = length $ filter (not . id) allRs
     putStrLn ("PASSED=" ++ show passed ++ " FAILED=" ++ show failed)
+    -- Storage Policy P01-P12 canonical wire conformance (REC_STORAGE_POLICY)
+    let rec v = B.pack [0x00, 0x09, 0x04, 0x09, 0x01, 0x01, v]
+        spWire = [(v, encode v 1) | v <- [1 :: Word8, 2, 3, 4]]
+        spChain = [(v, exportBytes (createWithPolicy p))
+                   | (v, p) <- [(1 :: Word8, HIGHLY_VERTICAL), (2, VERTICAL)
+                              , (3, HORIZONTAL), (4, HIGHLY_HORIZONTAL)]]
+        checkPair (v, w) = rec v `B.isInfixOf` w
+                      && (case parse w of { Nothing -> False
+                                          ; Just c -> cStoragePolicy c == Just v })
+        spOk = and (map checkPair (spWire ++ spChain))
+          && spVal HIGHLY_VERTICAL == 1 && spVal VERTICAL == 2
+          && spVal HORIZONTAL == 3 && spVal HIGHLY_HORIZONTAL == 4
+          && not (B.isInfixOf (B.pack (map (fromIntegral . ord) "HIGHLY")) (encode 1 1))
+          && not (B.isInfixOf (B.pack (map (fromIntegral . ord) "VERTICAL")) (encode 1 1))
+          && not (B.isInfixOf (B.pack (map (fromIntegral . ord) "HORIZONTAL")) (encode 1 1))
+          && B.index (encode 0 1) 14 == 2 && B.index (encode 5 1) 14 == 2
+    putStrLn (if spOk then "SP 01-12 PASS assertions=16 ops=8 storage policy wire conformance"
+                      else "SP 01-12 FAIL assertions=16 storage policy wire conformance")
+    if failed > 0 || not spOk then exitWith (ExitFailure 1) else return ()

@@ -19,7 +19,7 @@ module VSN
   , getObjectCount, getRevisionCount, getFileCount
   , newBuilder
    , StoragePolicy(HIGHLY_VERTICAL, VERTICAL, HORIZONTAL, HIGHLY_HORIZONTAL)
-   , createWithPolicy
+   , spVal, createWithPolicy
   ) where
 
 import qualified Data.ByteString as B

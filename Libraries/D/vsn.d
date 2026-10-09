@@ -41,19 +41,20 @@ bool magicCheck(ubyte[] data) {
     return data[0] == 'V' && data[1] == 'S' && data[2] == 'N' && data[3] == '-';
 }
 
-// Encode with StoragePolicy record: header + REC_STORAGE_POLICY + FID_STORAGE_POLICY + u8 value
+// Encode with StoragePolicy record: header (magic+CFV+EV) + REC_STORAGE_POLICY + FID_STORAGE_POLICY + u8 value
 ubyte[] encodeWithPolicy(uint mode, ulong gen, ubyte sp) {
-    ubyte[] buf = new ubyte[19];
+    ubyte[] buf = new ubyte[15];
     buf[0]='V'; buf[1]='S'; buf[2]='N'; buf[3]='-';
-    buf[4]=0; buf[5]=1;  // CFV=1, EV=1
-    buf[6]=0; buf[7]=9;  // REC_STORAGE_POLICY = 0x0009
-    buf[8]=4;             // payload length = 4
-    buf[9]=0x09; buf[10]=0x01;  // FID_STORAGE_POLICY = 0x0901
-    buf[11]=1;            // value length = 1
+    buf[4]=0; buf[5]=1;  // CFV=1
+    buf[6]=0; buf[7]=1;  // EV=1
+    buf[8]=0; buf[9]=9;  // REC_STORAGE_POLICY = 0x0009
+    buf[10]=4;            // payload length = 4
+    buf[11]=0x09; buf[12]=0x01;  // FID_STORAGE_POLICY = 0x0901
+    buf[13]=1;            // value length = 1
     ubyte val;
     if (sp >= 1 && sp <= 4) val = sp; else val = cast(ubyte)2;
-    buf[12] = val;
-    return buf[0..13];
+    buf[14] = val;
+    return buf[0..15];
 }
 class MutableStore {
     int mode; uint generation = 0;
@@ -157,5 +158,7 @@ enum StoragePolicy { HIGHLY_VERTICAL = 1, VERTICAL = 2, HORIZONTAL = 3, HIGHLY_H
 
 MutableStore createWithPolicy(int policy) {
     int mode = (policy == 1 || policy == 2) ? MODE_MODERN : MODE_ENTERPRISE;
-    return new MutableStore(mode);
+    auto s = new MutableStore(mode);
+    s.storagePolicy = (policy >= 1 && policy <= 4) ? cast(ubyte)policy : cast(ubyte)2;
+    return s;
 }

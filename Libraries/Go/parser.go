@@ -92,7 +92,7 @@ func Parse(data []byte) (*Container, error) {
 				Payload:    append([]byte(nil), payload...),
 				ByteOffset: start,
 			}
-			if rt <= RepRepresentationDescriptor {
+			if rt >= RecFileIdentity && rt <= RecStoragePolicy {
 				fields, ferr := parseFields(payload, start+2)
 				if ferr != nil {
 					return ferr
