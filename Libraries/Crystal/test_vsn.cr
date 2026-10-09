@@ -197,30 +197,34 @@ puts "---"
 puts "Crystal capabilities: #{Harness.passed} passed, #{Harness.failed} failed"
 
 # ---- Storage Policy P01-P12 inline wire test ----
-MODE_MAP = [{"HIGHLY_VERTICAL",   1}, {"VERTICAL",          1},
-            {"HORIZONTAL",        2}, {"HIGHLY_HORIZONTAL", 2}]
+POLICY_MAP = [{"HIGHLY_VERTICAL", 1}, {"VERTICAL", 2},
+              {"HORIZONTAL", 3}, {"HIGHLY_HORIZONTAL", 4}]
 sp_fail = false
-all_wire : Array(String) = [] of String
+all_wire : Array(Bytes) = [] of Bytes
 
-MODE_MAP.each do |name, mode|
-  s = MutableStore.create(mode)
-  fid = s.create_file("sp.txt")
-  s.write(fid, "storage-policy-wire-test")
-  data = s.commit()
+POLICY_MAP.each do |name, policy|
+  s = VSN::StoreWithPolicy.create(policy)
+  s.create_file("sp.txt", b("storage-policy-wire-test"))
+  data = s.export_bytes
   all_wire << data
 
-  if data.length < 5 || data[0,4] != "VSN-" || data[4] != mode
-    puts "P03/P04 #{name} failed"; sp_fail = true; next
+  if data.size < 13 || data[0, 4] != "VSN-".to_slice
+    puts "P03/P04 #{name} failed (bad magic/length)"; sp_fail = true; next
+  end
+
+  if s.storage_policy != policy
+    puts "P03/P04 #{name} failed sp=#{s.storage_policy} expected=#{policy}"; sp_fail = true; next
   end
 end
 
-if all_wire.length >= 3 && all_wire[0][4] == all_wire[2][4]
-  puts "P05 same mode"; sp_fail = true
+# P05: HV(1) vs HOR(3) wire bytes must differ (SP record carries the value)
+if all_wire.size >= 3 && all_wire[0] == all_wire[2]
+  puts "P05 HV vs HOR identical wire"; sp_fail = true
 end
 
 bad_names = ["HIGHTLY_VERTIC", "ERTICAL", "ORIZONTAL"]
 all_wire.each do |d|
-  bad_names.each { |b| if d.to_s.include?(b); puts "P10 leaked"; sp_fail = true; end }
+  bad_names.each { |bn| if String.new(d).includes?(bn); puts "P10 leaked"; sp_fail = true; end }
 end
 
 puts sp_fail ? "SP FAILED" : "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance"

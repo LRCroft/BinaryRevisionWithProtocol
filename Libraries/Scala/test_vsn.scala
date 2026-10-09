@@ -70,15 +70,23 @@ object TestVSN {
     println(s"SUMMARY $passed/19")
 
     // Storage Policy P01-P12 inline wire test
-    val policies = List((Constants.MODE_MODERN, "HIGHLY_VERTICAL"), (Constants.MODE_ENTERPRISE, "HORIZONTAL"))
+    val policies = List((1, "HIGHLY_VERTICAL"), (2, "VERTICAL"), (3, "HORIZONTAL"), (4, "HIGHLY_HORIZONTAL"))
     var spFail = false
-    for ((mode, name) <- policies) {
-      val s = new MutableStore(mode)
+    val allWire = scala.collection.mutable.ArrayBuffer.empty[Array[Byte]]
+    for ((sp, name) <- policies) {
+      val s = VsnApi.createWithStoragePolicy(sp)
       s.createFile("sp.txt", Array[Byte]())
-      val data = s.commit()
-      if (data.length < 5 || data(0).toInt != 86 || data(4).toInt != mode) {
-        println(s"P03/P04 $name failed"); spFail = true
+      val data = s.exportBytes()
+      allWire += data
+      if (data.length < 13 || data(0).toInt != 86) {
+        println(s"P03/P04 $name failed (bad magic/length)"); spFail = true
+      } else if ((data(12) & 0xFF) != sp) {
+        println(s"P03/P04 $name failed sp=${data(12) & 0xFF} expected=$sp"); spFail = true
       }
+    }
+    // P05: HV(1) vs HOR(3) wire bytes must differ (SP record carries the value)
+    if (allWire.length >= 3 && (allWire(0)(12) & 0xFF) == (allWire(2)(12) & 0xFF)) {
+      println("P05 HV vs HOR identical wire"); spFail = true
     }
 
     if (!spFail) println("SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance")

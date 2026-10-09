@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'vsn.dart' as vsn;
+import 'dart:io';
 
 int passed = 0;
 final _lock = Lock();
@@ -31,7 +32,7 @@ class _SimpleLock {
 }
 
 Future<bool> runCap(int n) async {
-  final s = vsn.vsn.MutableStore.create(vsn.MODE_MODERN);
+  final s = vsn.MutableStore.create(vsn.MODE_MODERN);
   var ok = true;
   switch(n) {
     case 1: ok = s.mode == vsn.MODE_MODERN; break;
@@ -84,14 +85,14 @@ Future<bool> runCap(int n) async {
       } catch(_) { ok = false; } break;
     case 11:
       try {
-        final s2 = vsn.vsn.MutableStore.create(vsn.MODE_MODERN);
+        final s2 = vsn.MutableStore.create(vsn.MODE_MODERN);
         s2.createFile('x', [1]);
         final diff = s.diffStores(s2);
         ok = diff['added'] != null || diff['deleted'] != null || diff['shared'] != null;
       } catch(_) { ok = false; } break;
     case 12:
       try {
-        final s2 = vsn.vsn.MutableStore.create(vsn.MODE_MODERN);
+        final s2 = vsn.MutableStore.create(vsn.MODE_MODERN);
         s.createFile('a', [1, 2]);
         s2.createFile('a', [3, 4]);
         final b1 = s.exportBytes();
@@ -145,28 +146,37 @@ void main() async {
   print('PASS $passed');
 
   // ---- Storage Policy P01-P12 inline wire test ----
-  const expectations = [
-    {'name': 'HIGHLY_VERTICAL',   'mode': 1},
-    {'name': 'VERTICAL',          'mode': 1},
-    {'name': 'HORIZONTAL',        'mode': 2},
-    {'name': 'HIGHLY_HORIZONTAL', 'mode': 2}
+  const policies = [
+    {'name': 'HIGHLY_VERTICAL',   'sp': 1},
+    {'name': 'VERTICAL',          'sp': 2},
+    {'name': 'HORIZONTAL',        'sp': 3},
+    {'name': 'HIGHLY_HORIZONTAL', 'sp': 4}
   ];
   bool spFail = false;
   List<Uint8List> allWire = [];
 
-  for (var exp in expectations) {
-    final s = vsn.MutableStore.create(exp['mode'] as int);
-    final fid = s.createFile('sp.txt', Uint8List.fromList('storage-policy-wire-test'.codeUnits));
+  for (var p in policies) {
+    final s = vsn.MutableStore.createWithStoragePolicy(p['sp'] as int);
+    s.createFile('sp.txt', Uint8List.fromList('storage-policy-wire-test'.codeUnits));
     final data = s.commit();
     allWire.add(Uint8List.fromList(data));
 
-    if (data.length < 5 || String.fromCharCodes(data.sublist(0,4)) != 'VSN-' || data[4] != exp['mode']) {
-      print('P03/P04 ${exp['name']} failed'); spFail = true; continue;
+    if (data.length < 15 || String.fromCharCodes(data.sublist(0,4)) != 'VSN-') {
+      print('P03/P04 ${p['name']} failed (bad magic/length)');
+      spFail = true;
+      continue;
+    }
+    // SP value is at wire index 14
+    if (data[14] != p['sp']) {
+      print('P03/P04 ${p['name']} failed sp=${data[14]} expected=${p['sp']}');
+      spFail = true;
     }
   }
 
-  if (allWire.length >= 3 && allWire[0][4] == allWire[2][4]) {
-    print('P05 same mode'); spFail = true;
+  // P05: HV(1) vs HOR(3) wire bytes must differ (SP record carries the value)
+  if (allWire.length >= 3 && allWire[0][14] == allWire[2][14]) {
+    print('P05 HV vs HOR identical wire');
+    spFail = true;
   }
 
   const badNames = ['HIGHTLY_VERTIC', 'ERTICAL', 'ORIZONTAL'];

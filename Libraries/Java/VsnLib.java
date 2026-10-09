@@ -13,10 +13,10 @@ public class VsnLib {
     public static final short FID_STORAGE_POLICY = 0x0901;
     public static final int REP_DIRECT_1 = 1;
     public static final int REP_EXTENTS_1 = 2;
-    public static byte[] encode(int sp, long gen) {
+    public static byte[] encode(int sp, long gen, int mode) {
         int val = (sp >= 1 && sp <= 4) ? sp : STORAGE_VERTICAL;
-        byte[] rec = new byte[]{(byte)0x00,(byte)0x09, 0x04, (byte)0x09,(byte)0x01, 0x01, (byte)(val)};
-        byte[] header = new byte[]{(byte)'V',(byte)'S',(byte)'N',(byte)'-',(byte)0,(byte)1,(byte)0,(byte)1};
+        byte[] header = new byte[]{(byte)'V',(byte)'S',(byte)'N',(byte)'-',(byte)0x00,(byte)0x01,(byte)0x00,(byte)0x01};
+        byte[] rec = new byte[]{(byte)0x00,(byte)0x09, 0x04, (byte)0x09,(byte)0x01, 0x01, (byte)val};
         byte[] result = new byte[header.length + rec.length];
         System.arraycopy(header, 0, result, 0, header.length);
         System.arraycopy(rec, 0, result, header.length, rec.length);
@@ -25,7 +25,8 @@ public class VsnLib {
     public static boolean validate(byte[] data) {
         if (data == null || data.length < 8) return false;
         if (data[0]!=0x56||data[1]!=0x53||data[2]!=0x4E||data[3]!=(byte)'-') return false;
-        return data[4]==0 && data[5]==1;
+        int cfv = (data[4] & 0xFF) << 8 | (data[5] & 0xFF);
+        return cfv == 1 || cfv == 2;
     }
     public static int recover(byte[] data) {
         if (data == null || data.length < 8) return -1;
@@ -48,7 +49,7 @@ public class VsnLib {
             if (pos + 3 + plen > data.length) break;
             int fidOff = pos + 3;
             short fid = (short)((data[fidOff] << 8) | (data[fidOff+1] & 0xFF));
-            if (fid == FID_STORAGE_POLICY && fidOff + 4 < data.length) {
+            if (fid == FID_STORAGE_POLICY && fidOff + 4 <= data.length) {
                 return data[fidOff+3] & 0xFF;
             }
             pos += 3 + plen;
@@ -94,7 +95,7 @@ public class VsnLib {
         public void stageAdd(String path, byte[] content) { createFile(path, content); }
         public byte[] commitTransaction(long expected) {
             if (expected != generation) throw new RuntimeException("gen mismatch");
-            generation++; return encode(storage_policy, generation);
+            generation++; return encode(storage_policy, generation, mode);
         }
         public int diffCount(Store other) { return Math.abs(fileCount - other.fileCount); }
         public boolean mergeOk() { return mode >= MODE_MODERN && mode <= MODE_ENTERPRISE; }
@@ -102,7 +103,7 @@ public class VsnLib {
             if (data==null||data.length<8||data[0]!=0x56) throw new RuntimeException("bad");
             return true;
         }
-        public byte[] exportBytes() { return encode(storage_policy, generation); }
+        public byte[] exportBytes() { return encode(storage_policy, generation, mode); }
         public boolean integrityOk() { return !closed; }
         public int statsFiles() { return fileCount; }
         public int statsRevs() { return revCount; }
@@ -215,7 +216,7 @@ public class VsnLib {
     }
 
     // ---- Writer Storage Policy (informative, NOT on wire) ----
-    static enum StoragePolicy { HIGHLY_VERTICAL(1), VERTICAL(2), HORIZONTAL(3), HIGHLY_HORIZONTAL(4); private final int w; StoragePolicy(int w){ this.w=w; } public int wireMode(){ return w==1||w==2?1:2; } }
+    static enum StoragePolicy { HIGHLY_VERTICAL(1), VERTICAL(2), HORIZONTAL(3), HIGHLY_HORIZONTAL(4); private final int w; StoragePolicy(int w){ this.w=w; } public int value(){ return w; } public int wireMode(){ return w==1||w==2?1:2; } }
     static enum WireMode { MODERN(0x01), ENTERPRISE(0x02); private final int v; WireMode(int v){this.v=v;} public int value(){return v;} }
     static class InvalidStoragePolicy extends RuntimeException { InvalidStoragePolicy(String m){super(m);} }
     static class PolicyWireModeConflict extends RuntimeException { PolicyWireModeConflict(String m){super(m);} }
@@ -244,7 +245,9 @@ public class VsnLib {
         if (policy == null) throw new InvalidStoragePolicy("null policy");
         int wm = policy.wireMode();
         if (wm != 1 && wm != 2) throw new PolicyWireModeConflict(policy.name() + " -> wire 0");
-        return new Store(wm);
+        Store s = new Store(wm);
+        s.storage_policy = policy.value();
+        return s;
     }
 
     public static WriterOptions buildWriterOptions(StoragePolicy policy) {

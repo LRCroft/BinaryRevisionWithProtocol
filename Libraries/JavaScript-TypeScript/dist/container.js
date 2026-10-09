@@ -1,4 +1,4 @@
-import { MAGIC, FID_RECORDS_END, FID_MODE, REC_END_OF_RECORDS, REC_MODE_DECLARATION } from "./constants.js";
+import { MAGIC, FID_RECORDS_END, FID_MODE, REC_END_OF_RECORDS, REC_MODE_DECLARATION, REC_STORAGE_POLICY, FID_STORAGE_POLICY } from "./constants.js";
 import { VsnError, readUvarint, readU16 } from "./primitives.js";
 /** Bounds-checked slice: physical end mid-unit is truncation (GR-47). */
 function sliceChecked(data, off, len, what) {
@@ -92,11 +92,17 @@ export function parse(data) {
     const rc = readUvarint(data, off);
     const gen = readUvarint(data, off);
     let mode = null;
+    let storagePolicy = null;
     for (const rec of records) {
         if (rec.rtype === REC_MODE_DECLARATION) {
             const m = rec.getField(FID_MODE);
             if (m && m.value.length > 0)
                 mode = m.value[0];
+        }
+        if (rec.rtype === REC_STORAGE_POLICY) {
+            const sp = rec.getField(FID_STORAGE_POLICY);
+            if (sp && sp.value.length > 0)
+                storagePolicy = sp.value[0];
         }
     }
     return {
@@ -107,6 +113,7 @@ export function parse(data) {
         trailerRecordCount: rc,
         trailerGeneration: gen,
         mode,
+        storagePolicy,
         byteLength: data.length,
     };
 }

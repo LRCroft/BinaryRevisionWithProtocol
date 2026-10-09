@@ -81,8 +81,9 @@ pub fn main() void {
     var ok12: [3]bool = .{ b12.fileExists(), o12.fileExists(), t12.fileExists() };
     cap(12, &ok12);
 
-    const impOk = vsn.MutableStore.importBytes(valid);
-    const exp = vsn.MutableStore.exportBytes();
+   const store = vsn.MutableStore.init(1);
+   const impOk = vsn.MutableStore.importBytes(valid);
+   const exp = vsn.MutableStore.exportBytes(store);
     var ok13: [2]bool = .{ impOk, exp.len >= 8 };
     cap(13, &ok13);
 
@@ -124,33 +125,31 @@ pub fn main() void {
     var i: usize = 0;
     while (i < expectations.len) : (i += 1) {
         const expectation = expectations[i];
-        const mode = expectation.expected_mode;
-        var ssp = vsn.MutableStore.init(@as(i32, @intCast(mode)));
+        const policy: u8 = @intCast(expectation.policy);
+        var ssp = vsn.MutableStore.init(@as(i32, @intCast(expectation.expected_mode)));
         ssp.createFile();
-        // Write content and commit inline — Zig MutableStore.commitTransaction takes expected gen
-        _ = vsn.encode(@as(u8, @intCast(expectation.expected_mode)), 1);
-        // P03-P04: verify mode byte in encoded output
-        const encoded = vsn.encode(@as(u8, @intCast(expectation.expected_mode)), 1);
+        // P03-P04: encode carries the storage policy value in REC_STORAGE_POLICY (byte 12)
+        const encoded = vsn.encode(policy, 1);
         all_wire[i] = encoded;
 
-        if (encoded.len < 5) { sp_fail = true; continue; }
+        if (encoded.len < 13) { sp_fail = true; continue; }
         if (encoded[0] != 0x56 or encoded[1] != 0x53 or encoded[2] != 0x4E or encoded[3] != 0x2D) {
             sp_fail = true; continue;
         }
-        if (encoded[4] != expectation.expected_mode) {
-            std.debug.print("P03 policy={d} mode={d} expected={d}\n", .{ @as(i32, @intCast(expectation.policy)), encoded[4], expectation.expected_mode });
+        if (encoded[12] != policy) {
+            std.debug.print("P03 policy={d} got={d}\n", .{ @as(i32, @intCast(policy)), encoded[12] });
             sp_fail = true;
         }
     }
 
-    // P05: HV vs HOR must differ
-    if (all_wire[0][4] == all_wire[2][4]) { std.debug.print("P05 same mode\n", .{}); sp_fail = true; }
+    // P05: HV(1) vs HOR(3) policy values must differ
+    if (all_wire[0][12] == all_wire[2][12]) { std.debug.print("P05 same policy\n", .{}); sp_fail = true; }
 
     // P07: All valid commit output
     var j: usize = 0;
     while (j < expectations.len) : (j += 1) {
         const d = all_wire[j];
-        if (d.len < 8 or (d[4] != 1 and d[4] != 2)) {
+        if (d.len < 13 or (d[12] < 1 or d[12] > 4)) {
             std.debug.print("P07 invalid\n", .{}); sp_fail = true;
         }
     }

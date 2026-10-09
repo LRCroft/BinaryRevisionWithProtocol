@@ -6,7 +6,7 @@ import { materializeDirectStream, materializeExtentsStream } from "./representat
 import { validate as validateContainer } from "./validate.js";
 import { VsnError } from "./errors.js";
 import { putUvarint } from "./primitives.js";
-import { REC_MODE_DECLARATION, REC_FILE_IDENTITY, REC_REVISION, REC_CONTENT_OBJECT, REC_FILE_HEAD, REC_COMMIT_MARKER, FID_MODE, FID_FILE_ID, FID_REV_ID, FID_REV_FILE_ID, FID_REV_OBJECT_SERIAL, FID_REV_PATH, FID_REV_PRESENCE, FID_HEAD_FILE_ID, FID_HEAD_REV_ID, FID_OBJECT_SERIAL, FID_OBJECT_SIZE, FID_COMMIT_GENERATION, MODE_MODERN, MODE_ENTERPRISE, PRESENT, DELETED, REP_DIRECT_1, REP_EXTENTS_1, REP_VERSION_1, } from "./constants.js";
+import { REC_FILE_IDENTITY, REC_REVISION, REC_CONTENT_OBJECT, REC_FILE_HEAD, REC_COMMIT_MARKER, REC_STORAGE_POLICY, FID_STORAGE_POLICY, FID_FILE_ID, FID_REV_ID, FID_REV_FILE_ID, FID_REV_OBJECT_SERIAL, FID_REV_PATH, FID_REV_PRESENCE, FID_HEAD_FILE_ID, FID_HEAD_REV_ID, FID_OBJECT_SERIAL, FID_OBJECT_SIZE, FID_COMMIT_GENERATION, MODE_MODERN, MODE_ENTERPRISE, PRESENT, DELETED, REP_DIRECT_1, REP_EXTENTS_1, REP_VERSION_1, } from "./constants.js";
 // Tier 3: simple async mutex for thread-safe operations
 class Mutex {
     _queue = [];
@@ -46,6 +46,7 @@ export class VsnStore {
     parsed = null;
     closed = false;
     modeValue;
+    storagePolicy = 2; // default VERTICAL
     fileIds = new Map();
     revisions = new Map();
     objects = new Map();
@@ -66,8 +67,10 @@ export class VsnStore {
     }
     static create(mode = MODE_MODERN) { return new VsnStore(undefined, mode); }
     static createWithPolicy(policy) {
-        const mode = (policy === 1 || policy === 2) ? MODE_MODERN : MODE_ENTERPRISE;
-        return new VsnStore(undefined, mode);
+        const mode = policy <= 2 ? MODE_MODERN : MODE_ENTERPRISE;
+        const s = new VsnStore(undefined, mode);
+        s.storagePolicy = policy >= 1 && policy <= 4 ? policy : 2;
+        return s;
     }
     buildState() {
         this.fileIds.clear();
@@ -442,10 +445,9 @@ export class VsnStore {
         this.checkOpen();
         this.generationValue += 1;
         const records = [];
-        records.push({
-            rtype: REC_MODE_DECLARATION,
-            fields: [{ fid: FID_MODE, value: Buffer.from([this.modeValue]) }]
-        });
+        // Canonical: always emit REC_STORAGE_POLICY (authoritative on wire). NEVER ModeDeclaration.
+        const policyVal = this.storagePolicy > 0 ? this.storagePolicy : 2;
+        records.push({ rtype: REC_STORAGE_POLICY, fields: [{ fid: FID_STORAGE_POLICY, value: Buffer.from([policyVal]) }] });
         for (const info of this.fileIds.values())
             records.push({ rtype: REC_FILE_IDENTITY, fields: [{ fid: FID_FILE_ID, value: info.fileId }] });
         for (const rid of [...this.revisions.keys()].sort((a, b) => a - b)) {

@@ -40,16 +40,15 @@ Container parse(List<int> data) {
     if (body.length >= 5 && body[0] == 0x00 && body[1] == 0x09) {
       // REC_STORAGE_POLICY found, read payload length at position 2
       final plen = body[2];
-      if (plen >= 4) {
-        sp = body[7]; // FID(2) + valueLen(1) + value(1) at offset 6
+      if (plen >= 4 && body.length >= 7) {
+        sp = body[6]; // FID(2)+valueLen(1)+value at body offset 5,6
       }
     }
   }
   return Container(cfv: CFV, ev: EV, mode: MODE_MODERN, byteLength: data.length, storagePolicy: sp);
 }
 
-List<int> encode(int mode, int gen, {int storagePolicy = STORAGE_POLICY_VERTICAL}) =>
-    [0x56, 0x53, 0x4e, 0x2d, 0x00, 0x01, 0x00, 0x01,
+List<int> encode(int mode, int gen, {int storagePolicy = STORAGE_POLICY_VERTICAL}) => [0x56, 0x53, 0x4e, 0x2d, 0x00, 0x01, 0x00, 0x01,
      // REC_STORAGE_POLICY record (0x0009) with FID_STORAGE_POLICY (0x0901) + u8 value
      0x00, 0x09,        // record type = 0x0009
      0x04,              // payload length = 4 bytes
@@ -57,11 +56,9 @@ List<int> encode(int mode, int gen, {int storagePolicy = STORAGE_POLICY_VERTICAL
      0x01,              // value length = 1 byte
      storagePolicy >= 1 && storagePolicy <= 4 ? storagePolicy : 2];
 
-bool validateStructural(Container c) =>
-    c.cfv == CFV && (c.mode == MODE_MODERN || c.mode == MODE_ENTERPRISE);
+bool validateStructural(Container c) => c.cfv == CFV && (c.mode == MODE_MODERN || c.mode == MODE_ENTERPRISE);
 
-int recover(List<int> data) =>
-    (data.length >= 8 && String.fromCharCodes(data.sublist(0, 4)) == MAGIC) ? 0 : -1;
+int recover(List<int> data) => (data.length >= 8 && String.fromCharCodes(data.sublist(0, 4)) == MAGIC) ? 0 : -1;
 
 class _Revision {
   final String fileId, path;
@@ -86,20 +83,21 @@ class MutableStore {
 
   // Writer Storage Policy chain -- OBSOLETE: cancelled mode mapping removed.
   static MutableStore createWithStoragePolicy(int spolicy) {
-    var s = MutableStore(MODE_MODERN);
+    int mode = spolicy <= 2 ? MODE_MODERN : MODE_ENTERPRISE;
+    var s = MutableStore(mode);
     s.storagePolicy = spolicy;
     return s;
   }
 
-  static MutableStore open(List<int> data) {
   static MutableStore open(List<int> data) {
     if (data.length < 8 || String.fromCharCodes(data.sublist(0, 4)) != MAGIC) {
       throw Exception("bad magic");
     }
     var container = parse(data);
     var s = MutableStore(container.mode);
-    if (container.storagePolicy != null) s.storagePolicy = container.storagePolicy;
+    if (container.storagePolicy != null) s.storagePolicy = container.storagePolicy!;
     return s;
+  }
 
   void close() => closed = true;
   int getMode() => mode;
@@ -203,8 +201,7 @@ class MutableStore {
     return objects[serial]!;
   }
 
-  int? getObjectInfo(int serial) =>
-      objects.containsKey(serial) ? objects[serial]!.length : null;
+  int? getObjectInfo(int serial) => objects.containsKey(serial) ? objects[serial]!.length : null;
 
   Transaction beginTransaction() => Transaction();
   void stageAdd(Transaction txn, String path, List<int> content) => txn.ops.add(<dynamic>["add", path, content]);
@@ -252,20 +249,14 @@ class MutableStore {
   void writeLargeObject(String path, List<int> content) => createFile(path, content);
   bool integrityVerify() => validateStructural();
 
-  static bool integrityVerifyRaw(List<int> data) =>
-      data.length >= 8 &&
-      String.fromCharCodes(data.sublist(0, 4)) == MAGIC &&
-      (data[4] << 8 | data[5]) == CFV &&
-      (data[6] << 8 | data[7]) == EV;
+  static bool integrityVerifyRaw(List<int> data) => data.length >= 8 && String.fromCharCodes(data.sublist(0, 4)) == MAGIC && (data[4] << 8 | data[5]) == CFV && (data[6] << 8 | data[7]) == EV;
 
-  Map<String, int> getStats() =>
-      {"revisions": revisions.length, "objects": objects.length, "files": files.length};
+  Map<String, int> getStats() => {"revisions": revisions.length, "objects": objects.length, "files": files.length};
 
   static MutableStore newBuilder([int mode = MODE_MODERN]) => create(mode);
 
   bool checkMagicBytes(List<int> data) => integrityVerifyRaw(data);
 }
-
 bool _bytesEqual(List<int> a, List<int> b) {
   if (a.length != b.length) return false;
   for (var i = 0; i < a.length; i++) { if (a[i] != b[i]) return false; }

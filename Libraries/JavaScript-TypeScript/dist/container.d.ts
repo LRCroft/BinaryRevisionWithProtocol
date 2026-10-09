@@ -24,6 +24,7 @@ export interface ParsedContainer {
     trailerRecordCount: bigint;
     trailerGeneration: bigint;
     mode: number | null;
+    storagePolicy: number | null;
     byteLength: number;
 }
 export declare function parse(data: Buffer): ParsedContainer;

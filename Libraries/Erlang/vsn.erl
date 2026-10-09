@@ -1,6 +1,6 @@
 -module(vsn).
 
--export([parse/1, encode/2, validate_structural/1, recover/1]).
+-export([parse/1, encode/2, encode/3, validate_structural/1, recover/1]).
 -export([create/1, open/1, close/1, get_mode/1]).
 -export([create_file/3, read_file/2, write_file/3, delete_file/2, file_exists/2, rename_file/3]).
 -export([list_revisions/2, get_revision/2, current_revision/2, checkout_revision/2]).
@@ -12,7 +12,6 @@
 -export([integrity_verify/1, integrity_verify_raw/1]).
 -export([get_object_count/1, get_revision_count/1, get_file_count/1]).
 -export([new_builder/1, check_magic_bytes/1]).
--export([get_file_id/2, diagnostics/2, stats/1]).
 -export([get_file_id/2, diagnostics/2, stats/1]).
 -export([create_with_policy/1]).
 -define(MAGIC, "VSN-").
@@ -79,9 +78,10 @@ parse_sp_record(_) -> undefined.
 
 encode(Mode, _Gen, Sp) when is_integer(Mode), is_integer(Sp) ->
     %% Emit REC_STORAGE_POLICY record (16#0009) with FID_STORAGE_POLICY (16#0901) + u8 value
-    RecPayload = <<?16#0901:16/unsigned-big-integer, 1:8/unsigned-integer, Sp:8/unsigned-integer>>,
-    Record = <<16#0009:16/unsigned-big-integer, byte_size(RecPayload):8/unsigned-integer, RecPayload/binary>>,
-    <<"VSN-", ?CFV:16, ?EV:16, Record/binary>>;
+    RecPayload = <<16#0901:16/unsigned-big-integer, 1:8/unsigned-integer, Sp:8/unsigned-integer>>,
+    PLen = byte_size(RecPayload),
+    Record = <<16#0009:16/unsigned-big-integer, PLen:8/unsigned-integer, RecPayload/binary>>,
+    <<"VSN-", ?CFV:16, ?EV:16, Record/binary>>.
 encode(Mode, _Gen) when is_integer(Mode) ->
     %% Default encode without storage policy (legacy compat)
     <<"VSN-", ?CFV:16, ?EV:16>>.
@@ -409,6 +409,7 @@ rep_extents_1() -> ?REP_EXTENTS_1.
 %% Canonical writer: stores storage policy directly in store state; encode uses it.
 
 create_with_policy(P) ->
-    % Canonical writer: sets storage_policy directly on the store (no mode mapping).
-    S = create(?MODE_MODERN),
+    % Canonical writer: sets storage_policy and mode based on policy.
+    Mode = if P =< 2 -> ?MODE_MODERN; true -> ?MODE_ENTERPRISE end,
+    S = create(Mode),
     S#{storage_policy => P}.

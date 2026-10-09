@@ -40,6 +40,7 @@ export declare class VsnStore {
     private parsed;
     private closed;
     private modeValue;
+    private storagePolicy;
     private fileIds;
     private revisions;
     private objects;

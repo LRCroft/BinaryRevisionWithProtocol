@@ -310,6 +310,5 @@ function main() {
 
     if (!spFail) console.log("SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance");
     else process.exit(1);
-main();
-
 }
+main();

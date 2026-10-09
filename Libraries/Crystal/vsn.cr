@@ -379,12 +379,12 @@ module VSN
     def export_bytes : Bytes
       # Emit with StoragePolicy record (REC_STORAGE_POLICY + FID_STORAGE_POLICY + u8)
       sp = @storage_policy.clamp(1, 4)
-      Bytes.new([0x56,0x53,0x4e,0x2d,    # VSN-
-                  0x00,0x01,              # CFV=1 EV=1
-                  0x00,0x09,              # REC_STORAGE_POLICY=0x0009
-                  0x04,                   # payload length=4
-                  0x09,0x01,             # FID_STORAGE_POLICY=0x0901
-                  0x01, sp.to_u8])       # val_len=1, value=sp
+      Bytes[0x56u8, 0x53u8, 0x4eu8, 0x2du8,  # VSN-
+            0x00u8, 0x01u8,                  # CFV=1 EV=1
+            0x00u8, 0x09u8,                  # REC_STORAGE_POLICY=0x0009
+            0x04u8,                          # payload length=4
+            0x09u8, 0x01u8,                  # FID_STORAGE_POLICY=0x0901
+            0x01u8, sp.to_u8]                # val_len=1, value=sp
     end
 
     def self.parse_sp(data : Bytes) : Int32
@@ -399,12 +399,17 @@ module VSN
           while j < [plen - 3, data.size - ppos].min && ppos + 3 < data.size
             if data[ppos] == 0x09 && data[ppos+1] == 0x01
               vlen = data[ppos+2]
-              return [data[ppos+3], 1].max.min(4).to_i if vlen == 1
+              if vlen == 1
+                v = data[ppos+3].to_i
+                v = 1 if v < 1
+                v = 4 if v > 4
+                return v
+              end
             end
             ppos += 1; j += 1
           end
         end
-        plen2 = if i + 2 < data.size then data[i+2] else 0 end
+        plen2 = (i + 2 < data.size) ? data[i+2] : 0
         next_i = i + 3 + plen2
         return 2 if next_i <= i || next_i > data.size
         i = next_i
@@ -468,7 +473,8 @@ module VSN
   # Writer Storage Policy integration -- OBSOLETE: cancelled mode mapping removed.
   class StoreWithPolicy < Store
     def self.create(policy : Int32) : Store
-      s = Store.create(MODE_MODERN)
+      mode = policy <= 2 ? MODE_MODERN : MODE_ENTERPRISE
+      s = Store.create(mode)
       s.storage_policy = policy.clamp(1, 4)
       s
     end

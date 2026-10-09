@@ -105,22 +105,26 @@ proc main() =
   var spFail = false
   var allWire: seq[string] = @[]
 
-  for (name, mode) in [
-    ("HIGHLY_VERTICAL", 1), ("VERTICAL", 1),
-    ("HORIZONTAL", 2), ("HIGHLY_HORIZONTAL", 2)
+  for (name, sp) in [
+    ("HIGHLY_VERTICAL", 1), ("VERTICAL", 2),
+    ("HORIZONTAL", 3), ("HIGHLY_HORIZONTAL", 4)
   ]:
-    let s = newStore(mode)
-    let fid = allocateFile(s, "sp.txt")
-    let buf = "storage-policy-wire-test"
-    _ = writeFileSync(s, fid, cast[ptr UncheckedArray[char]](buf.toOpenArrayByte(0,buf.len-1)))
+    let s = createWithStoragePolicy(sp)
+    discard createFile(s, "sp.txt", "storage-policy-wire-test")
     let data = commit(s)
-    allWire.add($data)
+    allWire.add(data)
+    # P03/P04: each policy emits a valid VSN wire container
+    if data.len < 13 or data[0..3] != "VSN-":
+      echo "P03/P04 ", name, " failed (bad magic/length)"
+      spFail = true
 
-  # P05: HV vs HOR must differ
-  if allWire.len >= 2: spFail = true  # Nim doesn't expose raw bytes in commit easily
+  # P05: HV(1) vs HOR(3) wire bytes must differ (SP record carries the value)
+  if allWire.len >= 3 and allWire[0] == allWire[2]:
+    echo "P05 HV vs HOR identical wire"
+    spFail = true
 
   if spFail: echo "SP FAILED"
   else: echo "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance"
-  if(spFail): quit(1)
+  if spFail: quit(1)
 
 main()

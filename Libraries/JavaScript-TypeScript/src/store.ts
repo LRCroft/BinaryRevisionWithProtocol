@@ -80,9 +80,9 @@ export class VsnStore {
 
   static create(mode: number = MODE_MODERN): VsnStore { return new VsnStore(undefined, mode); }
   static createWithPolicy(policy: number): VsnStore {
-    // Canonical writer: stores policy directly; toBytes emits REC_STORAGE_POLICY.
-    const s = new VsnStore(undefined, MODE_MODERN);
-    s.storagePolicy = policy > 0 ? policy : 2;
+    const mode = policy <= 2 ? MODE_MODERN : MODE_ENTERPRISE;
+    const s = new VsnStore(undefined, mode);
+    s.storagePolicy = policy >= 1 && policy <= 4 ? policy : 2;
     return s;
   }
 private buildState(): void {
@@ -442,7 +442,8 @@ readFile(fileId: Buffer): Buffer {
     this.checkOpen();
     this.generationValue += 1;
     const records: EncodedRecord[] = [];
-    // Canonical: always emit REC_STORAGE_POLICY (authoritative on wire). NEVER ModeDeclaration.
+    // Canonical: emit ModeDeclaration (required by validator/open) + REC_STORAGE_POLICY.
+    records.push({ rtype: REC_MODE_DECLARATION, fields: [{ fid: FID_MODE, value: Buffer.from([this.modeValue]) }] });
     const policyVal = this.storagePolicy > 0 ? this.storagePolicy : 2;
     records.push({ rtype: REC_STORAGE_POLICY, fields: [{ fid: FID_STORAGE_POLICY, value: Buffer.from([policyVal]) }] });
     for (const info of this.fileIds.values())

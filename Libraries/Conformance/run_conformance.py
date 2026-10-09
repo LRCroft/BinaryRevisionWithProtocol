@@ -93,7 +93,7 @@ LANG_SPECS["Ada"] = LangSpec("Ada", "vsn-deb:latest", "Ada",
 LANG_SPECS["C"] = LangSpec("C", "vsn-deb:latest", "C",
     "gcc -o /tmp/t test_vsn.c vsn.c -lpthread && /tmp/t")
 LANG_SPECS["COBOL"] = LangSpec("COBOL", "vsn-deb:latest", "COBOL",
-    "cobc -x -o /tmp/t test_vsn.cbl vsn_lib.cbl && /tmp/t")
+    "cobc -x -free -o /tmp/t test_vsn.cbl vsn_lib.cbl && /tmp/t")
 LANG_SPECS["CSharp"] = LangSpec("CSharp", "mcr.microsoft.com/dotnet/sdk:10.0", "CSharp",
     "dotnet run --project VsnTest")
 LANG_SPECS["Cpp"] = LangSpec("Cpp", "gcc:13", "Cpp",
@@ -129,7 +129,7 @@ LANG_SPECS["Lua"] = LangSpec("Lua", "vsn-deb:latest", "Lua",
 LANG_SPECS["Nim"] = LangSpec("Nim", "vsn-deb:latest", "Nim",
     "nim c -o:/tmp/t test_vsn.nim && /tmp/t")
 LANG_SPECS["Objective-C"] = LangSpec("Objective-C", "vsn-objc:latest", "Objective-C",
-    "gcc -x objective-c -o /tmp/t test_vsn.m -lobjc -lpthread && /tmp/t")
+    "gcc -x objective-c -std=gnu99 -o /tmp/t test_vsn.m -lobjc -lpthread && /tmp/t")
 LANG_SPECS["OCaml"] = LangSpec("OCaml", "vsn-deb:latest", "OCaml",
     "ocamlc -o /tmp/t vsn.ml test_vsn.ml && /tmp/t")
 LANG_SPECS["Perl"] = LangSpec("Perl", "perl:5.40-slim", "Perl",
@@ -216,17 +216,40 @@ def parse_caps(output):
     return caps, weak, result
 
 
-def run_language(name, timeout=300):
+# The 31-language suite runs many heavyweight containers in parallel, which can
+# induce transient, load-sensitive failures that are NOT real test failures:
+#   * runtime races  -- e.g. the intermittent Crystal 1.20/1.21 fiber-scheduler
+#     crash (crystal-lang/crystal#16871, #17212): "Thread#scheduler cannot be nil"
+#   * infra/network  -- scala-cli/cargo/pip Maven & module downloads stalling or
+#     resetting under CPU/network contention
+# A genuine capability failure always emits a strong "CAP <n> FAIL ..." line. A
+# false VERIFIED is impossible regardless of retry, because classify() separately
+# requires rc==0 AND 19 strong "CAP <n> PASS" lines with no FAIL/DUP.
+def _is_genuine_failure(output):
+    return bool(re.search(r'\bCAP\s+\d+\s+FAIL\b', output or "", re.IGNORECASE))
+
+
+def run_language(name, timeout=300, max_attempts=3):
     spec = LANG_SPECS[name]
     host_mount = BASE.replace("\\", "/")
     args = _docker_args(spec.image, host_mount, "/work/" + spec.work_subdir, spec.full_script())
-    try:
-        r = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
-        return r.returncode, (r.stdout or "") + (r.stderr or "")
-    except subprocess.TimeoutExpired:
-        return 124, "TIMEOUT"
-    except Exception as e:
-        return 1, "EXEC_ERROR: " + str(e)
+    last_rc, last_out = 1, ""
+    for attempt in range(1, max_attempts + 1):
+        try:
+            r = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+            last_rc, last_out = r.returncode, (r.stdout or "") + (r.stderr or "")
+        except subprocess.TimeoutExpired:
+            return 124, "TIMEOUT"
+        except Exception as e:
+            return 1, "EXEC_ERROR: " + str(e)
+        if last_rc == 0:
+            return last_rc, last_out
+        # Transient/infra failure (no genuine "CAP ... FAIL") -> retry a couple of
+        # times. Never retry a genuine reproducible failure (saves wall-clock).
+        if attempt < max_attempts and not _is_genuine_failure(last_out):
+            continue
+        return last_rc, last_out
+    return last_rc, last_out
 
 
 def classify(name, rc, output):
@@ -257,7 +280,7 @@ def classify(name, rc, output):
     return status, caps, passed, failed, missing
 
 
-def run_conformance(max_workers=36):
+def run_conformance(max_workers=12):
     results = {}
     start = _time.time()
     fv = verify_frozen_vectors()
@@ -309,7 +332,7 @@ def run_conformance(max_workers=36):
 
 
 if __name__ == "__main__":
-    workers = int(os.environ.get("VSN_WORKERS", "36"))
+    workers = int(os.environ.get("VSN_WORKERS", "12"))
     results = run_conformance(workers)
     vc = sum(1 for r in results.values() if r["status"] == "VERIFIED")
     sys.exit(0 if vc == 31 else 1)

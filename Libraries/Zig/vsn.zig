@@ -28,7 +28,7 @@ pub const ThreadSafe = struct {
     pub fn withLock() void {}
 };
 
-var _encode_bufs: [16][8]u8 = undefined;
+var _encode_bufs: [16][13]u8 = undefined;
 var _encode_idx: usize = 0;
 
 pub fn encode(sp: u8, gen: u32) []const u8 {
@@ -48,9 +48,11 @@ pub fn encode(sp: u8, gen: u32) []const u8 {
 }
 
 pub fn validate(data: []const u8) bool {
-    if (data.len < 8) return false;
+    if (data.len < 13) return false;
     if (!std.mem.startsWith(u8, data, "VSN-")) return false;
-    return data[4] == MODE_MODERN or data[4] == MODE_ENTERPRISE;
+    // REC_STORAGE_POLICY value must be a legal policy 1..4
+    if (data[12] < 1 or data[12] > 4) return false;
+    return true;
 }
 pub fn recover(data: []const u8) i32 {
     if (data.len >= 8 and std.mem.startsWith(u8, data, "VSN-")) return 0;
@@ -119,7 +121,8 @@ pub const StoragePolicy = enum(u8) { HIGHLY_VERTICAL = 1, VERTICAL = 2, HORIZONT
 // Writer Storage Policy integration -- OBSOLETE: cancelled mode mapping removed.
 pub fn createWithPolicy(policy: u8) MutableStore {
     // Canonical writer: stores policy value directly (no wire mode mapping).
-    return .{ .mode = MODE_MODERN, .generation = 0, .next_rev = 1, .file_count = 0, .rev_count = 0, .obj_count = 0, .closed = false, .storage_policy = if (policy >= 1 and policy <= 4) policy else 2 };
+    const mode = if (policy <= 2) MODE_MODERN else MODE_ENTERPRISE;
+    return .{ .mode = mode, .generation = 0, .next_rev = 1, .file_count = 0, .rev_count = 0, .obj_count = 0, .closed = false, .storage_policy = if (policy >= 1 and policy <= 4) policy else 2 };
 }
 
 pub fn parseStoragePolicy(data: []const u8) ?u8 {

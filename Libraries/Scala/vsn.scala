@@ -62,13 +62,12 @@ object VsnApi {
     if (data.length >= 8 && new String(data, 0, 4) == "VSN-") 0 else -1
   def magicCheck(data: Array[Byte]): Boolean =
     data.length >= 4 && new String(data, 0, 4) == "VSN-"
-}
 
-// Writer Storage Policy chain -- OBSOLETE: cancelled mode mapping removed.
-object VsnApi {
+  // Writer Storage Policy chain -- OBSOLETE: cancelled mode mapping removed.
   def createWithStoragePolicy(spolicy: Int): MutableStore = {
-    val s = new MutableStore(Constants.MODE_MODERN);
-    s.storagePolicy = spolicy;
+    val mode = if (spolicy <= 2) Constants.MODE_MODERN else Constants.MODE_ENTERPRISE
+    val s = new MutableStore(mode)
+    s.storagePolicy = spolicy
     s
   }
 }

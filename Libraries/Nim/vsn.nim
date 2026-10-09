@@ -9,9 +9,8 @@ const
   REP_DIRECT_1* = 1
   REP_EXTENTS_1* = 2
   REP_VERSION_1* = 1
-  # Storage Policy values -- authoritative classification (directly on wire)
-const REC_STORAGE_POLICY* = 0x0009
-const FID_STORAGE_POLICY* = 0x0901  #
+  REC_STORAGE_POLICY* = 0x0009
+  FID_STORAGE_POLICY* = 0x0901
   STORAGE_POLICY_HIGHLY_VERTICAL* = 1
   STORAGE_POLICY_VERTICAL* = 2
   STORAGE_POLICY_HORIZONTAL* = 3
@@ -99,7 +98,8 @@ proc create*(mode: int = MODE_MODERN): MutableStore = newStore(mode)
 
 # Writer Storage Policy chain -- OBSOLETE: cancelled mode mapping removed.
 proc createWithStoragePolicy*(spolicy: int): MutableStore =
-  var s = newStore(MODE_MODERN)
+  var s = newStore(if spolicy <= 2: MODE_MODERN else: MODE_ENTERPRISE)
+  s.storagePolicy = spolicy
   s.storagePolicy = spolicy
   return s
 
@@ -285,7 +285,8 @@ proc importBytes*(s: MutableStore, data: string) =
   s.generation = 0
   # Parse storage policy from REC_STORAGE_POLICY record
   if data.len >= 13:
-    for i in 8 .. data.len - 6:
+    var i = 8
+    while i <= data.len - 6:
       let rtype = ord(data[i]) * 256 + ord(data[i+1])
       if rtype == 0x0009:
         let plen = ord(data[i+2])
@@ -300,7 +301,7 @@ proc importBytes*(s: MutableStore, data: string) =
               return
       let plen2 = if i + 2 < data.len: ord(data[i+2]) else: 0
       if i + 3 + plen2 > data.len: break
-      i += (if i + 3 + plen2 > data.len: 0 else: 3 + plen2 - 1)
+      i += 3 + plen2 - 1
 
 proc exportBytes*(s: MutableStore): string = encodeWithSP(s.mode, s.generation, s.storagePolicy)
 

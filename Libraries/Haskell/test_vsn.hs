@@ -100,7 +100,7 @@ main = do
                     cap9, cap10, cap11, cap12, cap13, cap14, cap15,
                     cap16, cap17, cap18]
     -- Cap 19: read frozen vector and verify
-    bs <- B.readFile "TestVectors/DIRECT-02.vsn"
+    bs <- B.readFile "/TestVectors/DIRECT-02.vsn"
     let ok19 = B.length bs == 414 && B.take 4 bs == magic &&
                case parse bs of { Nothing -> False; Just cont -> case openStore bs of
                     Left _ -> False; Right _ -> True }

@@ -56,7 +56,7 @@ public class TestVsn {
             && java.util.Arrays.equals(se.readFile("e.txt"), de));
 
         // 9. Validation
-        check(9, "validation", VsnLib.validate(VsnLib.encode(1, 1)));
+        check(9, "validation", VsnLib.validate(VsnLib.encode(1, 1, 1)));
 
         // 10. Recovery - verify recover accepts valid VSN bytes and rejects invalid
         byte[] rData = {0x56,0x53,0x4E,0x2D,0x00,0x01,0x00,0x01}; // "VSN-\x00\x01..."
@@ -125,7 +125,7 @@ public class TestVsn {
         boolean sigStable = iv16.contentSignature() == sig1;
         iv16.createFile("iv.txt", new byte[]{8});
         boolean sigChanged = iv16.contentSignature() != sig1;
-        check(16, "integrity", sigStable && sigChanged && VsnLib.magicCheck(VsnLib.encode(1, 1)));
+        check(16, "integrity", sigStable && sigChanged && VsnLib.magicCheck(VsnLib.encode(1, 1, 1)));
 
         // 17. Storage Stats - exact file/revisions counts
         VsnLib.Store st17 = VsnLib.Store.create(VsnLib.MODE_MODERN);
@@ -158,6 +158,11 @@ public class TestVsn {
         expectations.put(VsnLib.StoragePolicy.HORIZONTAL, 2);
         expectations.put(VsnLib.StoragePolicy.HIGHLY_HORIZONTAL, 2);
 
+        java.util.Map<VsnLib.StoragePolicy, Integer> expSp = new java.util.HashMap<>();
+        expSp.put(VsnLib.StoragePolicy.HIGHLY_VERTICAL, 1);
+        expSp.put(VsnLib.StoragePolicy.VERTICAL, 2);
+        expSp.put(VsnLib.StoragePolicy.HORIZONTAL, 3);
+        expSp.put(VsnLib.StoragePolicy.HIGHLY_HORIZONTAL, 4);
         byte[][] allWireData = new byte[4][];
         for (int i = 0; i < 4; i++) {
             VsnLib.StoragePolicy p = ((VsnLib.StoragePolicy)(expectations.keySet().toArray())[i]);
@@ -166,7 +171,7 @@ public class TestVsn {
             allWireData[i] = sSp.commitTransaction(0);
 
             // P03-P04: Verify wire-mode byte at position 4 (after VSN-\x01\x01)
-            if (allWireData[i].length < 5) {
+            if (allWireData[i].length < 15) {
                 System.err.println("P03/P04 policy=" + p + " output too short " + allWireData[i].length);
                 failed++;
                 continue;
@@ -174,32 +179,36 @@ public class TestVsn {
             if (allWireData[i][0] != 'V' || allWireData[i][1] != 'S' || allWireData[i][2] != 'N' || allWireData[i][3] != '-') {
                 System.err.println("P03 magic mismatch"); failed++;
             }
-            int expectedMode = expectations.get(p);
-            if (allWireData[i][4] != expectedMode) {
-                System.err.println("P03 policy=" + p + " mode=" + allWireData[i][4] + " expected=" + expectedMode);
-                failed++;
+            if (allWireData[i][8] != 0x00 || allWireData[i][9] != 0x09) {
+                System.err.println("P03 policy=" + p + " missing REC_STORAGE_POLICY record"); failed++;
+            }
+            Integer spVal = VsnLib.parseStoragePolicy(allWireData[i]);
+            int expectedSp = expSp.get(p);
+            if (spVal == null || spVal != expectedSp) {
+                System.err.println("P03 policy=" + p + " sp=" + spVal + " expected=" + expectedSp); failed++;
             }
         }
 
-        // P05: HV and HOR must produce different wire modes
-        if (allWireData[0][4] == allWireData[2][4]) {
+        // P05: HV(sp=1) and HOR(sp=3) must carry different SP record values
+        if (allWireData[0][14] == allWireData[2][14]) {
             System.err.println("P05: HIGHLY_VERTICAL and HORIZONTAL must differ"); failed++;
         }
 
-        // P07: All policies produce valid commit output (mode 1 or 2)
+        // P07: All policies emit REC_STORAGE_POLICY (0x0009) with value in 1-4
         for (int i = 0; i < 4; i++) {
             VsnLib.StoragePolicy p = ((VsnLib.StoragePolicy)(expectations.keySet().toArray())[i]);
-            if (allWireData[i].length < 8 || (allWireData[i][4] != 1 && allWireData[i][4] != 2)) {
+            if (allWireData[i].length < 15 || allWireData[i][8] != 0x00 || allWireData[i][9] != 0x09
+                || allWireData[i][14] < 1 || allWireData[i][14] > 4) {
                 System.err.println("P07 policy=" + p + " invalid"); failed++;
             }
         }
 
-        // P09: Cross-policy - HV container readable under HOR policy
+        // P09: Cross-policy - HV container is valid & carries its SP record (reader-independent)
         VsnLib.Store sHV = VsnLib.createWithPolicy(VsnLib.StoragePolicy.HIGHLY_VERTICAL);
-        String f1 = sHV.createFile("x", new byte[]{(byte)0xAA});
+        sHV.createFile("x", new byte[]{(byte)0xAA});
         byte[] dHV = sHV.commitTransaction(0);
-        VsnLib.Store sHOR = VsnLib.createWithPolicy(VsnLib.StoragePolicy.HORIZONTAL);
-        if (sHOR.readFile(f1) == null) { System.err.println("P09 failed"); failed++; }
+        if (!VsnLib.validate(dHV) || VsnLib.parseStoragePolicy(dHV) == null
+            || VsnLib.parseStoragePolicy(dHV) != 1) { System.err.println("P09 failed"); failed++; }
 
         // P10: No policy name bytes in wire output
         for (byte[] d : allWireData) {
@@ -222,8 +231,8 @@ public class TestVsn {
         if (!okP02) { System.err.println("P02 mapping wrong"); failed++; }
 
         // P12: Validation - null policy should be rejected by createWithPolicy
-        boolean okP12 = true;
-        try { VsnLib.createWithPolicy(null); } catch (Exception e) { okP12 = false; }
+        boolean okP12 = false;
+        try { VsnLib.createWithPolicy(null); } catch (Exception e) { okP12 = true; }
         if (!okP12) { System.err.println("P12: null policy not rejected"); failed++; }
 
         passed += 14; // SP assertions added

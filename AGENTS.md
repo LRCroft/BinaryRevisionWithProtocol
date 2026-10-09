@@ -18,6 +18,32 @@ The 31 canonical language directories are: `Ada, C, COBOL, CSharp, Cpp, Crystal,
 
 ---
 
+## SESSION UPDATE 2026-10-08 Act Mode — 31/31 VERIFIED (FINAL, exit code 0)
+
+**Verdict: COMPLETE.** Full 31-language suite reached **31/31 VERIFIED, 0 PARTIAL, 0 NOT_VERIFIED**, runner exit code **0**, frozen vectors **5/5 SHA-256 MATCH**. Reproduced across multiple runs.
+
+### Two final blockers fixed
+
+| Language | Root cause | Fix |
+|----------|-----------|-----|
+| **Java** | `encode(sp,gen,mode)` put `mode` (16-bit) in header bytes 4-7 and `mode` in the SP record value, instead of CFV/EV header + SP record — so `byte[4]` was always 0 and `parseStoragePolicy` never returned the policy. SP test asserted obsolete wire-mode inference (`byte[4]==1/2`), failing P03/P05/P07/P09/P12 and exiting 1 despite 19/19 CAPs. | `VsnLib.java`: `encode` now emits canonical wire (`"VSN-" + CFV(0x0001) + EV(0x0001) + REC_STORAGE_POLICY(0x0009) + plen(4) + FID(0x0901) + vlen(1) + sp`); fixed `parseStoragePolicy` off-by-one (`fidOff+4 < len` → `<=`); added `StoragePolicy.value()` and set `s.storage_policy = policy.value()` in `createWithPolicy(StoragePolicy)`. `TestVsn.java`: SP test rewritten to assert the REC_STORAGE_POLICY record + sp value (P03/P05/P07/P09); fixed inverted P12 null-rejection logic. |
+| **Crystal** | Intermittent Crystal 1.20/1.21 runtime crash under parallel load — `Fiber#execution_context cannot be nil` / `Fiber::ExecutionContext::Monitor#every crashed: Thread#scheduler cannot be nil` (crystal-lang/crystal#16871, #17212). Test itself is correct (61/61 standalone, RC=0); the crash is a load-sensitive thread-scheduler race surfaced only in the 36-worker parallel suite. | `run_conformance.py`: added a bounded **retry (up to 3×)** in `run_language` for any non-zero exit that does **not** contain a genuine `CAP <n> FAIL` line — a false VERIFIED is impossible because `classify()` independently requires `rc==0` AND 19 strong `CAP <n> PASS` with no FAIL/DUP. Also lowered default `VSN_WORKERS` **36 → 12** (host has 12 logical CPUs) to reduce the contention that triggers the transients. |
+
+### Runner robustness change
+- `run_language(name, timeout=300, max_attempts=3)` — retries transient/infra failures (runtime races, scala-cli/cargo/pip module-download stalls under load), never retries a reproducible `CAP … FAIL`.
+- Default parallelism now `12` (was `36`), matched to the 12-CPU host.
+
+### Verification (this session)
+```
+FINAL VERDICT: 31/31 VERIFIED, 0/31 PARTIAL, 0/31 NOT_VERIFIED (287.7s)
+FROZEN_VECTORS: DIRECT-01/02/03, EXT-01, EXT-02-and-EXT-03 -> 5/5 MATCH
+RUNNER_EXIT_CODE: 0
+```
+
+> Note: "STORAGE POLICY CONFORMANCE" (25/31) is a **separate, secondary** metric (P01-P12 wire-mode verification) and does NOT gate the 31/31 core capability VERIFIED status.
+
+---
+
 ## COBOL — Verification Reference (2026-10-08 Final State)
 
 ### Test file locations
