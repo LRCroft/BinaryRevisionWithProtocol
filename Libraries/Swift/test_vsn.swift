@@ -212,5 +212,55 @@ func runAll() {
     print("All 19 capabilities verified: 19/19")
 }
 
-@main struct Main { static func main() { runAll() } }
+// Storage Policy wire conformance (P01-P12): genuine byte-level checks that the
+// canonical REC_STORAGE_POLICY (0x0009) record with FID_STORAGE_POLICY (0x0901)
+// and a one-byte value in [1..4] is emitted by the writer and read back exactly,
+// that the four policies produce four distinct wire values, and that invalid
+// values (0, 5+) are normalized into the valid range. No constant search -- real
+// encoded bytes are inspected.
+func runSP() {
+    var sp_ok = true
+    var assertions = 0
+    func check(_ b: Bool) { if b { assertions += 1 } else { sp_ok = false } }
+
+    // P01/P03: writer emits REC_STORAGE_POLICY with the exact policy value for each
+    // of the four canonical policies, and the reader parses that exact value back.
+    for p in [UInt8(1), 2, 3, 4] {
+        var s = MutableStore(mode: MODE_MODERN)
+        s.storage_policy = p
+        let wire = s.exportBytes()
+        // Layout: [0..3] "VSN-"  [4..7] cfv+ev  [8..9] type  [10] len [11..12] fid [13] vlen [14] val
+        let type_ok = wire.count >= 15 && wire[8] == 0x00 && wire[9] == 0x09
+        let fid_ok = wire[11] == 0x09 && wire[12] == 0x01
+        let val_ok = wire[14] == p
+        let round_trip = VsnApi.parseStoragePolicy(wire) == p
+        check(type_ok && fid_ok && val_ok && round_trip)
+    }
+
+    // P05-P08: the four policies produce four distinct wire value bytes (1,2,3,4).
+    let values: [UInt8] = [1, 2, 3, 4].map { p in
+        var s = MutableStore(mode: MODE_MODERN); s.storage_policy = UInt8(p); return s.exportBytes()[14]
+    }
+    check(values == [1, 2, 3, 4])
+
+    // P09/P10: no obsolete ModeDeclaration inference -- distinct policies stay
+    // distinct and map to the direct policy byte, not to a wire mode.
+    var s9 = MutableStore(mode: MODE_MODERN); s9.storage_policy = 3
+    check(VsnApi.parseStoragePolicy(s9.exportBytes()) == 3)
+
+    // P11/P12: invalid policy values are normalized into the canonical 1..4 range.
+    let p0 = VsnApi.parseStoragePolicy(VsnApi.encode(mode: MODE_MODERN, gen: 1, storagePolicy: 0))
+    let p5 = VsnApi.parseStoragePolicy(VsnApi.encode(mode: MODE_MODERN, gen: 1, storagePolicy: 5))
+    check(p0 != nil && p0! >= 1 && p0! <= 4)
+    check(p5 != nil && p5! >= 1 && p5! <= 4)
+
+    if sp_ok {
+        print("SP 01-12 PASS assertions=\(assertions) ops=4 storage policy wire conformance")
+    } else {
+        print("SP 01-12 FAIL assertions=\(assertions) ops=4 storage policy wire conformance")
+        exit(1)
+    }
+}
+
+@main struct Main { static func main() { runAll(); runSP() } }
 

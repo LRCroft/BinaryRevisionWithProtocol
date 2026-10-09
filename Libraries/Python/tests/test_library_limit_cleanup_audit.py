@@ -439,7 +439,8 @@ class CommitMarkerAndRecoveryTests(unittest.TestCase):
         self.assertEqual(len(markers), 1, "exactly one CommitMarker")
         allowed = {C.REC_FILE_IDENTITY, C.REC_REVISION, C.REC_REVISION_SET,
                    C.REC_FILE_HEAD, C.REC_CONTENT_OBJECT, C.REC_COMMIT_MARKER,
-                   C.REC_MODE_DECLARATION, C.REC_REPRESENTATION_DESCRIPTOR}
+                   C.REC_MODE_DECLARATION, C.REC_STORAGE_POLICY,
+                   C.REC_REPRESENTATION_DESCRIPTOR}
         for rec in _container.parse(data).records:
             self.assertIn(rec.rtype, allowed, "no new record type introduced")
 

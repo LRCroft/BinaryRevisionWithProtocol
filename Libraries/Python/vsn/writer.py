@@ -39,8 +39,10 @@ def encode(mode: int, records: list, objects: list, generation: int) -> bytes:
         out += descriptor
     out += put_uvarint(0)      # end-of-objects marker
 
-    # GR-13: canonical record count includes all non-end-of-records records
-    canonical_count = len(records)
+    # GR-13: canonical record count excludes the obsolete ModeDeclaration record
+    # (REC_MODE_DECLARATION). This matches the C#/TypeScript/C reference writers,
+    # which emit the same record bytes but report count = 5 (not 6) for "basic".
+    canonical_count = sum(1 for rtype, _ in records if rtype != C.REC_MODE_DECLARATION)
     out += put_uvarint(canonical_count)
     out += put_uvarint(generation)     # accepting generation
     return bytes(out)

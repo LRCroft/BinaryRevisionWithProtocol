@@ -46,8 +46,11 @@ public struct VsnApi {
     public static func encode(mode: UInt8, gen: UInt64, storagePolicy: UInt8? = nil) -> [UInt8] {
         var out: [UInt8] = Array("VSN-".utf8)
         out.append(contentsOf: [0, 1, 0, 1])
-        // REC_STORAGE_POLICY record (authoritative on wire) -- u8 value
-        let sp: UInt8 = storagePolicy ?? 2  // default VERTICAL
+        // REC_STORAGE_POLICY record (authoritative on wire) -- u8 value in [1..4].
+        // Invalid / absent policies are normalized to the canonical default VERTICAL(2)
+        // so the writer never emits an out-of-range policy byte (task contract: valid 1-4).
+        let rawPolicy = storagePolicy ?? 2
+        let sp: UInt8 = (rawPolicy >= 1 && rawPolicy <= 4) ? rawPolicy : 2
         out.append(0x00); out.append(0x09)  // type 0x0009 big-endian
         out.append(0x04)  // varint payload length = 4 (FID + valLen + val)
         out.append(0x09); out.append(0x01)  // FID_STORAGE_POLICY = 0x0901

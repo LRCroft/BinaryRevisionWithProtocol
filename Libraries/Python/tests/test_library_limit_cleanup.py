@@ -217,7 +217,8 @@ class LimitCleanUpPreservationTests(unittest.TestCase):
         self.assertEqual(reopened.mode, C.MODE_MODERN)
         allowed = {C.REC_FILE_IDENTITY, C.REC_REVISION, C.REC_REVISION_SET,
                    C.REC_FILE_HEAD, C.REC_CONTENT_OBJECT, C.REC_COMMIT_MARKER,
-                   C.REC_MODE_DECLARATION, C.REC_REPRESENTATION_DESCRIPTOR}
+                   C.REC_MODE_DECLARATION, C.REC_STORAGE_POLICY,
+                   C.REC_REPRESENTATION_DESCRIPTOR}
         for rec in reopened._parsed.records:
             self.assertIn(rec.rtype, allowed)
 

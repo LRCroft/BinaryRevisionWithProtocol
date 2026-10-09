@@ -336,7 +336,10 @@ class CAP09_CrossPolicyCompatibility(unittest.TestCase):
 
 
 class CAP10_PolicyNotWireState(unittest.TestCase):
-    """CAP-P10: Verify policy is NOT serialized in the container."""
+    """Canonical contract: the authoritative storage policy IS serialized on the
+    wire as REC_STORAGE_POLICY (0x0009). The obsolete ModeDeclaration is no
+    longer the classification record. (Class retained for historical CAP-P10
+    numbering; its assertion now reflects the normative on-wire policy.)"""
 
     def test_no_policy_in_bytes(self):
         for policy in StoragePolicy:
@@ -346,13 +349,14 @@ class CAP10_PolicyNotWireState(unittest.TestCase):
             data = store.commit()
 
             record_types = {rec.rtype for rec in vsn.container.parse(data).records}
-            self.assertIn(C.REC_MODE_DECLARATION, record_types)
+            # Canonical: the storage policy is present on the wire as record 0x0009.
+            self.assertIn(C.REC_STORAGE_POLICY, record_types)
             for rt in record_types:
                 if rt < C.REC_EXTENSION_MIN:
                     self.assertTrue(rt in {
                         C.REC_MODE_DECLARATION, C.REC_FILE_IDENTITY,
                         C.REC_REVISION, C.REC_CONTENT_OBJECT, C.REC_FILE_HEAD,
-                        C.REC_COMMIT_MARKER},
+                        C.REC_COMMIT_MARKER, C.REC_STORAGE_POLICY},
                         "unexpected record type %s" % hex(rt))
 
     def test_policy_name_not_in_bytes(self):
