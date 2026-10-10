@@ -1,8 +1,8 @@
-# BinaryRevisionWithProtocol (BRP-1)
+# BinaryRevisionWithProtocol
 
-Static specification site and documentation generator for the **Binary Revision Protocol (BRP-1)**.
+Binary Revision Protocol (VSN-1) is a canonical binary format for file revisions that enables efficient storage, retrieval, and management of file histories. This repository contains the VSN-1 specification, reference documentation, and implementations across 31 programming languages.
 
-## Repository contents
+## Current Storage Policy Architecture
 
 - `generate_docs.py` — specification generator. Running `python generate_docs.py` writes `docs.html`.
 - `docs.html` — generated specification output (do not edit by hand; regenerate from the generator).
