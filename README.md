@@ -13,7 +13,7 @@ VSN-1 uses four canonical storage policies to classify storage representation in
 | `3` | `HORIZONTAL` | Prefer straightforward representations with limited reuse. Complete content objects preferred; basic deduplication permitted. Limited/shallow EXTENTS only if permitted by ENTERPRISE frozen semantics. |
 | `4` | `HIGHLY_HORIZONTAL` | Maximum straightforwardness. DIRECT-1 required for emitted content; EXTENTS-1 forbidden. Reconstruction dependencies forbidden; each object contains complete logical content. |
 
-These policies are implementation-local configuration values and do not appear as wire-mode identifiers. The wire mode constants MODERN and ENTERPRISE are deprecated and kept only for backward compatibility.
+These policies are implementation-local configuration values and do not appear as wire-mode identifiers.
 
 ## Architecture and Data Lifecycle
 
@@ -111,7 +111,7 @@ Per the repository freshness policy: whenever source changes, rebuild affected d
 - The VSN-1 protocol defines a binary container format but does not prescribe specific algorithms for deduplication, compression, or similarity search. Storage policies express intent, not guaranteed behavior.
 - Not all language implementations provide identical API surface; consult language-specific documentation.
 - The repository does not guarantee production readiness for any language implementation; users should evaluate suitability for their use case.
-- Historical wire-mode constants (MODERN=0x01, ENTERPRISE=0x02) are deprecated and retained only for backward compatibility with legacy readers.
+
 
 ## License and Project Metadata
 
