@@ -349,24 +349,24 @@ RepresentationDescriptor
         <div class="container doc">
           <p class="eyebrow">18</p>
           <h2 id="lib-storage-policies-title">Storage Policies</h2>
-          <h3 class="subhead">Wire-Mode to Storage-Policy Relationship</h3>
-          <p>VSN has exactly two normative wire-mode values encoded in the ModeDeclaration — MODERN (0x01) and ENTERPRISE (0x02). A writer may select one of four storage-policy profiles to control how aggressively it optimizes physical representation within that wire mode. The four profiles do NOT appear in the container binary.</p>
+          <h3 class="subhead">Storage Policy in Container</h3>
+          <p>The storage policy is stored directly in the container as a <code>REC_STORAGE_POLICY</code> record (0x0009) with field ID <code>FID_STORAGE_POLICY</code> (0x0901) and a single byte value (1-4). The four profiles do not appear as wire-mode identifiers.</p>
           <div class="code-card">
             <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">hierarchy</span></div>
             <pre class="mono tree"><code>VSN Protocol
   |
-  +-- Normative Wire Mode (frozen, in binary)
-  |       MODERN (0x01) / ENTERPRISE (0x02)
+  +-- Storage Policy (in binary, REC_STORAGE_POLICY)
+  |       Value: 1 (HIGHLY_VERTICAL), 2 (VERTICAL), 3 (HORIZONTAL), 4 (HIGHLY_HORIZONTAL)
   |
-  +-- Writer Storage Policy (profile selection, not wire)
-  |       HIGHLY_VERTICAL / VERTICAL → MODERN family
-  |       HORIZONTAL / HIGHLY_HORIZONTAL → ENTERPRISE family
+  +-- 
+  |       
+  |       
   |
   +-- Optimization Configuration (resource parameters)
           search_budget, memory_limit, depth, etc.</code></pre>
           </div>
           <h3 class="subhead">HIGHLY_VERTICAL</h3>
-          <p><strong>Wire Mode:</strong> MODERN (0x01). <strong>Purpose:</strong> Maximum storage-efficiency effort within explicit resource and safety limits.</p>
+          <p><strong>Value:</strong> 1. <strong>Purpose:</strong> Maximum storage-efficiency effort within explicit resource and safety limits.</p>
           <ul>
             <li>Aggressive deduplication, content sharing, revision-to-revision reuse</li>
             <li>Chunked representations, EXTENTS-1 permitted</li>
@@ -374,21 +374,21 @@ RepresentationDescriptor
             <li>Expensive similarity search within budget</li>
           </ul>
           <h3 class="subhead">VERTICAL</h3>
-          <p><strong>Wire Mode:</strong> MODERN (0x01). <strong>Purpose:</strong> High storage efficiency with more bounded optimization.</p>
+          <p><strong>Value:</strong> 2. <strong>Purpose:</strong> High storage efficiency with more bounded optimization. Deduplication and content sharing are preferred but bounded; EXTENTS-1 permitted with depth limits.</p>
           <ul>
             <li>Deduplication, content sharing preferred but bounded</li>
             <li>EXTENTS-1 permitted with depth limits</li>
             <li>Bounded similarity analysis; full-copy fallback common</li>
           </ul>
           <h3 class="subhead">HORIZONTAL</h3>
-          <p><strong>Wire Mode:</strong> ENTERPRISE (0x02). <strong>Purpose:</strong> Prefer straightforward representations with limited reuse.</p>
+          <p><strong>Value:</strong> 3. <strong>Purpose:</strong> Prefer straightforward representations with limited reuse.</p>
           <ul>
             <li>Complete content objects preferred; basic deduplication permitted</li>
             <li>Limited/shallow EXTENTS only if permitted by ENTERPRISE frozen semantics</li>
             <li>Avoid deep dependency chains and expensive similarity analysis</li>
           </ul>
           <h3 class="subhead">HIGHLY_HORIZONTAL</h3>
-          <p><strong>Wire Mode:</strong> ENTERPRISE (0x02). <strong>Purpose:</strong> Maximum straightforwardness.</p>
+          <p><strong>Value:</strong> 4. <strong>Purpose:</strong> Maximum straightforwardness.</p>
           <ul>
             <li>DIRECT-1 required for emitted content; EXTENTS-1 forbidden</li>
             <li>Reconstruction dependencies forbidden; each object contains complete logical content</li>
