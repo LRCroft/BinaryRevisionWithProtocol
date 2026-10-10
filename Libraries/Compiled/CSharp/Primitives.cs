@@ -1,7 +1,7 @@
 namespace Vsn;
 
 /// <summary>
-/// VSN-1 primitive encoding/decoding: uvarint (LEB128), u16be, u32be, u64be.
+/// VSN primitive encoding/decoding: uvarint (LEB128), u16be, u32be, u64be.
 /// </summary>
 public static class Primitives
 {
@@ -58,3 +58,4 @@ public static class Primitives
         return [(byte)(value >> 8), (byte)(value & 0xFF)];
     }
 }
+

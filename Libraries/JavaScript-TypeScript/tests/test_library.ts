@@ -1,4 +1,4 @@
-// VSN-1 library workflow tests: container lifecycle, file/revision/object API,
+// VSN library workflow tests: container lifecycle, file/revision/object API,
 // transactions, representations, diff, merge, import/export, streaming,
 // diagnostics, integrity, derived-data rebuild, and recovery after derived loss.
 import * as fs from "fs";
@@ -920,4 +920,5 @@ test("malformed container handling across levels", () => {
 });
 
 await run();
+
 

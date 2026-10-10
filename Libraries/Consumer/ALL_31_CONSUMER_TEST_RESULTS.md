@@ -1,4 +1,4 @@
-# VSN-1 ALL-31 Independent Consumer Test Results — 2026-10-10
+# VSN ALL-31 Independent Consumer Test Results — 2026-10-10
 
 Independent consumers exercise ONLY the public API (no internal fields/private modules).
 All 31 languages have an executed independent consumer (real Docker execution, exit 0).
@@ -38,3 +38,4 @@ All 31 languages have an executed independent consumer (real Docker execution, e
 | 31 | Zig | `Consumer/Zig` | zig (Docker) | 0 | 5 | PASS |
 
 **Totals:** 31/31 independent consumers PASS (exit 0).
+

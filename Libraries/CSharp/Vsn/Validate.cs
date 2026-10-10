@@ -1,6 +1,6 @@
 namespace Vsn;
 
-/// <summary>VSN-1 validation layers: Structural, Semantic, Recovery, Content, Full.</summary>
+/// <summary>VSN validation layers: Structural, Semantic, Recovery, Content, Full.</summary>
 public static class Validate
 {
     public static void Structural(ReadOnlyMemory<byte> data) => ContainerParser.Parse(data);
@@ -178,3 +178,4 @@ public static class Validate
         if (level == "Content" || level == "Full") Content(data);
     }
 }
+

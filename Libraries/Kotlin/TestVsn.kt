@@ -1,4 +1,4 @@
-// VSN-1 Capability Conformance Tests (Parallel by CompletableFuture)
+// VSN Capability Conformance Tests (Parallel by CompletableFuture)
 package vsn
 
 import java.util.concurrent.CompletableFuture
@@ -262,7 +262,7 @@ class TestVsn {
         @JvmStatic
         fun main(args: Array<String>) {
             val t = TestVsn()
-            println("=== Running VSN-1 Conformance Tests in PARALLEL ===")
+            println("=== Running VSN Conformance Tests in PARALLEL ===")
             val result = t.runAllParallel()
             val passCount = result[0] as Int
             val total = result[1] as Int
@@ -273,3 +273,4 @@ class TestVsn {
         }
     }
 }
+

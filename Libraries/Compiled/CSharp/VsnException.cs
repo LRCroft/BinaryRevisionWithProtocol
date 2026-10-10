@@ -1,7 +1,7 @@
 namespace Vsn;
 
 /// <summary>
-/// VSN-1 exception carrying a frozen error identifier (VR-28, VR-29).
+/// VSN exception carrying a frozen error identifier (VR-28, VR-29).
 /// </summary>
 public class VsnException : Exception
 {
@@ -50,3 +50,4 @@ public static class ErrorRegistry
 
     public static string GetName(int code) => Names.TryGetValue(code, out var name) ? name : "UNKNOWN";
 }
+

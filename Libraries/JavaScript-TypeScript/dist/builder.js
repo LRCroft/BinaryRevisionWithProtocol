@@ -5,7 +5,7 @@ const constants_js_1 = require("./constants.js");
 const primitives_js_1 = require("./primitives.js");
 const writer_js_1 = require("./writer.js");
 const representations_js_1 = require("./representations.js");
-/** Build a VSN-1 container incrementally with explicit, deterministic identities. */
+/** Build a VSN container incrementally with explicit, deterministic identities. */
 class ContainerBuilder {
     mode;
     records = [];

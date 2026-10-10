@@ -1,4 +1,4 @@
-# VSN-1 parallel conformance test — Tier 2 (parallel)
+# VSN parallel conformance test — Tier 2 (parallel)
 source("vsn.R")
 .passed <- 0L
 

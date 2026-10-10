@@ -1,4 +1,4 @@
-# VSN-1 ALL-31 Package / Export Status — 2026-10-10
+# VSN ALL-31 Package / Export Status — 2026-10-10
 
 Per-language packaging manifest, installability, and known gaps. All 31 have a usable build recipe
 in `run_conformance.py`; the gaps below are installability-only (do NOT affect conformance).
@@ -42,3 +42,4 @@ in `run_conformance.py`; the gaps below are installability-only (do NOT affect c
 - **Elixir / Haskell / Java / Julia / OCaml / Perl / PHP / R / Ruby / Scala:** no committed package manifest
   (mix/.cabal/pom or gradle/Project.toml/dune/.cpanfile/composer.json/DESCRIPTION/.gemspec/build.sbt); all build & test via their runner toolchain.
 - **Rust** and **JavaScript-TypeScript** packaging were fixed this audit cycle (valid crate name + `[lib]` target; CJS/Node16 `exports` + multi-platform esbuild).
+

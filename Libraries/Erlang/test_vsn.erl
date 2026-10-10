@@ -1,4 +1,4 @@
-%% VSN-1 conformance test
+%% VSN conformance test
 -module(test_vsn).
 -export([main/0, main/1, run_cap/1]).
 
@@ -142,4 +142,5 @@ sp_test() ->
             ok;
         _ -> halt(1)
     end.
+
 

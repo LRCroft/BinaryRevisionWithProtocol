@@ -1,7 +1,7 @@
 namespace Vsn;
 
 /// <summary>
-/// VSN-1 high-level API: open, materialize, inspect.
+/// VSN high-level API: open, materialize, inspect.
 /// </summary>
 public sealed class VsnContainer
 {
@@ -68,3 +68,4 @@ public sealed class VsnContainer
 
     public static VsnContainer Open(ReadOnlyMemory<byte> data) => new(data);
 }
+

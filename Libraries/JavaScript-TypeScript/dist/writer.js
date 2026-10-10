@@ -15,7 +15,7 @@ function record(rtype, fields) {
     return Buffer.concat([(0, primitives_js_1.putU16)(rtype), (0, primitives_js_1.putUvarint)(payload.length), payload]);
 }
 /**
- * Encode a canonical VSN-1 container.
+ * Encode a canonical VSN container.
  * GR-13: the trailer canonical record count excludes ModeDeclaration.
  * Identity is never derived from a hash or an offset.
  */

@@ -1,4 +1,4 @@
-"""VSN-1 structured diagnostics.
+"""VSN structured diagnostics.
 
 Diagnostics carry error identity, severity, category, and context.
 Protocol diagnostics map to the frozen VSN error registry.
@@ -106,3 +106,4 @@ def _validation_levels(level: str) -> list[str]:
     if level == "Full":
         return ["Structural", "Semantic", "Recovery", "Content"]
     raise ValueError("unknown validation level %r" % level)
+

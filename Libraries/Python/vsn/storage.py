@@ -1,4 +1,4 @@
-"""VSN-1 derived storage management.
+"""VSN derived storage management.
 
 Indexes, caches, and other derived data are Library facilities.
 Recovery and acceptance MUST remain possible without them (SR-02, SR-03).
@@ -80,3 +80,4 @@ class StorageManager:
     @property
     def is_valid(self) -> bool:
         return self._valid
+

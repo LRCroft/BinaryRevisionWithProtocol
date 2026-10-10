@@ -1,4 +1,4 @@
-/* VSN-1 Storage Policy encode/parse (pure C, Foundation-free).
+/* VSN Storage Policy encode/parse (pure C, Foundation-free).
  *
  * Mirrors the canonical SP record used by VSN.m (vsn_encode_with_policy /
  * vsn_parse_storage_policy) so the SP wire contract can be exercised in
@@ -48,3 +48,4 @@ int vsn_sp_parse_c(const void* data, int len) {
     }
     return 0;
 }
+

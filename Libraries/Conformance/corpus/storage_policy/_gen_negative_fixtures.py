@@ -22,7 +22,7 @@ def _record(rtype, fields):
     return put_u16(rtype) + put_uvarint(len(payload)) + payload
 
 def make_container(records_and_fields, objects=(), trailer_rc=0, trailer_gen=0):
-    """Build a minimal VSN-1 container from record type+fields pairs."""
+    """Build a minimal VSN container from record type+fields pairs."""
     out = bytearray(b'VSN-')
     out += put_u16(1)  # CFV
     out += put_u16(1)  # EV
@@ -137,3 +137,4 @@ def make_nonminimal_length():
 save('neg_malformed_length.vsn', make_nonminimal_length())
 
 print("Done. All negative fixtures generated.")
+

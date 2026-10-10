@@ -1,4 +1,4 @@
-(* VSN-1 independent consumer (OCaml) -- Storage Policy round-trip.
+(* VSN independent consumer (OCaml) -- Storage Policy round-trip.
    Uses the library's encode_with_policy (wire-out) + parse (wire-in). *)
 open Vsn
 
@@ -27,3 +27,4 @@ let () =
   done;
   if !bad then (print_endline "CONSUMER OCAML FAIL"; exit 1)
   else print_endline "CONSUMER OCAML PASS"
+

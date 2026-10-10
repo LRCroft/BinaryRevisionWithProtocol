@@ -1,4 +1,4 @@
-# VSN-1 independent consumer (Elixir) -- Storage Policy round-trip.
+# VSN independent consumer (Elixir) -- Storage Policy round-trip.
 # Uses the library's VSN.encode/3 (wire-out) + VSN.parse/1 (wire-in).
 Code.require_file("../../Elixir/vsn.ex", __DIR__)
 
@@ -34,3 +34,4 @@ defmodule Consumer do
 end
 
 Consumer.main()
+

@@ -1,11 +1,11 @@
-// VSN-1 Library — F# implementation (byte-compatible with the C/Python/C#/TS references).
+// VSN Library — F# implementation (byte-compatible with the C/Python/C#/TS references).
 namespace Vsn
 
 open System
 open System.Collections.Generic
 open System.Text
 
-// VSN-1 error codes (mirrors vsn.h)
+// VSN error codes (mirrors vsn.h)
 type ErrorCode =
     | OK = 0
     | BadMagic = 1
@@ -861,3 +861,4 @@ module Recovery =
         with
             | VsnException(Truncated) -> mk 0u false true "TRUNCATED" "physical end reached mid-unit"
             | VsnException _ -> mk 0u false false "MALFORMED" "malformed container"
+

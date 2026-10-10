@@ -1,4 +1,4 @@
-/* VSN-1 independent consumer (Objective-C / pure C) -- Storage Policy round-trip.
+/* VSN independent consumer (Objective-C / pure C) -- Storage Policy round-trip.
  *
  * Uses the library's canonical SP encode/parse (vsn_sp_c.c: vsn_sp_encode_c /
  * vsn_sp_parse_c) to verify both wire-out (the canonical REC_STORAGE_POLICY
@@ -34,3 +34,4 @@ int main(void) {
     printf(bad ? "CONSUMER OBJC FAIL\n" : "CONSUMER OBJC PASS\n");
     return bad ? 1 : 0;
 }
+

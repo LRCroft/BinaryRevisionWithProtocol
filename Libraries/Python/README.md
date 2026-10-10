@@ -1,7 +1,7 @@
 # VSN Library — Python (reference implementation)
 
-Language-native VSN-1 library for Python. This is the **reference
-implementation**: it implements the frozen VSN-1 canonical binary grammar,
+Language-native VSN library for Python. This is the **reference
+implementation**: it implements the frozen VSN canonical binary grammar,
 record/field framing, DIRECT-1 and EXTENTS-1 representation
 materialization, marker-based recovery, and validation, and passes the
 frozen byte vectors in `../TestVectors`.
@@ -62,3 +62,4 @@ python -m unittest tests.test_vsn
 Run the shared corpus from `../Conformance` or the unit tests above. All
 frozen vectors (`DIRECT-01..03`, `EXT-01`, `EXT-02/03`) parse, validate,
 recover to generation 1, and materialize to the expected logical bytes.
+

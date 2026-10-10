@@ -1,16 +1,16 @@
-# VSN-1 Language-Neutral API and Conformance Contract
+# VSN Language-Neutral API and Conformance Contract
 
 **Status:** Draft  
-**Applies to:** All VSN-1 library implementations  
+**Applies to:** All VSN library implementations  
 **Scope:** Library-level API semantics (not normative protocol rules)
 
 ---
 
 ## Purpose
 
-This document defines the **language-neutral API contract** for VSN-1 library implementations. It describes the expected behavior, capabilities, and conformance levels for libraries that implement the frozen VSN-1 canonical binary container format.
+This document defines the **language-neutral API contract** for VSN library implementations. It describes the expected behavior, capabilities, and conformance levels for libraries that implement the frozen VSN canonical binary container format.
 
-This document does **not** define normative VSN protocol rules. Protocol rules are frozen in `Specification/VSN-1_Specification.md` and related documents. This contract defines **library-level semantics** that implementations must provide to be considered "Library-Complete."
+This document does **not** define normative VSN protocol rules. Protocol rules are frozen in `Specification/VSN_Specification.md` and related documents. This contract defines **library-level semantics** that implementations must provide to be considered "Library-Complete."
 
 ---
 
@@ -28,7 +28,7 @@ Implementations progress through the following conformance levels:
 
 ### 3. Protocol-Conformant
 - Passes all frozen-vector protocol conformance tests.
-- Correctly parses, validates, and materializes VSN-1 containers.
+- Correctly parses, validates, and materializes VSN containers.
 - Implements core protocol semantics (DIRECT-1, EXTENTS-1, CommitMarker, etc.).
 - Does **not** provide full library API surface.
 
@@ -51,7 +51,7 @@ All implementations must provide these capabilities to be Protocol-Conformant:
 
 ### Parser
 - **Function:** `parse(data: bytes) -> Container`
-- **Behavior:** Parse a VSN-1 binary container into structured representation.
+- **Behavior:** Parse a VSN binary container into structured representation.
 - **Requirements:**
   - Validate magic, versions, framing.
   - Extract records, fields, objects.
@@ -60,7 +60,7 @@ All implementations must provide these capabilities to be Protocol-Conformant:
 
 ### Writer
 - **Function:** `encode(container: Container) -> bytes`
-- **Behavior:** Serialize a Container into canonical VSN-1 binary format.
+- **Behavior:** Serialize a Container into canonical VSN binary format.
 - **Requirements:**
   - Emit canonical field ordering.
   - Exclude ModeDeclaration from trailer record count (GR-13).
@@ -123,7 +123,7 @@ All implementations must provide these capabilities to be Protocol-Conformant:
 
 ### History Retention — `LimitCleanUp`
 
-> **This is a LIBRARY capability. It is NOT a VSN-1 protocol rule.** It manages
+> **This is a LIBRARY capability. It is NOT a VSN protocol rule.** It manages
 > canonical history at the Library level. It introduces no VSN record, field,
 > error identifier, or semantic, and it does not alter the container grammar.
 
@@ -566,7 +566,7 @@ Absence is fully valid; a mismatch on a present value is invalid canonical state
 ## Notes
 
 - This contract defines **library-level semantics**, not protocol rules.
-- Protocol rules are frozen in `Specification/VSN-1_Specification.md`.
+- Protocol rules are frozen in `Specification/VSN_Specification.md`.
 - Implementations may add language-specific conveniences beyond this contract.
 - Conformance runner (`Libraries/Conformance/run_conformance.py`) tracks implementation status.
 
@@ -626,7 +626,7 @@ Implementations must provide these capabilities to be Library-Complete:
 
 ## Writer Storage Policy Contract
 
-VSN-1 defines exactly two normative wire modes and four informative writer-side storage-policy profiles. The complete formal contract is in `library_api_contract_policy.md`.
+VSN defines exactly two normative wire modes and four informative writer-side storage-policy profiles. The complete formal contract is in `library_api_contract_policy.md`.
 
 | Wire Mode | Value | Permitted Storage Policies |
 |-----------|-------|--------------------------|
@@ -638,3 +638,4 @@ VSN-1 defines exactly two normative wire modes and four informative writer-side 
 - Policy names are implementation-local configuration values.
 - A reader never needs to know the writer's policy to decode a container.
 - All four policies preserve identical logical VSN semantics (SR-37).
+

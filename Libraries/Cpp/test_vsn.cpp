@@ -1,4 +1,4 @@
-/* VSN-1 C++ parallel conformance test -- full 19 caps */
+/* VSN C++ parallel conformance test -- full 19 caps */
 #include "vsn.hpp"
 #include <cstdio>
 #include <thread>
@@ -115,3 +115,4 @@ int main() {
 
     return sp_fail ? 1 : 0;
 }
+

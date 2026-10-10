@@ -1,4 +1,4 @@
-// VSN-1 frozen error registry (VR-28, VR-29) and error model.
+// VSN frozen error registry (VR-28, VR-29) and error model.
 // Identifiers are protocol-assigned and immutable; the library maps them to
 // idiomatic mechanisms without adding new protocol error IDs.
 
@@ -51,3 +51,4 @@ export class ResourceRefusal extends Error {
     this.name = "RESOURCE_REFUSAL";
   }
 }
+

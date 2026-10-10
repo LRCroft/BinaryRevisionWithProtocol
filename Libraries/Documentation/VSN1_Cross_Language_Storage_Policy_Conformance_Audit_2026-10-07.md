@@ -1,4 +1,4 @@
-# VSN-1 Cross-Language Storage Policy Conformance Audit Report
+# VSN Cross-Language Storage Policy Conformance Audit Report
 
 **Date:** 2026-10-07  
 **Status:** READY FOR CROSS-LANGUAGE STORAGE POLICY IMPLEMENTATION  
@@ -231,3 +231,4 @@ Each language maps these to its own exception type. Conformance compares semanti
 | P10 | Policy name bytes absent from serialized container | WIRE |
 | P11 | VsnStore.create/open without storage_policy work | API |
 | P12 | Invalid config raises appropriate error categories | API |
+

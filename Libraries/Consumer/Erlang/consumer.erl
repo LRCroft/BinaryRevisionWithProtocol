@@ -1,7 +1,7 @@
 -module(consumer).
 -compile([export_all]).
 
-% VSN-1 independent consumer (Erlang) -- Storage Policy round-trip.
+% VSN independent consumer (Erlang) -- Storage Policy round-trip.
 % Uses the library's vsn:encode/3 (wire-out) + vsn:parse/1 (wire-in).
 
 sig(B) ->
@@ -22,3 +22,4 @@ main() ->
     true  -> io:format("CONSUMER ERLANG FAIL~n"), halt(1);
     false -> io:format("CONSUMER ERLANG PASS~n"), halt(0)
   end.
+

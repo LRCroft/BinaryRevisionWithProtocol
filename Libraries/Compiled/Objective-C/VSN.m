@@ -1,4 +1,4 @@
-// VSN-1 Library Implementation for Objective-C
+// VSN Library Implementation for Objective-C
 // Provides Storage Policy encode/parse functionality
 
 #import "VSN.h"
@@ -50,3 +50,4 @@ int vsn_parse_storage_policy(const void* data, int len) {
     }
     return 0;  // not found in bytes
 }
+

@@ -1,4 +1,4 @@
-"""VSN-1 Python Storage Policy Conformance Tests (CAP-P01 through CAP-P10).
+"""VSN Python Storage Policy Conformance Tests (CAP-P01 through CAP-P10).
 
 Behavioral tests per VSN1_Library_Storage_Policy_API_Contract.md.
 No fake PASS checks; every test exercises real library code and asserts
@@ -423,3 +423,4 @@ class CAP12_WriterOptionsValidation(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+

@@ -1,4 +1,4 @@
-// VSN-1 frozen constants (GR-28, GR-17, VR-*)
+// VSN frozen constants (GR-28, GR-17, VR-*)
 export const REC_END_OF_RECORDS = 0x0000;
 export const REC_FILE_IDENTITY = 0x0001;
 export const REC_REVISION = 0x0002;
@@ -79,5 +79,6 @@ export enum StoragePolicy {
     HORIZONTAL = 3,
     HIGHLY_HORIZONTAL = 4,
 }
+
 
 

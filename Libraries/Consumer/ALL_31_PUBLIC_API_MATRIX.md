@@ -1,4 +1,4 @@
-# VSN-1 ALL-31 Public API Matrix — 2026-10-10
+# VSN ALL-31 Public API Matrix — 2026-10-10
 
 Public entry points per language (from packaging/manifest analysis) and the four Storage Policy API
 capabilities verified by conformance: **policy type**, **create-with-policy**, **wire-out (0x0009)**, **wire-in (0x0901)**.
@@ -39,3 +39,4 @@ capabilities verified by conformance: **policy type**, **create-with-policy**, *
 
 All 31 expose a policy type (values 1-4), a create-with-policy constructor, and writer/reader
 round-trip of the `0x0009`/`0x0901` record — confirmed by the 31/31 conformance run.
+

@@ -1,4 +1,4 @@
-// VSN-1 library for Rust — Tier 3: thread-safe
+// VSN library for Rust — Tier 3: thread-safe
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -204,4 +204,5 @@ impl WriterOptions {
     }
     pub fn resolve_wire_mode(&self, default: i32) -> i32 { self.effective_wire_mode().unwrap_or(default) }
 }
+
 

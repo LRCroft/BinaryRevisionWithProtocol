@@ -1,6 +1,6 @@
 Code.require_file("vsn.ex", __DIR__)
 
-# VSN-1 parallel conformance test — Tier 2 (Task.async)
+# VSN parallel conformance test — Tier 2 (Task.async)
 defmodule VSNTest do
   alias VSN.MutableStore, as: S
 
@@ -193,3 +193,4 @@ case {sp_fail, all_wire} do
     end
     IO.puts("SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance")
 end
+

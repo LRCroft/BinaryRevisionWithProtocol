@@ -1,4 +1,4 @@
-# VSN-1 Capability Conformance Test for Kotlin
+# VSN Capability Conformance Test for Kotlin
 # Generates PASS lines for conformance runner (1-19)
 
 package vsn

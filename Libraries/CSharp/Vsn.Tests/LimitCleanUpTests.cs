@@ -6,7 +6,7 @@ namespace Vsn.Tests;
 /// <summary>
 /// Behavioural tests for the LimitCleanUp library capability.
 ///
-/// LimitCleanUp is a LIBRARY capability, not a VSN-1 protocol rule. It manages
+/// LimitCleanUp is a LIBRARY capability, not a VSN protocol rule. It manages
 /// canonical history at the Library level and must not alter VSN grammar,
 /// identity, or the frozen error registry.
 ///

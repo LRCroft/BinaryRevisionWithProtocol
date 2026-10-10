@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-# VSN-1 independent consumer (Perl) -- Storage Policy round-trip.
+# VSN independent consumer (Perl) -- Storage Policy round-trip.
 # Uses the library's VSN::encode (wire-out) + VSN::parse (wire-in).
 do "../../Perl/vsn.pl" or die "cannot load vsn.pl: $@";
 
@@ -29,3 +29,4 @@ for my $p (1 .. 4) {
 }
 print $bad ? "CONSUMER PERL FAIL\n" : "CONSUMER PERL PASS\n";
 exit($bad ? 1 : 0);
+

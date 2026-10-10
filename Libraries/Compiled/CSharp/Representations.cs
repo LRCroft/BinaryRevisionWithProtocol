@@ -1,7 +1,7 @@
 namespace Vsn;
 
 /// <summary>
-/// VSN-1 representation materialization: DIRECT-1 and EXTENTS-1 (DR-0..DR-12).
+/// VSN representation materialization: DIRECT-1 and EXTENTS-1 (DR-0..DR-12).
 /// </summary>
 public static class Representations
 {
@@ -128,3 +128,4 @@ public static class Representations
         throw new VsnException(0x000C, $"unknown operation head kind {head.type}");
     }
 }
+

@@ -1,4 +1,4 @@
--- VSN-1 Library for Lua: capability test suite (19 capabilities).
+-- VSN Library for Lua: capability test suite (19 capabilities).
 --
 -- Run with any Lua 5.4 interpreter from this directory:
 --   lua tests.lua
@@ -466,3 +466,4 @@ end
 -- RecoverySelectsMarker ThreeWayMerge ImportExport MaterializeExtents IntegrityVerification
 
 -- ObjectDiff FileCreateReadWritDeleteRename Direct1RoundTrip EnterpriseMode RecoverySelectsMarker ThreeWayMerge ImportExport MaterializeExtents IntegrityVerification CreateOpenClose ObjectEnumerateInspectSerialMaterializeMetadata
+

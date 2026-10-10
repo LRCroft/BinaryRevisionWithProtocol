@@ -34,7 +34,7 @@ export interface ContainerInfo {
 }
 /** Generated FileId: 16 opaque bytes of identity, never a content hash. */
 export declare function generateFileId(): Buffer;
-/** Mutable VSN-1 container with the full library API. */
+/** Mutable VSN container with the full library API. */
 export declare class VsnStore {
     private data;
     private parsed;
@@ -83,7 +83,7 @@ export declare class VsnStore {
     /**
      * LimitCleanUp: retain only the newest `limit` revisions of a file.
      *
-     * LIBRARY capability, not a VSN-1 protocol rule. Scope is a single file's
+     * LIBRARY capability, not a VSN protocol rule. Scope is a single file's
      * history, matching the VSN revision model in which every Revision names one
      * FileId and each file has its own head.
      *
@@ -114,7 +114,7 @@ export declare class VsnStore {
     getObjectMetadata(serial: number): ObjectInfo;
     getObjectSerial(fileId: Buffer, revisionId?: number): number | null;
     materialize(serial: number, visited?: Set<number>): Buffer;
-    /** Produce canonical VSN-1 bytes from current state (SR-* closure). */
+    /** Produce canonical VSN bytes from current state (SR-* closure). */
     toBytes(): Buffer;
     /** Commit current state; CommitMarker is the sole acceptance authority. */
     commit(): Buffer;
@@ -128,3 +128,4 @@ export declare class VsnStore {
     /** Stream a file's accepted content in chunks (SR-38 recovery path). */
     readFileStream(fileId: Buffer, chunkSize?: number): Generator<Buffer>;
 }
+

@@ -11,7 +11,7 @@ export interface EncodedObject {
     descriptor: Buffer;
 }
 /**
- * Encode a canonical VSN-1 container.
+ * Encode a canonical VSN container.
  * GR-13: the trailer canonical record count excludes ModeDeclaration.
  * Identity is never derived from a hash or an offset.
  */
@@ -24,3 +24,4 @@ export declare function literalOperation(bytes: Buffer): Buffer;
 export declare function copyOperation(serial: bigint | number, offset: bigint | number, length: bigint | number): Buffer;
 /** DR-0 descriptor: EXTENTS-1 v1 header + operation collection. */
 export declare function extents1Descriptor(operations: Buffer[]): Buffer;
+

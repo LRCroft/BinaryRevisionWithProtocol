@@ -1,4 +1,4 @@
-"""VSN-1 Python conformance tests.
+"""VSN Python conformance tests.
 
 Runs against the frozen byte vectors and golden expectations. No vector
 byte is generated here; every expected value is asserted against the
@@ -268,3 +268,4 @@ class EnterpriseModeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+

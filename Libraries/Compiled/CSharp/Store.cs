@@ -1,6 +1,6 @@
 namespace Vsn;
 
-/// <summary>Mutable VSN-1 container with the full library API.</summary>
+/// <summary>Mutable VSN container with the full library API.</summary>
 public sealed class VsnStore
 {
     private byte[] _data = Array.Empty<byte>();
@@ -307,7 +307,7 @@ public sealed class VsnStore
 
     /// <summary>
     /// LimitCleanUp: retain only the newest <paramref name="limit"/> revisions of a
-    /// file. LIBRARY capability, not a VSN-1 protocol rule.
+    /// file. LIBRARY capability, not a VSN protocol rule.
     /// </summary>
     /// <remarks>
     /// Scope is a single file's history, matching the VSN revision model in which
@@ -494,7 +494,7 @@ public sealed class VsnStore
 
     // --- Canonical serialization ---
 
-    /// <summary>Produce canonical VSN-1 bytes from current state (SR-* closure).</summary>
+    /// <summary>Produce canonical VSN bytes from current state (SR-* closure).</summary>
     public byte[] ToBytes()
     {
         CheckOpen();
@@ -579,4 +579,5 @@ public sealed class VsnStore
         return data;
     }
 }
+
 

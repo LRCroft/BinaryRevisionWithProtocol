@@ -4,7 +4,7 @@
 
 ## CANONICAL LIBRARY LAYOUT RULE (HARD RULE — READ FIRST)
 
-**Every VSN-1 Library implementation and every language-specific test lives ONLY under `Libraries/<CanonicalLanguage>` (`Libraries/X`). No exceptions.**
+**Every VSN Library implementation and every language-specific test lives ONLY under `Libraries/<CanonicalLanguage>` (`Libraries/X`). No exceptions.**
 
 Forbidden locations: `Work/X`, `work/X`, `Libraries/Library`, `Libraries/Libraries`, `src/X`, `tests/X`, `test/X`, `examples/X`, `Samples/X`, or any other parallel/nested directory.
 
@@ -485,7 +485,7 @@ All 31 language libraries updated with new protocol constants. See below for det
 **Verdict:** All 31 language libraries updated with new protocol constants. `REC_STORAGE_POLICY = 0x0009` and `FID_STORAGE_POLICY = 0x0901` present in every implementation. Old `MODE_*` constants marked OBSOLETE across all library sources.
 
 ### Architectural Shift
-The VSN-1 protocol now uses a **direct StoragePolicy record** (0x0009) instead of inferring mode from `ModeDeclaration`. This is the authoritative classification on wire.
+The VSN protocol now uses a **direct StoragePolicy record** (0x0009) instead of inferring mode from `ModeDeclaration`. This is the authoritative classification on wire.
 
 ### New Constants Added to All 31 Languages
 | Constant | Value | Description |
@@ -506,7 +506,7 @@ The VSN-1 protocol now uses a **direct StoragePolicy record** (0x0009) instead o
 - All library source files now have `OBSOLETE` markers on `MODE_` constants
 
 ### New Files Created
-- **Objective-C:** `Libraries/Objective-C/VSN.h` — Header with all VSN-1 constants (was missing)
+- **Objective-C:** `Libraries/Objective-C/VSN.h` — Header with all VSN constants (was missing)
 
 ### Key Changes This Session
 1. **REC_STORAGE_POLICY = 0x0009** added to all 31 language libraries
@@ -724,7 +724,7 @@ All 12 capabilities verified: full chain StoragePolicy -> WriterOptions -> write
 - Remaining 29 languages: Only type definitions; BLOCKED on writer chain integration before corpus execution is possible
 
 
-## Spec Freeze Audit — VSN-1 Four-Mode (2026-10-07)
+## Spec Freeze Audit — VSN Four-Mode (2026-10-07)
 
 **Finding (report: `VSN1_FourMode_Freeze_Audit.md`):** The four-mode vocabulary
 (HIGHLY_VERTICAL / VERTICAL / HORIZONTAL / HIGHLY_HORIZONTAL) is **not normative**. It appears
@@ -766,7 +766,7 @@ A container carries exactly one ModeDeclaration (gen:624, GR-39).
 ### Architecture Freeze State
 
 ```
-VSN-1 Wire Mode (frozen, 2 values):
+VSN Wire Mode (frozen, 2 values):
   0x01 MODERN   → Writer policies: HIGHLY_VERTICAL, VERTICAL
   0x02 ENTERPRISE → Writer policies: HORIZONTAL, HIGHLY_HORIZONTAL
 
@@ -1564,5 +1564,6 @@ Frozen Vectors: INTACT (Swift test loads and validates DIRECT-02.vsn)
 3. **VsnTests.swift** — New XCTest suite: 22 Storage Policy conformance tests
 
 ---
+
 
 

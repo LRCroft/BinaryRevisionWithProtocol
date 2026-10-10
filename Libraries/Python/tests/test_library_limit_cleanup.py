@@ -1,6 +1,6 @@
 """Behavioural tests for the LimitCleanUp library capability.
 
-LimitCleanUp is a LIBRARY capability, not a VSN-1 protocol rule. It manages
+LimitCleanUp is a LIBRARY capability, not a VSN protocol rule. It manages
 canonical history at the Library level and must not alter VSN grammar,
 identity, or the frozen error registry.
 
@@ -272,3 +272,4 @@ class LimitCleanUpPreservationTests(unittest.TestCase):
         self.assertEqual(store.list_revisions(fid), [2, 3, 4, 5, 6])
         # The in-memory content cache must have been dropped, not left stale.
         self.assertEqual(store._content_cache, {})
+

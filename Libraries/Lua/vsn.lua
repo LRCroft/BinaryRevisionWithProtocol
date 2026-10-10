@@ -1,6 +1,6 @@
--- VSN-1 Library for Lua 5.4
+-- VSN Library for Lua 5.4
 --
--- Faithful port of the frozen VSN-1 protocol plus the full documented
+-- Faithful port of the frozen VSN protocol plus the full documented
 -- Library capability surface (19 capabilities). Error identifiers are the
 -- frozen registry; no new protocol codes are invented.
 local vsn = {}
@@ -1711,4 +1711,5 @@ function vsn.b64_decode(s)
 end
 
 return vsn
+
 

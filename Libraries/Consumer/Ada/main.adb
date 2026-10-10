@@ -1,7 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with VSN;
 procedure Main is
-   -- VSN-1 independent consumer (Ada) -- Storage Policy round-trip.
+   -- VSN independent consumer (Ada) -- Storage Policy round-trip.
    -- Uses the library's Create_With_Policy + Export_Bytes (wire-out)
    -- + Import_Bytes + Get_Storage_Policy (wire-in).
    s     : VSN.Store;
@@ -52,3 +52,4 @@ begin
       Put_Line ("CONSUMER ADA PASS");
    end if;
 end Main;
+

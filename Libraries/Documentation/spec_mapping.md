@@ -1,4 +1,4 @@
-# VSN-1 normative rule → Library → Conformance mapping
+# VSN normative rule → Library → Conformance mapping
 
 Single source of truth for which frozen rule each implementation behavior
 satisfies, and which conformance test exercises it. The authoritative
@@ -70,3 +70,4 @@ caches are never consulted.
 
 `errors.ERRORS` maps the frozen identifiers; no new protocol IDs added.
 `ResourceRefusal` is reader-local and distinct from canonical invalidity.
+

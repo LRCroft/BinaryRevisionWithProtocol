@@ -1,6 +1,6 @@
 namespace Vsn;
 
-/// <summary>Builder for canonical VSN-1 containers with explicit identities.</summary>
+/// <summary>Builder for canonical VSN containers with explicit identities.</summary>
 public sealed class ContainerBuilder
 {
     public byte Mode { get; }
@@ -134,3 +134,4 @@ public sealed class ContainerBuilder
         return Writer.Encode(Mode, records, Objects, generation);
     }
 }
+

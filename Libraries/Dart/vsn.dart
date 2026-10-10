@@ -1,4 +1,4 @@
-// VSN-1 Library for Dart — frozen protocol + full Library capability surface.
+// VSN Library for Dart — frozen protocol + full Library capability surface.
 
 const MAGIC = "VSN-";
 const CFV = 1; const EV = 1;
@@ -277,3 +277,4 @@ bool _bytesEqual(List<int> a, List<int> b) {
   for (var i = 0; i < a.length; i++) { if (a[i] != b[i]) return false; }
   return true;
 }
+

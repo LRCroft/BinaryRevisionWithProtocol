@@ -13,7 +13,7 @@ import {
   parseObjectHeader, materializeDirect, materializeExtents,
 } from "./representations.js";
 
-/** Build a VSN-1 container incrementally with explicit, deterministic identities. */
+/** Build a VSN container incrementally with explicit, deterministic identities. */
 export class ContainerBuilder {
   mode: number;
   readonly records: EncodedRecord[] = [];

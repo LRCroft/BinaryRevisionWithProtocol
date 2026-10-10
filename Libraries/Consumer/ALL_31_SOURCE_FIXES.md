@@ -1,4 +1,4 @@
-# VSN-1 ALL-31 Source Fixes — 2026-10-10
+# VSN ALL-31 Source Fixes — 2026-10-10
 
 Source changes made for canonical Storage Policy verification. **No protocol artifacts modified; no frozen vectors touched.**
 
@@ -23,3 +23,4 @@ Source changes made for canonical Storage Policy verification. **No protocol art
 - `REC_STORAGE_POLICY` (0x0009) / `FID_STORAGE_POLICY` (0x0901) authoritative on wire; payload u8 in {1,2,3,4}.
 - Frozen vectors 5/5 SHA-256 MATCH `corpus/manifest.json`.
 - Zero active `policyToMode` / `mode_from_storage_policy` / `Mode_From_Policy` mappings remain in library sources.
+

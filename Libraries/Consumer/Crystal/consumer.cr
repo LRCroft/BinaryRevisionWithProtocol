@@ -1,6 +1,6 @@
 require "../../Crystal/vsn.cr"
 
-# VSN-1 independent consumer (Crystal) -- Storage Policy round-trip.
+# VSN independent consumer (Crystal) -- Storage Policy round-trip.
 # Uses the library's VSN::StoreWithPolicy + export_bytes (wire-out)
 # + VSN::Store.parse_sp (wire-in).
 def sig(b)
@@ -30,3 +30,4 @@ end
 
 puts bad ? "CONSUMER CRYSTAL FAIL" : "CONSUMER CRYSTAL PASS"
 exit 1 if bad
+

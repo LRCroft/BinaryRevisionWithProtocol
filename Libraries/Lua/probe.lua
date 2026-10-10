@@ -1,4 +1,4 @@
--- VSN-1 conformance probe for Lua.
+-- VSN conformance probe for Lua.
 --
 -- Invoked by Conformance/run_corpus.sh with one of five subcommands; exits 0
 -- only when the check passes. The checks are identical across every language,

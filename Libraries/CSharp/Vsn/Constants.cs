@@ -1,7 +1,7 @@
 namespace Vsn;
 
 /// <summary>
-/// VSN-1 frozen record, field, and registry constants (GR-28, GR-17, VR-*).
+/// VSN frozen record, field, and registry constants (GR-28, GR-17, VR-*).
 /// Values are protocol-assigned and MUST NOT be invented by a library.
 /// </summary>
 public static class Constants
@@ -79,3 +79,4 @@ public static class Constants
     // Magic bytes
     public static readonly byte[] Magic = "VSN-"u8.ToArray();
 }
+

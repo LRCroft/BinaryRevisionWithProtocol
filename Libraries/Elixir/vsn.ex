@@ -102,7 +102,7 @@ end
 
 defmodule VSN.MutableStore do
   @moduledoc """
-  Library layer above the frozen VSN-1 protocol: container lifecycle, files,
+  Library layer above the frozen VSN protocol: container lifecycle, files,
   revisions, history retention, objects, transactions, representations, modes,
   validation, recovery, diff/merge, import/export, streaming, diagnostics,
   integrity, storage statistics, and the builder API.
@@ -445,4 +445,5 @@ cand = <<0::size(96), n::size(32)>>
 
   def integrity_verify_raw(_), do: false
 end
+
 

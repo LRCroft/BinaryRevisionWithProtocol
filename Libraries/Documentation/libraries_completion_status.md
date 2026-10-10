@@ -1,4 +1,4 @@
-﻿# VSN-1 Library — 31-Language Completion Progress
+# VSN Library — 31-Language Completion Progress
 
 ## Verification Standard (executable evidence only)
 
@@ -175,7 +175,7 @@ No changes to `docs.html`, `index.html`, `generate_docs.py`, frozen `.vsn`
 vectors, the vector manifest, RecordTypes, FieldIds, representations, the
 frozen error registry, or the protocol grammar. Where a language disagreed
 with the frozen reference, the **language** was fixed.
-This workspace implements the VSN Library over the frozen VSN-1 protocol.
+This workspace implements the VSN Library over the frozen VSN protocol.
 The frozen specification (`generate_docs.py`, `docs.html` at the repo root)
 is authoritative and is NOT modified here.
 
@@ -275,7 +275,7 @@ Current result: **PASS** — 4/4 scenarios byte-identical (150/269/146/372 bytes
 
 `LimitCleanUp(limit)` retains only the newest `limit` revisions of a file and
 removes every older one. It is a **Library** capability for managing canonical
-history — **not** a VSN-1 protocol rule. It introduces no VSN record, field,
+history — **not** a VSN protocol rule. It introduces no VSN record, field,
 error identifier, or semantic, and leaves the container grammar untouched.
 
 - **Scope:** one file's history (the VSN revision model is per-file — every
@@ -402,7 +402,7 @@ preserves public semantics exactly.
 ## Capability separation
 
 ### Protocol Capabilities (Protocol-Conformant)
-Core VSN-1 protocol semantics required for conformance:
+Core VSN protocol semantics required for conformance:
 - Parser: binary container parsing, record/field extraction
 - Writer: canonical serialization, deterministic output
 - Validation: structural, semantic, recovery, content, full levels
@@ -500,3 +500,4 @@ cd JavaScript-TypeScript && npm test
 cd Interoperability && python run_interop.py
 cd Conformance/corpus/storage_policy && python run_corpus.py (12 storage-policy capability tests)
 ```
+

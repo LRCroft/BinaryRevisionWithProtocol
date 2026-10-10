@@ -1,6 +1,6 @@
 package vsn
 
-// VSN-1 parallel conformance test — Tier 2 (goroutines)
+// VSN parallel conformance test — Tier 2 (goroutines)
 // Run with `go test -run TestCapability19Parallel -v ./...`
 
 import (
@@ -486,7 +486,8 @@ func containsStr(haystack []string, needle string) bool {
 	return false
 }
 
-// hasFrozenMagic reports the frozen VSN-1 signature plus CFV low byte.
+// hasFrozenMagic reports the frozen VSN signature plus CFV low byte.
 func hasFrozenMagic(d []byte) bool {
 	return len(d) >= 8 && string(d[0:4]) == "VSN-" && d[5] == 0x01
 }
+

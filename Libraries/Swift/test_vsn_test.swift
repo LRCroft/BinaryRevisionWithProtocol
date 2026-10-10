@@ -1,4 +1,4 @@
-// VSN-1 parallel conformance test — Tier 2 (Dispatch)
+// VSN parallel conformance test — Tier 2 (Dispatch)
 // Tier 3: NSLock for thread-safe operations
 import Foundation
 
@@ -30,3 +30,4 @@ for i in 1...19 {
 }
 group.wait()
 print("PASS \(passed)")
+

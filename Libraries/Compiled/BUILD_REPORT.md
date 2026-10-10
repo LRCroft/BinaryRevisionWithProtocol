@@ -1,4 +1,4 @@
-# VSN-1 Build Report — Distributable Libraries (31/31)
+# VSN Build Report — Distributable Libraries (31/31)
 
 **Generated:** 2026-10-10 · **Output:** `Libraries/Compiled/<Lang>/` · **Manifest:** `Libraries/Compiled/BUILD_MANIFEST.json`
 
@@ -56,3 +56,4 @@ public-API example, and the exact verify command.
   round-trip verified through each language's public API in its consumer.
 - Frozen vectors DIRECT-01/02/03, EXT-01, EXT-02-and-EXT-03: 5/5 SHA-256 MATCH (unchanged).
 - Rebuild workflow: see `AGENTS.md` → "Compiled Artifact Freshness and Rebuild Policy".
+

@@ -4,7 +4,7 @@ import qualified Data.ByteString as B
 import Control.Monad (when)
 import System.Exit
 
--- VSN-1 independent consumer (Haskell) -- Storage Policy round-trip.
+-- VSN independent consumer (Haskell) -- Storage Policy round-trip.
 -- Uses the library's createWithPolicy + exportBytes (wire-out) + parse (wire-in).
 hasSig :: B.ByteString -> Bool
 hasSig b = any hit [0 .. hi]
@@ -35,3 +35,4 @@ main = do
     exitWith (ExitFailure 1)
   else
     putStrLn "CONSUMER HASKELL PASS"
+

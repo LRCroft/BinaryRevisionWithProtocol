@@ -40,14 +40,14 @@
           <p class="eyebrow">BinaryRevisionWithProtocol &middot; BRP-1</p>
           <h1 id="spec-title">Protocol Specification</h1>
           <p class="subtitle">Version 1.0 — Normative</p>
-          <p class="lede"><strong>Protocol Identifier:</strong> BRP &nbsp;|&nbsp; <strong>Container Format:</strong> VSN-1 &nbsp;|&nbsp; <strong>Canonical Encoding:</strong> RCMP-1</p>
+          <p class="lede"><strong>Protocol Identifier:</strong> BRP &nbsp;|&nbsp; <strong>Container Format:</strong> VSN &nbsp;|&nbsp; <strong>Canonical Encoding:</strong> RCMP-1</p>
           <div class="code-card" role="img" aria-label="BRP naming hierarchy">
             <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">naming hierarchy</span></div>
             <pre class="mono tree"><code>BRP
   |-- BRP Protocol
   |-- BRP Canonical Model
   |-- RCMP-1 Canonical Encoding
-  |-- VSN-1 Container Format
+  |-- VSN Container Format
   `-- BRP Conformance</code></pre>
           </div>
           <p><strong>Core principle.</strong> BRP defines protocol semantics, canonical data representation, binary encoding rules, revision semantics, transactional semantics, integrity rules, compatibility rules, and conformance requirements. <code class="inline-code">.vsn</code> is a standardized self-contained container representation of BRP revision data — it is not the protocol itself. Libraries are implementations of BRP; applications consume BRP libraries. <strong>No implementation is authoritative over the specification.</strong></p>
@@ -268,7 +268,7 @@ Logical content</pre>
           <p class="eyebrow">05 &middot; Protocol Identity</p>
           <h2 id="brp-05-title">Protocol Identity <span class="spec-tag">Normative — Frozen</span></h2>
           <p>BRP identifies itself via a magic number and version fields in the container format and canonical encoding.</p>
-          <p>The container MUST declare, in a canonical location discoverable without any derived structure and without executing any cryptographic hash algorithm: the protocol version, the container format version, and the RCMP canonical encoding version. The container signature is the 4-byte sequence <code class="inline-code">0x56 0x53 0x4E 0x2D</code> at offset 0; the container format version is a u16be immediately following it, and the RCMP encoding version is the next u16be (Section 10, GR-01, GR-08). Both version words are mandatory and carry value 1 for VSN-1 and RCMP-1. An unknown container format version MUST be reported as an unsupported-version error and MUST NOT be reinterpreted (Section 06).</p>
+          <p>The container MUST declare, in a canonical location discoverable without any derived structure and without executing any cryptographic hash algorithm: the protocol version, the container format version, and the RCMP canonical encoding version. The container signature is the 4-byte sequence <code class="inline-code">0x56 0x53 0x4E 0x2D</code> at offset 0; the container format version is a u16be immediately following it, and the RCMP encoding version is the next u16be (Section 10, GR-01, GR-08). Both version words are mandatory and carry value 1 for VSN and RCMP-1. An unknown container format version MUST be reported as an unsupported-version error and MUST NOT be reinterpreted (Section 06).</p>
           <p><a href="#top">Back to top</a></p>
         </div>
       </section>
@@ -1179,7 +1179,7 @@ Canonical data -> Recovery
 <h4>CV — verified canonical containers</h4>
           <p>Each container below was encoded, then decoded and semantically validated by the reference decoder. For every CV vector the round trip <code>Encode(Decode(B)) == B</code> was asserted and held, and the decoded logical content equalled the expected byte sequence exactly. All byte sequences below are produced under <code class="inline-code">HashMode=None</code> unless a digest field is explicitly shown.</p>
           <h5>CV-01 minimal ENTERPRISE container (148 bytes) &mdash; Illustrative / Historical Example, Non-Conformance Artifact</h5>
-          <p class="muted"><strong>This container is an illustrative walkthrough example only.</strong> It predates the DR-0 object-header freeze and the frozen executable vector set (DIRECT-01 through EXT-02/03). Its object descriptor carries raw content without a DR-0 representation header, and its trailer semantics differ from the frozen vectors. It is not a VSN-1 conformance vector and MUST NOT be used as a byte-level interop test. The authoritative frozen executable vectors are the DRV vectors in the next subsection.</p>
+          <p class="muted"><strong>This container is an illustrative walkthrough example only.</strong> It predates the DR-0 object-header freeze and the frozen executable vector set (DIRECT-01 through EXT-02/03). Its object descriptor carries raw content without a DR-0 representation header, and its trailer semantics differ from the frozen vectors. It is not a VSN conformance vector and MUST NOT be used as a byte-level interop test. The authoritative frozen executable vectors are the DRV vectors in the next subsection.</p>
           <p>Semantic state: FileId A; Revision 100 (PRESENT, PathSnapshot "notes.txt"); ContentRef ObjectSerial 42; ContentObject 42 carrying logical bytes <code class="inline-code">68 65 6C 6C 6F 20 76 73 6E 0A</code> (ASCII "hello vsn
 "); FileHead &rarr; Revision 100; CommitMarker Generation 1; ModeDeclaration ENTERPRISE.</p>
           <pre class="mono tree"><code>56 53 4E 2D 00 01 00 01 00 00 00 00 07 04 07 01 01 02 00 01 13 01 01 10 01
@@ -1370,7 +1370,7 @@ EF 01 23 45 67 89 AB CD EF 04 02 02 C8 01 00 06 04 06 01 01 01 00 00 14 0F 00 02
             <thead><tr><th>Vector</th><th>Construct</th><th>Semantic value</th><th>Bytes</th><th>Result</th><th>Rule</th></tr></thead>
             <tbody>
               <tr><td>BV-01</td><td>Signature</td><td>ASCII "VSN-"</td><td><code class="inline-code">56 53 4E 2D</code></td><td>VALID</td><td>GR-01</td></tr>
-              <tr><td>BV-02</td><td>ContainerFormatVersion</td><td>1 (VSN-1)</td><td><code class="inline-code">00 01</code></td><td>VALID</td><td>GR-08</td></tr>
+              <tr><td>BV-02</td><td>ContainerFormatVersion</td><td>1 (VSN)</td><td><code class="inline-code">00 01</code></td><td>VALID</td><td>GR-08</td></tr>
               <tr><td>BV-03</td><td>EncodingVersion</td><td>1 (RCMP-1)</td><td><code class="inline-code">00 01</code></td><td>VALID</td><td>GR-08</td></tr>
               <tr><td>BV-04.0</td><td>uvarint</td><td>0</td><td><code class="inline-code">00</code></td><td>VALID</td><td>GR-21</td></tr>
               <tr><td>BV-04.127</td><td>uvarint</td><td>127</td><td><code class="inline-code">7F</code></td><td>VALID</td><td>GR-21</td></tr>
@@ -1408,7 +1408,7 @@ EF 01 23 45 67 89 AB CD EF 04 02 02 C8 01 00 06 04 06 01 01 01 00 00 14 0F 00 02
           <p>The following grammar is the single normative canonical binary grammar of the VSN container. It is the common grammar for both MODERN and ENTERPRISE Mode. Every byte required for decoding is covered by a rule below; no byte position, width, or value is left to implementation choice.</p>
           <pre class="mono tree"><code>Container ::= Magic ContainerFormatVersion EncodingVersion HeaderFields RecordsEnd
 Magic               ::= 0x56 0x53 0x4E 0x2D            ; "VSN-" signature, 4 bytes
-ContainerFormatVersion ::= u16be<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> ; 1 = VSN-1
+ContainerFormatVersion ::= u16be<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> ; 1 = VSN
 EncodingVersion     ::= u16be<tr><td>Storage size</td><td>Lowest target</td><td>Low</td><td>Higher</td><td>Highest</td></tr> ; 1 = RCMP-1
 <table>
             <thead><tr><th>Vector</th><th>Exercises</th><th>Canonical state</th><th>Required result</th></tr></thead>
@@ -2253,7 +2253,7 @@ VSN representation -&gt; COMPUTATION UNIT (reconstruct) -&gt; logical content</c
           <p class="eyebrow">48 &middot; Implementation Guidance</p>
           <h2 id="brp-48-title">Implementation Guidance <span class="spec-tag">Informative</span></h2>
           <p>Protocol freezes semantics, not APIs. GetRevisionContent() may be streams, iterators, readers, promises, spans. Authority: BRP spec > schemas/registries > vectors > reference impls > language libs > apps. No implementation authoritative.</p>
-          <p>Library capabilities for implementing VSN-1 are documented on the dedicated <a href="./libraries.html">Libraries</a> page.</p>
+          <p>Library capabilities for implementing VSN are documented on the dedicated <a href="./libraries.html">Libraries</a> page.</p>
           <p><a href="#top">Back to top</a></p>
         </div>
       </section>
@@ -2301,7 +2301,7 @@ VSN representation -&gt; COMPUTATION UNIT (reconstruct) -&gt; logical content</c
             <div><dt>Logical Commit</dt><dd>Acceptance of reviewed RevisionSet.</dd></div>
             <div><dt>Workspace Projection</dt><dd>Materialized files from accepted state.</dd></div>
             <div><dt>.vsn</dt><dd>Self-contained file-local companion sidecar for revision data.</dd></div>
-            <div><dt>VSN-1</dt><dd>Self-contained container format for BRP revision data. Canonical binary grammar frozen as GR-01 to GR-53.</dd></div>
+            <div><dt>VSN</dt><dd>Self-contained container format for BRP revision data. Canonical binary grammar frozen as GR-01 to GR-53.</dd></div>
             <div><dt>RCMP-1</dt><dd>Canonical binary encoding for BRP. Encoding version word value 1.</dd></div>
             <div><dt>uvarint</dt><dd>Canonical unsigned variable-length integer: unsigned LEB128, 1&ndash;10 bytes, 7 bits per byte, high bit set on all but the final byte, little-endian significance, minimal encoding required (GR-21).</dd></div>
             <div><dt>Canonical binary grammar</dt><dd>The single normative grammar for container, header, record, field, collection, object, and trailer framing, frozen as GR-01 to GR-53 in Section 10 and common to both VSN Modes.</dd></div>
@@ -2327,7 +2327,7 @@ VSN representation -&gt; COMPUTATION UNIT (reconstruct) -&gt; logical content</c
             <div><dt>Reconstruction</dt><dd>Deterministic derivation of logical content from a representation plus the canonical source data it names. Performed by the Computation Unit in Modern Mode; not required for edited content in Enterprise Mode.</dd></div>
             <div><dt>ObjectSerial</dt><dd>Persistent canonical identifier of one canonical content object within one VSN container. Hash-independent, physical-location-independent, and never reused within the container lifetime (Section 10, ID-01 to ID-16). Required inside ContentRef.</dd></div>
             <div><dt>ExpectedRevisionId</dt><dd>Client-supplied commit precondition naming the RevisionId it expects to be head. Operation precondition only, never canonical stored state and never a second head reference (Section 14, ID-42).</dd></div>
-            <div><dt>VSN</dt><dd>The container format name only (VSN-1), plus the <code class="inline-code">.vsn</code> file extension. Never a revision selector: revisions are selected by RevisionId.</dd></div>
+            <div><dt>VSN</dt><dd>The container format name only (VSN), plus the <code class="inline-code">.vsn</code> file extension. Never a revision selector: revisions are selected by RevisionId.</dd></div>
           </dl>
           <p><a href="#top">Back to top</a></p>
         </div>
@@ -2419,3 +2419,4 @@ VSN representation -&gt; COMPUTATION UNIT (reconstruct) -&gt; logical content</c
     <script src="./script.js" defer></script>
   </body>
 </html>
+

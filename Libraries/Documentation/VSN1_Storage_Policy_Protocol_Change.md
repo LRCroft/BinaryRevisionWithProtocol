@@ -1,9 +1,9 @@
-// VSN-1 Architecture Change: Storage Policy Protocol Migration
+// VSN Architecture Change: Storage Policy Protocol Migration
 # Date: 2026-10-08 Act Mode
 
 ## Summary
 
-This change implements the architectural shift in VSN-1 storage policy classification:
+This change implements the architectural shift in VSN storage policy classification:
 
 ### New Constants (Authoritative, Directly on Wire)
 
@@ -78,4 +78,5 @@ All 31 language libraries updated:
 **31/31 languages verified**: REC_STORAGE_POLICY = 0x0009 and FID_STORAGE_POLICY = 0x0901 present in all implementations.
 
 All MODE_ constants marked as OBSOLETE/deprecated where they appear in library source files. Test files retain the values for backward compatibility testing.
+
 

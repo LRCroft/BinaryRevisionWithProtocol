@@ -1,15 +1,15 @@
 
-# VSN-1 Library Storage Policy API & Conformance Contract
+# VSN Library Storage Policy API & Conformance Contract
 
 **Status:** Draft -- Awaiting Approval
-**Applies to:** All VSN-1 library implementations (all 31 languages)
+**Applies to:** All VSN library implementations (all 31 languages)
 **Scope:** Language-neutral Library API contract for Writer Storage Policy and Optimization Configuration; does NOT modify the frozen wire protocol.
 
 ---
 
 ## 0. Objective and Constraints
 
-This document defines the **Library API contract** for Writer Storage Policy support in VSN-1. It defines:
+This document defines the **Library API contract** for Writer Storage Policy support in VSN. It defines:
 
 - A canonical `StoragePolicy` type with exactly four values.
 - The deterministic mapping from `StoragePolicy` to `WireMode`.
@@ -285,7 +285,7 @@ A conforming reader MUST NOT require knowledge of:
 - HORIZONTAL
 - HIGHLY_Horizontal
 
-in order to decode a valid VSN-1 container.
+in order to decode a valid VSN container.
 
 The reader uses only:
 ```
@@ -321,7 +321,7 @@ At no point does the reader inspect, infer, or depend on the writer's storage po
 
 ### Current Protocol State: No Policy Persistence
 
-The frozen VSN-1 protocol does **not** persist writer storage policy anywhere in the container binary. ModeDeclaration (0x0007) encodes only the wire mode (0x01 or 0x02).
+The frozen VSN protocol does **not** persist writer storage policy anywhere in the container binary. ModeDeclaration (0x0007) encodes only the wire mode (0x01 or 0x02).
 
 ### Contract Verdict
 
@@ -382,7 +382,7 @@ budget exhausted OR candidate rejected by min_savings_bytes
         ↓
 fall back to another valid representation (DIRECT-1 full copy)
         ↓
-commit valid VSN-1 content via normal transaction process
+commit valid VSN content via normal transaction process
 ```
 
 ### Classification of Outcomes
@@ -394,7 +394,7 @@ commit valid VSN-1 content via normal transaction process
 | min_savings_bytes not met | Skip EXTENTS-1, use DIRECT-1 | Valid |
 ### Critical Invariant
 
-A writer MUST NOT produce an invalid VSN-1 container merely because its preferred optimization strategy could not complete. Fallback always produces a valid container, even if less optimized than the writer intended.
+A writer MUST NOT produce an invalid VSN container merely because its preferred optimization strategy could not complete. Fallback always produces a valid container, even if less optimized than the writer intended.
 
 ---
 
@@ -491,7 +491,7 @@ No policy may renumber, remap, or create a policy-specific ObjectSerial namespac
 
 ### Critical Invariant
 
-**A writer MUST NOT produce an invalid VSN-1 container merely because its preferred optimization strategy could not complete.** Fallback always produces a valid container, even if less optimized than the writer intended.
+**A writer MUST NOT produce an invalid VSN container merely because its preferred optimization strategy could not complete.** Fallback always produces a valid container, even if less optimized than the writer intended.
 
 Error names may vary by language convention (e.g., `InvalidStoragePolicyError` in Python, `INVALID_STORAGE_POLICY` constant in C#, `StoragePolicyException` in Java). The semantic meaning must be consistent.
 
@@ -582,9 +582,9 @@ Error names may vary by language convention (e.g., `InvalidStoragePolicyError` i
 
 **Goal:** Verify reducing optimization resources can cause less optimization, fallback, or explicit resource error without silently producing an invalid VSN container.
 
-**Method:** Create the same logical content using two configurations: (a) generous budget and (b) tight budget. Write both containers. Parse both and verify both are valid VSN-1 containers (magic OK, ModeDeclaration 0x01/0x02, structural integrity passes, CommitMarker present). Compare physical output: the tight-budget container may be less optimized but must be valid.
+**Method:** Create the same logical content using two configurations: (a) generous budget and (b) tight budget. Write both containers. Parse both and verify both are valid VSN containers (magic OK, ModeDeclaration 0x01/0x02, structural integrity passes, CommitMarker present). Compare physical output: the tight-budget container may be less optimized but must be valid.
 
-**Pass criteria:** Both containers are structurally valid VSN-1. Logical content is identical between them. The tight-budget container may use more DIRECT-1 and fewer EXTENTS-1 objects, but it MUST NOT be invalid.
+**Pass criteria:** Both containers are structurally valid VSN. Logical content is identical between them. The tight-budget container may use more DIRECT-1 and fewer EXTENTS-1 objects, but it MUST NOT be invalid.
 
 ### CAP-P09 -- Cross-Policy Compatibility
 
@@ -598,7 +598,7 @@ Error names may vary by language convention (e.g., `InvalidStoragePolicyError` i
 
 **Goal:** Verify no policy-specific wire field has been introduced by inspecting serialized bytes directly.
 
-**Method:** Create a container under each of the four storage policies. Serialize and inspect every byte of each container. Assert: ModeDeclaration values are only 0x01 or 0x02; no record type outside the frozen registry appears; no new field IDs appear in any Record; no policy name string appears anywhere in the binary; all records, fields, and objects match known VSN-1 grammar (GR-28, GR-17).
+**Method:** Create a container under each of the four storage policies. Serialize and inspect every byte of each container. Assert: ModeDeclaration values are only 0x01 or 0x02; no record type outside the frozen registry appears; no new field IDs appear in any Record; no policy name string appears anywhere in the binary; all records, fields, and objects match known VSN grammar (GR-28, GR-17).
 
 **Pass criteria:** Zero wire-level artifacts differ between containers written under different policies beyond what is permitted by representation choice (DIRECT-1 vs EXTENTS-1, compression). No ModeDeclaration value of 0x03, 0x04, or any other non-standard value. No new record types or field IDs in the serialized output.
 **Pass criteria:** Zero wire-level artifacts differ between containers written under different policies beyond what is permitted by representation choice. No ModeDeclaration value of 0x03, 0x04, or any other non-standard value appears. No new record types or field IDs in the serialized output.

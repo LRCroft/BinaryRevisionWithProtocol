@@ -1,4 +1,4 @@
-"""VSN-1 container builder: create and edit canonical containers.
+"""VSN container builder: create and edit canonical containers.
 
 Provides a high-level API for building VSN containers from scratch.
 The builder accumulates records and objects, then produces canonical
@@ -12,7 +12,7 @@ from .writer import encode, direct1_descriptor
 
 
 class ContainerBuilder:
-    """Build a VSN-1 container incrementally."""
+    """Build a VSN container incrementally."""
 
     def __init__(self, mode: int = C.MODE_MODERN):
         self.mode = mode
@@ -92,7 +92,7 @@ class ContainerBuilder:
         return self
 
     def build(self, generation: int = 1) -> bytes:
-        """Produce canonical VSN-1 bytes."""
+        """Produce canonical VSN bytes."""
         # Prepend ModeDeclaration
         mode_record = (C.REC_MODE_DECLARATION, [(C.FID_MODE, bytes([self.mode]))])
         all_records = [mode_record] + self.records
@@ -100,3 +100,4 @@ class ContainerBuilder:
         commit_record = (C.REC_COMMIT_MARKER, [(C.FID_COMMIT_GENERATION, put_uvarint(generation))])
         all_records.append(commit_record)
         return encode(self.mode, all_records, self.objects, generation)
+

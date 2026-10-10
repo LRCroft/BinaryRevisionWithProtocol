@@ -2,7 +2,7 @@
 name = "vsn-rust"
 version = "0.1.0"
 edition = "2024"
-description = "VSN-1 binary revision protocol library for Rust (public crate)"
+description = "VSN binary revision protocol library for Rust (public crate)"
 license = "MIT"
 
 [lib]
@@ -10,3 +10,4 @@ name = "vsn_rust"
 path = "src/lib.rs"
 
 [dependencies]
+

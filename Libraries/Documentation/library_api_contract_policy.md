@@ -1,14 +1,14 @@
-﻿# VSN-1 Writer Storage Policy Contract
+# VSN Writer Storage Policy Contract
 
 **Status:** Frozen -- Writer-Side Policy Taxonomy  
-**Applies to:** All VSN-1 library implementations  
+**Applies to:** All VSN library implementations  
 **Scope:** Normative classification of four writer-side storage-policy profiles as informative, non-wire protocol constructs  
 
 ---
 
 ## 0. Scope and Authority
 
-This document establishes the **Writer Storage Policy Contract** for VSN-1. It classifies four storage-policy names as **informative writer-side preferences** that constrain how a library *chooses* representations within the boundaries of the existing normative wire modes. 
+This document establishes the **Writer Storage Policy Contract** for VSN. It classifies four storage-policy names as **informative writer-side preferences** that constrain how a library *chooses* representations within the boundaries of the existing normative wire modes. 
 
 This document does NOT modify, extend, or reinterpret any frozen protocol rule (GR, SR, VR, ID, RC). No wire value is changed. No record layout is altered. No identity semantics are redefined. No frozen test vectors are modified.
 
@@ -19,7 +19,7 @@ This document does NOT modify, extend, or reinterpret any frozen protocol rule (
 ## 1. Architecture: Three-Layer Hierarchy
 
 `
-VSN-1 Wire Mode (normative, in binary)
+VSN Wire Mode (normative, in binary)
 +-- MODERN     = 0x01  +-- ENTERPRISE = 0x02
         |
 Writer Storage Policy (informative, NOT in binary)
@@ -188,7 +188,7 @@ These are quantitative, configurable resource parameters. No single fixed numeri
 
 ### 5.1 Identical Logical Semantics
 
-All four policies MUST preserve identical logical VSN-1 semantics. Changing the writer policy MUST NOT alter:
+All four policies MUST preserve identical logical VSN semantics. Changing the writer policy MUST NOT alter:
 
 | Semantic Aspect | Guarantee | Source Rule |
 |-----------------|-----------|-------------|
@@ -224,7 +224,7 @@ HIGHLY_HORIZONTAL -> ENTERPRISE (0x02)
 
 ### 6.2 Naming Convention for Containers
 
-Correct: "VSN-1 container using MODERN wire mode with HIGHLY_VERTICAL writer policy"
+Correct: "VSN container using MODERN wire mode with HIGHLY_VERTICAL writer policy"
 
 Incorrect (do NOT use):
 - "HIGHLY_VERTICAL container" -- implies 0x03 as wire value
@@ -233,7 +233,7 @@ Incorrect (do NOT use):
 
 ### 6.3 Container Declaration
 
-A VSN-1 container declares:
+A VSN container declares:
 1. Container signature (0x56 0x53 0x4E 0x2D) at offset 0 (GR-01).
 2. ContainerFormatVersion as u16be (GR-08).
 3. EncodingVersion as u16be (GR-08).
@@ -413,3 +413,4 @@ None identified. All four policies are derived from and constrained by the froze
 ---
 
 **READY FOR WRITER STORAGE POLICY CONTRACT FREEZE**
+

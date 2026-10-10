@@ -1,4 +1,4 @@
-# VSN-1 parallel conformance test — Tier 2 (Thread)
+# VSN parallel conformance test — Tier 2 (Thread)
 require_relative 'vsn'
 require 'thread'
 
@@ -89,3 +89,4 @@ POLICIES.each do |name, _|
 end
 puts sp_fail ? "SP FAILED" : "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance"
 exit(1) if sp_fail
+

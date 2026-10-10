@@ -1,4 +1,4 @@
-// VSN-1 Capability Conformance Test for Java
+// VSN Capability Conformance Test for Java
 // Generates PASS lines for conformance runner (1-19)
 
 public class TestVsn {

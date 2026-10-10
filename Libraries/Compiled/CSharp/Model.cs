@@ -71,7 +71,7 @@ public sealed class ObjectEntry
     }
 }
 
-/// <summary>A parsed VSN-1 container.</summary>
+/// <summary>A parsed VSN container.</summary>
 public sealed class ParsedContainer
 {
     public int ContainerFormatVersion { get; }
@@ -93,3 +93,4 @@ public sealed class ParsedContainer
         ByteLength = byteLength;
     }
 }
+

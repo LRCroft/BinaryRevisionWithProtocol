@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate new VSN-1 containers with REC_STORAGE_POLICY (0x0009) for all four policies."""
+"""Generate new VSN containers with REC_STORAGE_POLICY (0x0009) for all four policies."""
 import struct, os, hashlib, uuid
 
 BASE = r'C:\CampMember\BinaryRevisionWithProtocol\Libraries\Conformance\corpus\scenarios'
@@ -21,7 +21,7 @@ def _record(rtype, fields):
     return put_u16(rtype) + put_uvarint(len(payload)) + payload
 
 def make_policy_container(policy_value, file_name='doc.txt', content=b'data-for-policy-test'):
-    """Build a VSN-1 container with REC_STORAGE_POLICY (0x0009) and one file.
+    """Build a VSN container with REC_STORAGE_POLICY (0x0009) and one file.
     
     StoragePolicy record format per spec:
       Record type (0x0009) [2B] + payload length varint [1B] + 
@@ -114,3 +114,4 @@ save('policy-horizontal.vsn', make_policy_container(3, 'doc.txt', b'data-for-pol
 save('policy-highly_horizontal.vsn', make_policy_container(4, 'doc.txt', b'data-for-policy-test'))
 
 print("Done. New canonical fixtures generated with REC_STORAGE_POLICY.")
+

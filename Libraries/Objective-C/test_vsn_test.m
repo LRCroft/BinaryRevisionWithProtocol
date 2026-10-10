@@ -1,4 +1,4 @@
-// VSN-1 parallel conformance test — Tier 2 (GCD)
+// VSN parallel conformance test — Tier 2 (GCD)
 // Tier 3: NSLock for thread-safe operations
 #import <Foundation/Foundation.h>
 #import "VSN.h"

@@ -44,7 +44,7 @@ function fileKey(fid) { return Buffer.from(fid).toString("hex"); }
 function generateFileId() {
     return Buffer.from((0, crypto_1.randomUUID)().replace(/-/g, ""), "hex");
 }
-/** Mutable VSN-1 container with the full library API. */
+/** Mutable VSN container with the full library API. */
 class VsnStore {
     data = Buffer.alloc(0);
     parsed = null;
@@ -314,7 +314,7 @@ class VsnStore {
     /**
      * LimitCleanUp: retain only the newest `limit` revisions of a file.
      *
-     * LIBRARY capability, not a VSN-1 protocol rule. Scope is a single file's
+     * LIBRARY capability, not a VSN protocol rule. Scope is a single file's
      * history, matching the VSN revision model in which every Revision names one
      * FileId and each file has its own head.
      *
@@ -444,7 +444,7 @@ class VsnStore {
         return out;
     }
     // --- Canonical serialization ---
-    /** Produce canonical VSN-1 bytes from current state (SR-* closure). */
+    /** Produce canonical VSN bytes from current state (SR-* closure). */
     toBytes() {
         this.checkOpen();
         this.generationValue += 1;

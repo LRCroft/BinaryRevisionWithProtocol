@@ -1,6 +1,6 @@
 namespace Vsn;
 
-/// <summary>VSN-1 binary-safe import/export (bytes, streams, batch).</summary>
+/// <summary>VSN binary-safe import/export (bytes, streams, batch).</summary>
 public static class IoOps
 {
     /// <summary>Import raw bytes as a new file; returns the FileId.</summary>
@@ -54,3 +54,4 @@ public static class IoOps
         return result;
     }
 }
+

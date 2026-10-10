@@ -1,4 +1,4 @@
-# VSN-1 Consumer Quickstart — 2026-10-10
+# VSN Consumer Quickstart — 2026-10-10
 
 How to consume the library through its public API. The 7 languages below ship an independent consumer under
 `Libraries/Consumer/<Lang>/` (public interface only). All other languages are consumed via their package/source (see ALL_31_PACKAGE_EXPORT_STATUS.md).
@@ -43,3 +43,4 @@ VsnContainer *c = vsn_create_with_policy(STORAGE_VERTICAL);
 ```
 
 Run any consumer: see `ALL_31_CONSUMER_TEST_RESULTS.md` for toolchain + exit-code evidence.
+

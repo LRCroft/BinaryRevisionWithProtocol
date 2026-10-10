@@ -1,4 +1,4 @@
-# VSN-1 library for R.
+# VSN library for R.
 #
 # The mutable store is modelled as an R environment, which gives reference
 # semantics: every operation mutates the same store object in place.
@@ -36,7 +36,7 @@ parse <- function(data) {
   list(cfv = cfv, ev = ev, mode = MODE_MODERN, byte_length = length(r))
 }
 
-# The frozen 8-byte VSN-1 header, built byte by byte so it never depends on
+# The frozen 8-byte VSN header, built byte by byte so it never depends on
 # string encoding assumptions in the host locale.
 encode <- function(mode, gen) {
   as.raw(c(0x56L, 0x53L, 0x4eL, 0x2dL, 0x00L, 0x01L, 0x00L, 0x01L))
@@ -622,3 +622,4 @@ export_bytes <- function(s) {
            0x01L,          # value length = 1
            as.raw(sp)))    # u8 policy value
 }
+

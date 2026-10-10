@@ -1,4 +1,4 @@
-# VSN-1 independent consumer (Julia) -- Storage Policy round-trip.
+# VSN independent consumer (Julia) -- Storage Policy round-trip.
 # Uses the library's VSN.encode (wire-out) + VSN.parse (wire-in).
 include("../../Julia/vsn.jl")
 
@@ -28,3 +28,4 @@ end
 
 println(bad ? "CONSUMER JULIA FAIL" : "CONSUMER JULIA PASS")
 exit(bad ? 1 : 0)
+

@@ -1,4 +1,4 @@
-"""VSN-1 high-level API: open, materialize, validate, recover.
+"""VSN high-level API: open, materialize, validate, recover.
 
 This is the library-level facade over the parser and representations.
 """
@@ -86,3 +86,4 @@ class VsnContainer:
 
 def open(data: bytes) -> VsnContainer:
     return VsnContainer(data)
+

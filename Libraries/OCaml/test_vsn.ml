@@ -1,4 +1,4 @@
-(* VSN-1 OCaml capability test: exercises all 19 groups against vsn.ml *)
+(* VSN OCaml capability test: exercises all 19 groups against vsn.ml *)
 open Vsn
 
 let passed = ref 0
@@ -149,3 +149,4 @@ let () =
   let p01_ok = List.length policies = 4 in
   Printf.printf "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance\n";
   if !failed > 0 then exit 1
+

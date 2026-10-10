@@ -1,4 +1,4 @@
-"""VSN-1 three-way merge (Library capability, not canonical state).
+"""VSN three-way merge (Library capability, not canonical state).
 
 Merge is a Library/workflow operation. Merge metadata is temporary
 Library state only; no VSN protocol records are invented for merge.
@@ -90,3 +90,4 @@ def resolve_conflict(merge_result: MergeResult, path: str, content: bytes) -> No
     """Resolve a conflict by providing final content."""
     merge_result.conflicts = [c for c in merge_result.conflicts if c.path != path]
     merge_result.merged_files[path] = content
+

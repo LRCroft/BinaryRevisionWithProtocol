@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -40,15 +40,15 @@
           <p class="eyebrow">BinaryRevisionWithProtocol &middot; Implementation Layer</p>
           <h1 id="lib-title">Libraries</h1>
           <p class="subtitle">VSN Library &mdash; Implementation and API Capability Reference</p>
-          <p class="lede">What a VSN Library can do with a <code class="inline-code">.vsn</code> file, and how each capability relates to the frozen VSN-1 architecture.</p>
+          <p class="lede">What a VSN Library can do with a <code class="inline-code">.vsn</code> file, and how each capability relates to the frozen VSN architecture.</p>
           <div class="code-card" role="img" aria-label="Protocol, library, and application layering">
             <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">three layers</span></div>
-            <pre class="mono tree"><code>VSN-1
+            <pre class="mono tree"><code>VSN
   Defines canonical file / container semantics
         |
         v
 VSN Library
-  Implements VSN-1
+  Implements VSN
   Provides APIs, validation, recovery,
   materialization, optimization and tooling
         |
@@ -56,7 +56,7 @@ VSN Library
 Application
   Consumes the Library</code></pre>
           </div>
-          <p><strong>Library is not protocol.</strong> This page documents an implementation and API layer built <em>on top of</em> VSN-1. It is not part of the VSN-1 binary protocol specification and introduces no record type, field, or identifier. The normative specification remains authoritative.</p>
+          <p><strong>Library is not protocol.</strong> This page documents an implementation and API layer built <em>on top of</em> VSN. It is not part of the VSN binary protocol specification and introduces no record type, field, or identifier. The normative specification remains authoritative.</p>
         </div>
       </section>
       <section class="docs-toc" aria-labelledby="lib-toc-title">
@@ -104,8 +104,8 @@ Application
         <div class="container doc">
           <p class="eyebrow">01</p>
           <h2 id="lib-intro-title">Introduction</h2>
-          <p class="lede">This page is the implementation and API capability reference for the <strong>VSN Library</strong>. It describes what an implementation may do with a <code class="inline-code">.vsn</code> file and how each operation relates to the frozen VSN-1 architecture.</p>
-          <div class="doc-notice">This page is documentation of a <strong>Library/API layer that sits on top of VSN-1</strong>. It is not part of the VSN-1 binary protocol specification. It introduces no record type, no field, no identifier, and no requirement. Where it describes behaviour defined by the protocol, the normative specification is authoritative.</div>          <p><a href="#top">Back to top</a></p>
+          <p class="lede">This page is the implementation and API capability reference for the <strong>VSN Library</strong>. It describes what an implementation may do with a <code class="inline-code">.vsn</code> file and how each operation relates to the frozen VSN architecture.</p>
+          <div class="doc-notice">This page is documentation of a <strong>Library/API layer that sits on top of VSN</strong>. It is not part of the VSN binary protocol specification. It introduces no record type, no field, no identifier, and no requirement. Where it describes behaviour defined by the protocol, the normative specification is authoritative.</div>          <p><a href="#top">Back to top</a></p>
         </div>
       </section>
       <section class="section" id="lib-languages" aria-labelledby="lib-languages-title">
@@ -156,23 +156,23 @@ Application
         <div class="container doc">
           <p class="eyebrow">03</p>
           <h2 id="lib-architecture-title">Architecture and layering</h2>
-          <p>VSN-1 and the VSN Library are distinct layers. The Library implements the protocol; it does not extend, redefine, or negotiate it.</p>
+          <p>VSN and the VSN Library are distinct layers. The Library implements the protocol; it does not extend, redefine, or negotiate it.</p>
           <div class="code-card">
             <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="code-title mono">layering</span></div>
-            <pre class="mono tree"><code>VSN-1        = canonical file / container protocol
-VSN Library   = implementation + API layer operating on VSN-1
+            <pre class="mono tree"><code>VSN        = canonical file / container protocol
+VSN Library   = implementation + API layer operating on VSN
 Application   = consumer of the Library
 
 Library feature  !=  VSN canonical protocol rule</code></pre>
           </div>
           <p>A conforming Library MAY provide reading, writing, recovery, validation, revision management, content materialization, diff, merge, checkout, restore, storage optimization, indexing, caching, diagnostics, import and export, concurrency control, resource management, and multi-container management. These are Library capabilities, not parts of the format.</p>
-          <p>The Library MUST NOT cause canonical semantics to depend on anything outside VSN-1 canonical data. Canonical recovery MUST NOT require an index, a cache, a checkpoint, an external database, an external service, an undocumented implementation-private table, a revision outside the accepted state, or an algorithm unavailable to a conforming reader. Derived data MAY be deleted at any time and rebuilt from canonical state.</p>
+          <p>The Library MUST NOT cause canonical semantics to depend on anything outside VSN canonical data. Canonical recovery MUST NOT require an index, a cache, a checkpoint, an external database, an external service, an undocumented implementation-private table, a revision outside the accepted state, or an algorithm unavailable to a conforming reader. Derived data MAY be deleted at any time and rebuilt from canonical state.</p>
           <ul class="check-list">
             <li>Library APIs are not VSN record types.</li>
             <li>Library classes and methods are not protocol identifiers.</li>
             <li>Library indexes and caches are not canonical state.</li>
             <li>Library storage optimizations are not canonical semantics.</li>
-            <li>Library implementation details do not redefine VSN-1.</li>
+            <li>Library implementation details do not redefine VSN.</li>
           </ul>
           <p><a href="#top">Back to top</a></p>
         </div>
@@ -333,7 +333,7 @@ RepresentationDescriptor
         <div class="container doc">
           <p class="eyebrow">16</p>
           <h2 id="lib-import-export-title">Import and export</h2>
-          <p>A Library MAY import ordinary files, export revisions and snapshots, clone or copy containers, migrate compatible representations, verify exported content, and stream import and export. Any conversion MUST preserve the canonical semantics required by VSN-1.</p>
+          <p>A Library MAY import ordinary files, export revisions and snapshots, clone or copy containers, migrate compatible representations, verify exported content, and stream import and export. Any conversion MUST preserve the canonical semantics required by VSN.</p>
           <p>Import MUST NOT synthesize identity from external content, and export MUST NOT discard canonical history that a destination model cannot express. External files, an external filesystem, and external databases are never required for canonical reconstruction of a <code class="inline-code">.vsn</code> container.</p>          <p><a href="#top">Back to top</a></p>
         </div>
       </section>
@@ -433,7 +433,7 @@ Derived acceleration / storage structures</code></pre>
           <h2 id="lib-integrity-title">Integrity and security</h2>
           <p>A Library MAY verify hashes, verify sizes, detect corruption, handle malformed input, apply resource limits, guard against decompression and resource amplification, enforce path safety, materialize safely, and handle hostile containers.</p>
           <div class="doc-notice">Hashes are verification and acceleration mechanisms, not identity.</div>
-          <p>Integrity verification confirms or denies that content matches a recorded value; it never substitutes for <code class="inline-code">FileId</code>, <code class="inline-code">RevisionId</code>, or <code class="inline-code">ObjectSerial</code>. This page defines no signature mechanism: cryptographic signatures are an extension question, not part of VSN-1. A Library MUST reject unsafe output paths during materialization and MUST treat a hostile container as invalid input rather than trusting declared sizes or lengths.</p>          <p><a href="#top">Back to top</a></p>
+          <p>Integrity verification confirms or denies that content matches a recorded value; it never substitutes for <code class="inline-code">FileId</code>, <code class="inline-code">RevisionId</code>, or <code class="inline-code">ObjectSerial</code>. This page defines no signature mechanism: cryptographic signatures are an extension question, not part of VSN. A Library MUST reject unsafe output paths during materialization and MUST treat a hostile container as invalid input rather than trusting declared sizes or lengths.</p>          <p><a href="#top">Back to top</a></p>
         </div>
       </section>
       <section class="section" id="lib-forward-compat" aria-labelledby="lib-forward-compat-title">
@@ -477,7 +477,7 @@ preserving data  != semantically editing data</code></pre>
             <thead><tr><th>Rewrite mode</th><th>Meaning</th></tr></thead>
             <tbody>
               <tr><td>PreserveCanonical</td><td>Rewrite while preserving canonical semantics exactly.</td></tr>
-              <tr><td>PreserveUnknownData</td><td>Additionally preserve data this Library does not understand where VSN-1 requires preservation.</td></tr>
+              <tr><td>PreserveUnknownData</td><td>Additionally preserve data this Library does not understand where VSN requires preservation.</td></tr>
               <tr><td>Normalize</td><td>Produce an equivalent canonical representation according to the specification.</td></tr>
               <tr><td>Compact</td><td>Change physical layout while preserving canonical semantics.</td></tr>
             </tbody>
@@ -590,7 +590,7 @@ RESOURCE_REFUSAL</code></pre>
         <div class="container doc">
           <p class="eyebrow">33</p>
           <h2 id="lib-boundary-title">Protocol and Library boundary</h2>
-          <p>The boundary between VSN-1 and the VSN Library is explicit. <em>Canonical dependency</em> states what a capability relies on to obtain canonical truth.</p>
+          <p>The boundary between VSN and the VSN Library is explicit. <em>Canonical dependency</em> states what a capability relies on to obtain canonical truth.</p>
           <table>
             <thead><tr><th>Capability</th><th>Library responsibility</th><th>Canonical VSN dependency</th><th>Derived / operational status</th></tr></thead>
             <tbody>
@@ -609,7 +609,7 @@ RESOURCE_REFUSAL</code></pre>
               <tr><td>Locking</td><td>Serialize writers and admit readers</td><td>None; acceptance is the CommitMarker</td><td>Operational policy</td></tr>
             </tbody>
           </table>
-          <p>Nothing on this page alters VSN-1. The canonical semantics of identity, framing, representation, recovery, and error reporting remain exactly as specified in the normative specification.</p>          <p><a href="#top">Back to top</a></p>
+          <p>Nothing on this page alters VSN. The canonical semantics of identity, framing, representation, recovery, and error reporting remain exactly as specified in the normative specification.</p>          <p><a href="#top">Back to top</a></p>
         </div>
       </section>
       <section class="section" id="lib-status" aria-labelledby="lib-status-title">
@@ -617,7 +617,7 @@ RESOURCE_REFUSAL</code></pre>
           <p class="eyebrow">34</p>
           <h2 id="lib-status-title">Implementation status</h2>
           <div class="doc-notice">No VSN Library implementation exists in this repository.</div>
-          <p>This repository contains the BRP-1 and VSN-1 specification and its generated documentation. Every capability on this page is an <strong>intended capability</strong> or a <strong>Library facility</strong>, described so that a conforming implementation has a clear contract. Nothing here asserts that an implementation exists, that a conformance suite has been executed, or that a byte-level test vector has been verified by running code.</p>
+          <p>This repository contains the BRP-1 and VSN specification and its generated documentation. Every capability on this page is an <strong>intended capability</strong> or a <strong>Library facility</strong>, described so that a conforming implementation has a clear contract. Nothing here asserts that an implementation exists, that a conformance suite has been executed, or that a byte-level test vector has been verified by running code.</p>
           <p>The normative specification, its frozen rules, and its frozen byte vectors are described in the <a href="./docs.html">protocol specification</a>. This page documents only the implementation and API layer above them.</p>          <p><a href="#top">Back to top</a></p>
         </div>
       </section>
@@ -639,3 +639,4 @@ RESOURCE_REFUSAL</code></pre>
     <script src="./script.js" defer></script>
   </body>
 </html>
+

@@ -1,4 +1,4 @@
-// VSN-1 C++ library. The C core (vsn.c) is compiled as C and linked into this
+// VSN C++ library. The C core (vsn.c) is compiled as C and linked into this
 // build (see build.bat); the facade here adds RAII, std::vector, and exceptions.
 #include "vsn.hpp"
 #include <cstring>
@@ -111,3 +111,4 @@ VsnContainer* create_with_storage_policy_raw(int policy, int /*default_mode*/) {
 
 
 }  // namespace vsn
+

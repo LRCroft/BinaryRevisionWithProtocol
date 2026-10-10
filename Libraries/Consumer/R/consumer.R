@@ -1,4 +1,4 @@
-# VSN-1 independent consumer (R) -- Storage Policy round-trip.
+# VSN independent consumer (R) -- Storage Policy round-trip.
 # Uses the library's create_with_policy + export_bytes (wire-out)
 # + open_store (wire-in).
 source("../../R/vsn.R")
@@ -26,3 +26,4 @@ for (p in 1:4) {
 }
 cat(if (bad) "CONSUMER R FAIL\n" else "CONSUMER R PASS\n")
 if (bad) quit(status = 1, save = "no")
+

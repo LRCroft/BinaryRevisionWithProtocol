@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-# Test file for Ada VSN-1 capability 19 groups
+# Test file for Ada VSN capability 19 groups
 import sys
 sys.path.insert(0, '.')
 from vsn import *
 
 def Test_Capability_19_Groups():
-    """VSN-1 capability conformance: all 19 groups, real executable assertions."""
+    """VSN capability conformance: all 19 groups, real executable assertions."""
     # Capability 1: Container lifecycle
     s = Create(Mode_Modern)
     assert s.Mode == Mode_Modern, "cap 1: mode"

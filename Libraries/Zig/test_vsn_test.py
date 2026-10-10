@@ -1,4 +1,4 @@
-# VSN-1 Capability Conformance Test for Zig
+# VSN Capability Conformance Test for Zig
 # Generates PASS lines for conformance runner (1-19)
 
 import sys

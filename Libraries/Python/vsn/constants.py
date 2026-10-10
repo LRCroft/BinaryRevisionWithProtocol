@@ -1,4 +1,4 @@
-"""VSN-1 frozen record, field, and registry constants (GR-28, GR-17, VR-*-).
+"""VSN frozen record, field, and registry constants (GR-28, GR-17, VR-*-).
 
 Values are protocol-assigned and MUST NOT be invented by a library.
 """
@@ -124,3 +124,4 @@ WIRE_MODE_TO_POLICIES: dict[int, list[StoragePolicy]] = {
     WireMode.MODERN.value:       [StoragePolicy.HIGHLY_VERTICAL, StoragePolicy.VERTICAL],
     WireMode.ENTERPRISE.value:   [StoragePolicy.HORIZONTAL, StoragePolicy.HIGHLY_HORIZONTAL],
 }
+

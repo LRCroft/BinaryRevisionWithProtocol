@@ -1,5 +1,5 @@
 <?php
-// VSN-1 capability conformance: real executable exercises of all 19 groups.
+// VSN capability conformance: real executable exercises of all 19 groups.
 require __DIR__ . '/vsn.php';
 
 $GLOBALS['caps'] = []; // ['cap_num' => ['passed'=>0, 'failed'=>0]]
@@ -203,3 +203,4 @@ echo $sp_fail
     ? "SP 01-12 FAIL assertions=$sp_assertions\n"
     : "SP 01-12 PASS assertions=$sp_assertions ops=8 storage policy wire conformance\n";
 exit(($sp_fail || !empty($GLOBALS['caps_failed'])) ? 1 : 0);
+

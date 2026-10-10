@@ -1,4 +1,4 @@
-// Canonical VSN-1 writer (encoder).
+// Canonical VSN writer (encoder).
 //
 // Emits only frozen record types, field ids, and representations. Identity is
 // never derived from a hash or a byte offset.

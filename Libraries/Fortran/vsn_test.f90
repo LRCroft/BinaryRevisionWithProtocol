@@ -1,4 +1,4 @@
-! VSN-1 Library Conformance Tests - All 19 Capability Groups
+! VSN Library Conformance Tests - All 19 Capability Groups
 module vsn_tests
     use iso_c_binding
     implicit none
@@ -35,3 +35,4 @@ contains
         call vsn_integrity_verify(s%data, s%len, valid)
     end subroutine
 end module vsn_tests
+

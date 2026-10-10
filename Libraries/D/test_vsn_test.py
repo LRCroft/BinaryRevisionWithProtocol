@@ -1,4 +1,4 @@
-# VSN-1 parallel conformance test — Tier 2 (std.thread)
+# VSN parallel conformance test — Tier 2 (std.thread)
 import sys
 import concurrent.futures
 sys.path.insert(0, '.')
@@ -21,3 +21,4 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=19) as ex:
     futs = [ex.submit(run_cap, i) for i in range(1, 20)]
     results = [f.result() for f in futs]
 print(f"PASS {sum(results)}")
+

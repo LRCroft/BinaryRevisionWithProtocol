@@ -1,4 +1,4 @@
-# VSN-1 Consumer Test Results (detailed)
+# VSN Consumer Test Results (detailed)
 
 - **Date:** 2026-10-10 · **Rule:** a capability is recorded PASS only if the assertion genuinely exercised the library and returned the expected value. `NOT_RUN` = no independent consumer executed for that language this session (NOT a pass).
 - Public-API conformance (all 31) is a separate, independently-sourced result from `run_conformance.py` (31/31).

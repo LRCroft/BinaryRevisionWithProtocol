@@ -1,4 +1,4 @@
-# VSN-1 Four-Policy Architecture Freeze Audit Report
+# VSN Four-Policy Architecture Freeze Audit Report
 
 **Date:** 2026-10-07  
 **Status:** READY FOR ARCHITECTURE FREEZE

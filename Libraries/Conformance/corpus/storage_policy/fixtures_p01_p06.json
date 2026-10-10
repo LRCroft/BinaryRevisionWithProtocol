@@ -60,7 +60,7 @@
       "id": "P04",
       "name": "reader_independence",
       "level": "CROSS_LANGUAGE",
-      "description": "A reader implementing the VSN-1 parser can decode any container produced by any storage policy without that policy name appearing in the binary. The reader needs only ModeDeclaration to determine representation family.",
+      "description": "A reader implementing the VSN parser can decode any container produced by any storage policy without that policy name appearing in the binary. The reader needs only ModeDeclaration to determine representation family.",
       "fixture_prefix": "policy-",
       "expected_semantics": {
         "all_four_readable": true,

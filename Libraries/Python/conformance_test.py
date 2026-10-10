@@ -1,4 +1,4 @@
-"""VSN-1 strong conformance test: Tier2 parallel + Tier3 locked store.
+"""VSN strong conformance test: Tier2 parallel + Tier3 locked store.
 Emits: CAP <n> <PASS|FAIL> assertions=<a> ops=<o> <msg>
 """
 import concurrent.futures
@@ -331,3 +331,4 @@ for n in range(1, 20):
     print(f"CAP {n} {'PASS' if ok else 'FAIL'} assertions={ac} ops={oc} {msg}")
 print(f"SUMMARY pass={npass}/19")
 import sys; sys.exit(0 if npass == 19 else 1)
+

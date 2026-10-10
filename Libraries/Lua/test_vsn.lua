@@ -1,4 +1,4 @@
--- VSN-1 parallel conformance test — Tier 2 (coroutine)
+-- VSN parallel conformance test — Tier 2 (coroutine)
 local vsn = require("vsn")
 local P, F = 0, 0
 local results = {}
@@ -85,3 +85,4 @@ local bad = {'HIGHLY','VERTICAL','HORIZONTAL'}
 for _,b in ipairs(bad) do assert(not string.find(hdr,b)) end
 
 print('SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance')
+

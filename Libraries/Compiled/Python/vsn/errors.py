@@ -1,4 +1,4 @@
-"""VSN-1 frozen error registry (VR-28, VR-29) and exception model.
+"""VSN frozen error registry (VR-28, VR-29) and exception model.
 
 Identifiers are protocol-assigned and immutable; the Library maps them to
 language-idiomatic mechanisms without adding new protocol error IDs.
@@ -102,3 +102,4 @@ class UnsupportedRepresentation(VsnError):
     """
     def __init__(self, rep_id):
         super().__init__(0x0006, "UNSUPPORTED_REPRESENTATION: %s" % (rep_id,), byte_offset=None)
+

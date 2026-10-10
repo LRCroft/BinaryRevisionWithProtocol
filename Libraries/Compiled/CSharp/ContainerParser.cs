@@ -1,7 +1,7 @@
 namespace Vsn;
 
 /// <summary>
-/// VSN-1 container parser: streaming, framing-exact, mode-independent.
+/// VSN container parser: streaming, framing-exact, mode-independent.
 /// Parsing never requires a hash, index, cache, checkpoint, or external data.
 /// Unknown records and fields are skipped by declared length (GR-29..GR-33).
 /// </summary>
@@ -142,3 +142,4 @@ public static class ContainerParser
         }
     }
 }
+

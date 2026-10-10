@@ -1,4 +1,4 @@
-"""VSN-1 transaction staging and commit.
+"""VSN transaction staging and commit.
 
 CommitMarker is the sole acceptance authority (RC-01). ExpectedRevisionId
 is a precondition only and is NEVER persisted as canonical state.
@@ -81,4 +81,5 @@ class Transaction:
                 store.rename_file(change.file_id, change.new_path)
         self._committed = True
         return store.commit()
+
 

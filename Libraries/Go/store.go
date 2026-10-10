@@ -250,7 +250,7 @@ func hexU16(v uint16) string {
 
 // --- Canonical serialization ---
 
-// ToBytes produces canonical VSN-1 bytes from current state and advances the
+// ToBytes produces canonical VSN bytes from current state and advances the
 // generation. It does not mutate the store's accepted state.
 func (s *Store) ToBytes() ([]byte, error) {
 	s.mu.Lock()

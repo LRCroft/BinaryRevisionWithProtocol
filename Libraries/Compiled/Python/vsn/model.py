@@ -1,4 +1,4 @@
-"""VSN-1 semantic model: parsed records, fields, and materialized state.
+"""VSN semantic model: parsed records, fields, and materialized state.
 
 Identity objects are plain immutable tuples/dataclasses. No identity is
 derived from a hash or an offset.
@@ -69,3 +69,4 @@ class Container:
     mode: Optional[int] = None
     storage_policy: Optional[int] = None  # NEW: direct StoragePolicy value (1..4)
     byte_length: int = 0
+

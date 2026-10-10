@@ -1,4 +1,4 @@
-// VSN-1 Library Constants for Objective-C
+// VSN Library Constants for Objective-C
 // Storage Policy values -- authoritative classification (directly on wire)
 
 // Storage Policy record type and field ID (new)
@@ -34,4 +34,5 @@ NSData* vsn_encode_with_policy(int mode, long long gen, int storagePolicy);
 
 // Parse storage policy from canonical bytes (returns policy value or 0 if not found)
 int vsn_parse_storage_policy(const void* data, int len);
+
 

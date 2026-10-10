@@ -1,5 +1,5 @@
 import type { EncodedRecord, EncodedObject } from "./writer.js";
-/** Build a VSN-1 container incrementally with explicit, deterministic identities. */
+/** Build a VSN container incrementally with explicit, deterministic identities. */
 export declare class ContainerBuilder {
     mode: number;
     readonly records: EncodedRecord[];
@@ -29,3 +29,4 @@ export declare class ContainerBuilder {
      *  appended, and the trailer canonical count excludes ModeDeclaration (GR-13). */
     build(generation?: number | bigint): Buffer;
 }
+

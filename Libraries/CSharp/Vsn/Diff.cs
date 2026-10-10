@@ -29,7 +29,7 @@ public sealed class RevisionDiff
     public long AddedBytes { get; init; }
 }
 
-/// <summary>VSN-1 library-level diff (derived, never canonical).</summary>
+/// <summary>VSN library-level diff (derived, never canonical).</summary>
 public static class Diff
 {
     public static ObjectDiff DiffObjects(IEnumerable<ulong> left, IEnumerable<ulong> right)
@@ -75,3 +75,4 @@ public static class Diff
         };
     }
 }
+

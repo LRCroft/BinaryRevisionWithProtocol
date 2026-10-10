@@ -1,4 +1,4 @@
-// VSN-1 parallel conformance test — Tier 2 (ExecutorService)
+// VSN parallel conformance test — Tier 2 (ExecutorService)
 package vsn;
 import java.util.concurrent.*;
 
@@ -31,3 +31,4 @@ public class TestVsn {
         System.out.println("PASS " + passed);
     }
 }
+

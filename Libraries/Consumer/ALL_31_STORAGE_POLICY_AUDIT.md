@@ -1,4 +1,4 @@
-# VSN-1 ALL-31 Storage Policy Audit — 2026-10-10
+# VSN ALL-31 Storage Policy Audit — 2026-10-10
 
 Canonical: SP values 1-4 are authoritative on the wire via `REC_STORAGE_POLICY` (0x0009) + `FID_STORAGE_POLICY` (0x0901), payload = single u8 in {1,2,3,4}.
 Obsolete: `HV→MODERN` / `H→ENTERPRISE` (SP→wire-mode inference) is CANCELLED in all 31 libraries.
@@ -43,3 +43,4 @@ Result: 31/31 SP conformance PASS; frozen vectors 5/5 SHA-256 MATCH; conformance
 - Ada `test_vsn.adb`: removed dead `m1-m4` HV→MODERN / H→ENTERPRISE mapping vars; kept SP 1-4 value assertion.
 - C `vsn.c`: removed semantic mode labels from comments; `MODE_MODERN`/`MODE_ENTERPRISE` retained only as binary wire constants.
 - Verified 5/5 frozen vectors SHA-256 vs `corpus/manifest.json` (see ALL_31_LANGUAGE_CONFORMANCE_MANIFEST.json).
+

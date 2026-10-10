@@ -1,4 +1,4 @@
-# VSN-1 Objective-C conformance test base image
+# VSN Objective-C conformance test base image
 # Built from Ubuntu 24.04 with gcc (ObjC), libobjc, and pthread support
 FROM ubuntu:24.04
 
@@ -13,3 +13,4 @@ RUN apt-get update && \
 # gcc (gobjc) includes ObjC support via -x objective-c
 # Runtime: libobjc4 provides the ObjC runtime
 CMD ["gcc", "--version"]
+

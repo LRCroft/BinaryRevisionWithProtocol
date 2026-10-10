@@ -1,4 +1,4 @@
-(* VSN-1 Library implementation for OCaml *)
+(* VSN Library implementation for OCaml *)
 let magic = "VSN-"
 let find_opt f l = try Some (List.find f l) with Not_found -> None
 
@@ -275,3 +275,4 @@ let new_builder mode = create mode
 let check_magic data =
   String.length data >= 8 && String.sub data 0 4 = magic &&
   (Char.code data.[4] = 0 || Char.code data.[4] = 1)
+

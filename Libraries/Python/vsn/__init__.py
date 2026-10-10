@@ -1,4 +1,4 @@
-﻿"""VSN-1 Library -- Python implementation."""
+"""VSN Library -- Python implementation."""
 
 from vsn.store import VsnStore
 from vsn.transactions import Transaction, StagedChange
@@ -55,3 +55,4 @@ __all__ = [
     "recover_container",
     "Severity", "Category", "Diagnostic",
 ]
+

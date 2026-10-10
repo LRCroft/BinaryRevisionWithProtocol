@@ -1,4 +1,4 @@
-// VSN-1 Library Conformance Tests - All 19 Capability Groups
+// VSN Library Conformance Tests - All 19 Capability Groups
 // Objective-C implementation using Foundation framework
 #import <Foundation/Foundation.h>
 #import "VSN.h"
@@ -143,3 +143,4 @@
 
 // CreateOpenClose FileCreateReadWritDeleteRename ObjectEnumerateInspectSerialMaterializeMetadata Direct1RoundTrip EnterpriseMode ValidateExposesAllLevels RecoverySelectsMarker ObjectDiff ThreeWayMerge ImportExport MaterializeExtents IntegrityVerification
 @end
+

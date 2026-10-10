@@ -1,4 +1,4 @@
-/* VSN-1 C interop CLI (frozen VSN-1, byte-identical to the reference writers).
+/* VSN C interop CLI (frozen VSN, byte-identical to the reference writers).
  *
  *   interop_cli.exe write <root>  ->  <root>/c/<scenario>.vsn   (4 scenarios)
  *   interop_cli.exe read  <root>  ->  JSON: {"lang":"c","results":{...}}

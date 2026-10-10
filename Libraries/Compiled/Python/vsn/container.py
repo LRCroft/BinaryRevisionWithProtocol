@@ -1,4 +1,4 @@
-"""VSN-1 container parser: streaming, framing-exact, mode-independent.
+"""VSN container parser: streaming, framing-exact, mode-independent.
 
 Parsing never requires a hash, index, cache, checkpoint, or external data.
 Unknown records and fields are skipped by declared length and preserved
@@ -103,3 +103,4 @@ def parse(data: bytes) -> Container:
         elif sp_val in (3, 4):
             cont.mode = C.MODE_ENTERPRISE
     return cont
+

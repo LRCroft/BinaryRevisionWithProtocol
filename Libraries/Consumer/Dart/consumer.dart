@@ -1,7 +1,7 @@
 import 'dart:io' as io;
 import '../../Dart/vsn.dart' as V;
 
-// VSN-1 independent consumer (Dart) -- Storage Policy round-trip.
+// VSN independent consumer (Dart) -- Storage Policy round-trip.
 // Uses the library's encode (wire-out) + parse (wire-in).
 bool sig(List<int> b) {
   for (int i = 0; i <= b.length - 7; i++)
@@ -22,3 +22,4 @@ void main() {
   print(bad ? 'CONSUMER DART FAIL' : 'CONSUMER DART PASS');
   io.exit(bad ? 1 : 0);
 }
+

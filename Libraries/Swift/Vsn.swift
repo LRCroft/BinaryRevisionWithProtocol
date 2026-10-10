@@ -178,7 +178,7 @@ public func createWithPolicy(policy: StoragePolicy) -> MutableStore {
     return s
 }
 
-// --- uvarint helper (matches VSN-1 canonical encoding) ---
+// --- uvarint helper (matches VSN canonical encoding) ---
 func readUvarint(from data: [UInt8], at pos: Int) -> (value: UInt64, bytes: Int) {
     var result: UInt64 = 0
     var shift: UInt64 = 0
@@ -192,3 +192,4 @@ func readUvarint(from data: [UInt8], at pos: Int) -> (value: UInt64, bytes: Int)
     }
     return (result, p - pos)
 }
+

@@ -1,4 +1,4 @@
-(* VSN-1 parallel conformance test — Tier 2 (domains) *)
+(* VSN parallel conformance test — Tier 2 (domains) *)
 (* Tier 3: Mutex for thread-safe operations *)
 let () = 
   let passed = ref 0 in
@@ -17,3 +17,4 @@ let () =
   
   let results = Array.init 19 (fun i -> run_cap (i + 1)) in
   Printf.printf "PASS %d\n" (!passed)
+

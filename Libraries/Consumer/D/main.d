@@ -3,7 +3,7 @@ import std.stdio;
 import core.stdc.stdlib;
 import vsn;
 
-// VSN-1 independent consumer (D) -- Storage Policy round-trip.
+// VSN independent consumer (D) -- Storage Policy round-trip.
 // Uses the library's createWithPolicy + exportBytes (wire-out)
 // + importBytes (wire-in).
 bool hasSig(ubyte[] b) {
@@ -30,3 +30,4 @@ void main() {
     writefln(bad ? "CONSUMER D FAIL" : "CONSUMER D PASS");
     if (bad) exit(1);
 }
+

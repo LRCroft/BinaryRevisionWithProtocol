@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# VSN-1 conformance test — sequential (Perl build has no threads)
+# VSN conformance test — sequential (Perl build has no threads)
 use strict;
 my $STORAGE_POLICY_HIGHLY_VERTICAL   = 1;
 my $STORAGE_POLICY_VERTICAL         = 2;
@@ -47,3 +47,4 @@ print "PASS $PASSED\n";
 my $p_count = $STORAGE_POLICY_HIGHLY_HORIZONTAL - $STORAGE_POLICY_HIGHLY_VERTICAL + 1;
 
 print "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance\n";
+

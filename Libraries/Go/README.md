@@ -1,13 +1,13 @@
-# VSN-1 Binary Library — Go
+# VSN Binary Library — Go
 
-Go implementation of the [VSN-1](https://github.com/campmember/vsn) canonical binary container format, byte-compatible with the Python reference and Rust implementations.
+Go implementation of the [VSN](https://github.com/campmember/vsn) canonical binary container format, byte-compatible with the Python reference and Rust implementations.
 
 ## Quick Start
 
 ```go
 import "github.com/campmember/vsn/go"
 
-// Parse a VSN-1 container
+// Parse a VSN container
 c, err := vsn.Parse(data)
 
 // Encode back to bytes
@@ -27,8 +27,8 @@ if err := vsn.Validate(c); err != nil {
 
 | Function | Description |
 |----------|-------------|
-| `Parse(data []byte) (*Container, error)` | Decode a VSN-1 binary container |
-| `Encode(mode uint8, records []EncRecord, objects []EncObject, generation uint64) ([]byte, error)` | Encode to canonical VSN-1 bytes |
+| `Parse(data []byte) (*Container, error)` | Decode a VSN binary container |
+| `Encode(mode uint8, records []EncRecord, objects []EncObject, generation uint64) ([]byte, error)` | Encode to canonical VSN bytes |
 | `Validate(c *Container) error` | Check structural integrity of parsed container |
 | `ValidateRaw(data []byte) error` | Validate raw bytes without full parsing |
 
@@ -38,7 +38,7 @@ if err := vsn.Validate(c); err != nil {
 |------|-------------|
 | `Field` | Record field (FID + value bytes) |
 | `Record` | Parsed VSN record |
-| `Container` | Complete parsed VSN-1 container |
+| `Container` | Complete parsed VSN container |
 | `ObjectEntry` | Parsed content object descriptor |
 | `EncRecord` | Encodable record wrapper |
 | `EncObject` | Encodable object entry |
@@ -91,7 +91,7 @@ if err := vsn.Validate(c); err != nil {
 
 ## Frozen Constants
 
-All VSN-1 constants are defined in `constants.go`:
+All VSN constants are defined in `constants.go`:
 - Record types (REC_*): GR-28 allocations
 - Field IDs (FID_*): GR-17 allocations
 - Modes: MODE_MODERN, MODE_ENTERPRISE
@@ -120,4 +120,5 @@ Core parsing and encoding are implemented. Helper methods for record navigation 
 
 ## License
 
-Same as the VSN-1 project license.
+Same as the VSN project license.
+

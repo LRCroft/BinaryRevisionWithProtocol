@@ -1,4 +1,4 @@
-// VSN-1 independent consumer (Scala) -- Storage Policy round-trip.
+// VSN independent consumer (Scala) -- Storage Policy round-trip.
 // Uses the library's VsnApi.encodeWithSP (wire-out) + VsnApi.parseSP (wire-in).
 package vsn
 
@@ -22,3 +22,4 @@ object Consumer {
     else println("CONSUMER SCALA PASS")
   }
 }
+

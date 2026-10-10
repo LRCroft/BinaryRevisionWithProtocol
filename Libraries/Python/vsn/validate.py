@@ -1,4 +1,4 @@
-"""VSN-1 recovery (RC-01..RC-45) and validation layers.
+"""VSN recovery (RC-01..RC-45) and validation layers.
 
 Recovery is marker-based: the accepted state is the canonical data
 preceding the highest-Generation structurally complete and semantically
@@ -164,3 +164,4 @@ def validate(data: bytes, level: str = "Full") -> None:
         recover(data)
     if level in ("Content", "Full"):
         validate_content(data)
+

@@ -1,4 +1,4 @@
-# VSN-1 Packaging Report
+# VSN Packaging Report
 
 - **Generated:** 2026-10-10 (Act mode)
 - **Scope:** Packaging/manifest analysis of all 31 language libraries + the two packaging fixes (Rust, JS/TS) + gaps. Raw inspection output in `PACKAGING_EVIDENCE.md`; machine-readable status in `PACKAGING_STATUS.json`.

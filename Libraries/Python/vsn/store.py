@@ -1,4 +1,4 @@
-"""VSN-1 mutable container store: full library API.
+"""VSN mutable container store: full library API.
 
 VsnStore is the primary public API for working with VSN containers.
 It supports creating, opening, modifying, and committing containers
@@ -477,7 +477,7 @@ class VsnStore:
     # --- Container lifecycle ---
 
     def to_bytes(self) -> bytes:
-        """Produce canonical VSN-1 bytes from current state."""
+        """Produce canonical VSN bytes from current state."""
         self._check_open()
         self._generation += 1
         records = []
@@ -558,3 +558,4 @@ class VsnStore:
         self._build_state()
 
         return self._generation
+

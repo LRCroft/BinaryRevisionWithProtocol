@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Vsn;
 
-// VSN-1 parallel conformance test — Tier 2 (Task)
+// VSN parallel conformance test — Tier 2 (Task)
 int passed = 0, failed = 0;
 void Check(int n, bool cond)
 {
@@ -31,3 +31,4 @@ for (int i = 0; i < 19; i++)
 }
 Task.WaitAll(tasks);
 Console.WriteLine($"PASS {passed}");
+

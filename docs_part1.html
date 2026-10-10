@@ -39,14 +39,14 @@
         <p class="eyebrow">BinaryRevisionWithProtocol &middot; BRP-1</p>
         <h1 id="spec-title">Protocol Specification</h1>
         <p class="subtitle">Version 1.0 — Normative</p>
-        <p class="lede"><strong>Protocol Identifier:</strong> BRP &nbsp;|&nbsp; <strong>Container Format:</strong> VSN-1 &nbsp;|&nbsp; <strong>Canonical Encoding:</strong> RCMP-1</p>
+        <p class="lede"><strong>Protocol Identifier:</strong> BRP &nbsp;|&nbsp; <strong>Container Format:</strong> VSN &nbsp;|&nbsp; <strong>Canonical Encoding:</strong> RCMP-1</p>
         <div class="code-card" role="img" aria-label="BRP naming hierarchy">
           <div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">naming hierarchy</span></div>
 <pre class="mono tree"><code>BRP
  |-- BRP Protocol
  |-- BRP Canonical Model
  |-- RCMP-1 Canonical Encoding
- |-- VSN-1 Container Format
+ |-- VSN Container Format
  `-- BRP Conformance</code></pre>
         </div>
         <p><strong>Core principle.</strong> BRP defines protocol semantics, canonical data representation, binary encoding rules, revision semantics, transactional semantics, integrity rules, compatibility rules, and conformance requirements. <code class="inline-code">.vsn</code> is a standardized self-contained container representation of BRP revision data — it is not the protocol itself. Libraries are implementations of BRP; applications consume BRP libraries. <strong>No implementation is authoritative over the specification.</strong></p>
@@ -72,7 +72,7 @@
           <li><a href="#brp-13"><span class="mono">13</span> Content Model</a></li>
           <li><a href="#brp-14"><span class="mono">14</span> Canonical Serialization</a></li>
           <li><a href="#brp-15"><span class="mono">15</span> RCMP-1</a></li>
-          <li><a href="#brp-16"><span class="mono">16</span> VSN-1 Container Format</a></li>
+          <li><a href="#brp-16"><span class="mono">16</span> VSN Container Format</a></li>
           <li><a href="#brp-17"><span class="mono">17</span> Binary Record Format</a></li>
           <li><a href="#brp-18"><span class="mono">18</span> Framing</a></li>
           <li><a href="#brp-19"><span class="mono">19</span> Integrity</a></li>
@@ -117,7 +117,7 @@
         <p class="eyebrow">01 &middot; Scope</p>
         <h2 id="brp-01-title">Scope <span class="spec-tag">Normative — Frozen</span></h2>
         <p><strong>BinaryRevisionWithProtocol (BRP) is an open, language-independent, platform-independent, implementation-independent protocol for immutable file revisions, transactional multi-file changes, diff, restore, and crash-safe workspace projection — without requiring Git.</strong></p>
-        <p>BRP covers the same ground as the previous Documentation page (revision model, FileId identity, RevisionSet lifecycle, content addressing, restore scopes, recovery) and adds the normative wire format: BRP Canonical Model, RCMP-1 canonical encoding, VSN-1 self-contained container, and BRP Conformance.</p>
+        <p>BRP covers the same ground as the previous Documentation page (revision model, FileId identity, RevisionSet lifecycle, content addressing, restore scopes, recovery) and adds the normative wire format: BRP Canonical Model, RCMP-1 canonical encoding, VSN self-contained container, and BRP Conformance.</p>
         <p>The protocol MUST NOT depend on Git, Git object format, a particular database, filesystem, operating system, programming language, serialization library, server, or cloud provider. The specification itself is the authority.</p>
         <p><a href="#top">Back to top</a></p>
       </div>
@@ -135,7 +135,7 @@
       <div class="container doc">
         <p class="eyebrow">03 &middot; Terminology</p>
         <h2 id="brp-03-title">Terminology <span class="spec-tag">Normative — Frozen</span></h2>
-        <p><strong>BRP</strong> is the protocol identifier. <strong>BRP Protocol</strong> is the semantic ruleset. <strong>BRP Canonical Model</strong> is the shared data model. <strong>RCMP-1</strong> is the canonical encoding. <strong>VSN-1</strong> is the self-contained container format. <strong>BRP Conformance</strong> is the measurable test suite. A <strong>Revision</strong> is one immutable state of one logical file. A <strong>RevisionSet</strong> is a reviewable multi-file transaction. <strong>FileHead</strong> points at the accepted revision. <strong>ContentRef</strong> carries content identity and size. <strong>DiffArtifact</strong> is derived and disposable. <strong>ApplyTransaction</strong> is the physical projection and recovery transaction. <strong>Logical Commit</strong> is acceptance of a reviewed RevisionSet. <strong>Workspace Projection</strong> materializes accepted state as ordinary files.</p>
+        <p><strong>BRP</strong> is the protocol identifier. <strong>BRP Protocol</strong> is the semantic ruleset. <strong>BRP Canonical Model</strong> is the shared data model. <strong>RCMP-1</strong> is the canonical encoding. <strong>VSN</strong> is the self-contained container format. <strong>BRP Conformance</strong> is the measurable test suite. A <strong>Revision</strong> is one immutable state of one logical file. A <strong>RevisionSet</strong> is a reviewable multi-file transaction. <strong>FileHead</strong> points at the accepted revision. <strong>ContentRef</strong> carries content identity and size. <strong>DiffArtifact</strong> is derived and disposable. <strong>ApplyTransaction</strong> is the physical projection and recovery transaction. <strong>Logical Commit</strong> is acceptance of a reviewed RevisionSet. <strong>Workspace Projection</strong> materializes accepted state as ordinary files.</p>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
@@ -182,7 +182,7 @@
         |                         |
         +------------+------------+
                      |
-                   VSN-1
+                   VSN
                      |
           Self-contained .vsn
                      |
@@ -209,11 +209,11 @@
             <tr><td class="mono">Protocol Name</td><td>BinaryRevisionWithProtocol</td></tr>
             <tr><td class="mono">Protocol Identifier</td><td>BRP</td></tr>
             <tr><td class="mono">Current Major Version</td><td>1</td></tr>
-            <tr><td class="mono">Container Format</td><td>VSN-1</td></tr>
+            <tr><td class="mono">Container Format</td><td>VSN</td></tr>
             <tr><td class="mono">Canonical Encoding</td><td>RCMP-1</td></tr>
           </tbody>
         </table>
-        <p>Version identifiers are distinct. <code class="inline-code">ProtocolVersion</code> tracks BRP semantics. <code class="inline-code">ContainerFormatVersion</code> tracks VSN-1. <code class="inline-code">RecordVersion</code> tracks per-record schema. <code class="inline-code">EncodingVersion</code> tracks RCMP-1. <code class="inline-code">ExtensionVersion</code> tracks each extension. <code class="inline-code">LibraryVersion</code> and <code class="inline-code">ApplicationVersion</code> track implementations only. <strong>A library version MUST NOT imply a protocol version change.</strong></p>
+        <p>Version identifiers are distinct. <code class="inline-code">ProtocolVersion</code> tracks BRP semantics. <code class="inline-code">ContainerFormatVersion</code> tracks VSN. <code class="inline-code">RecordVersion</code> tracks per-record schema. <code class="inline-code">EncodingVersion</code> tracks RCMP-1. <code class="inline-code">ExtensionVersion</code> tracks each extension. <code class="inline-code">LibraryVersion</code> and <code class="inline-code">ApplicationVersion</code> track implementations only. <strong>A library version MUST NOT imply a protocol version change.</strong></p>
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
@@ -298,11 +298,11 @@
     </section>
     <section class="section" id="brp-16" aria-labelledby="brp-16-title">
       <div class="container doc">
-        <p class="eyebrow">16 &middot; VSN-1 Container Format</p>
-        <h2 id="brp-16-title">VSN-1 Container Format <span class="spec-tag">Normative — Review</span></h2>
-        <p>VSN-1 is the self-contained container format for BRP revision data. A valid VSN-1 container MUST allow full reconstruction of all retained revisions without external dependencies.</p>
+        <p class="eyebrow">16 &middot; VSN Container Format</p>
+        <h2 id="brp-16-title">VSN Container Format <span class="spec-tag">Normative — Review</span></h2>
+        <p>VSN is the self-contained container format for BRP revision data. A valid VSN container MUST allow full reconstruction of all retained revisions without external dependencies.</p>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">container structure</span></div>
-<pre class="mono tree"><code>VSN-1
+<pre class="mono tree"><code>VSN
 |-- Magic: 0x56 0x53 0x4E 0x31 ("VSN1")
 |-- Format Version: uint8 (1)
 |-- Flags: uint8
@@ -330,7 +330,7 @@
       <div class="container doc">
         <p class="eyebrow">17 &middot; Binary Record Format</p>
         <h2 id="brp-17-title">Binary Record Format <span class="spec-tag">Normative — Review</span></h2>
-        <p>Each record in the VSN-1 container follows a common binary framing:</p>
+        <p>Each record in the VSN container follows a common binary framing:</p>
         <table>
           <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
           <tbody>
@@ -363,7 +363,7 @@
       <div class="container doc">
         <p class="eyebrow">18 &middot; Framing</p>
         <h2 id="brp-18-title">Framing <span class="spec-tag">Normative — Review</span></h2>
-        <p>VSN-1 uses length-prefixed framing for all records. There is no delimiter-based framing.</p>
+        <p>VSN uses length-prefixed framing for all records. There is no delimiter-based framing.</p>
         <ul class="check-list">
           <li>Each record: Tag (1 byte) + Length (varint) + Payload (Length bytes)</li>
           <li>Varint encoding: LEB128-style, minimal width, little-endian byte order</li>
@@ -823,7 +823,7 @@ Application -- uses the library</code></pre></div>
       <div class="container doc">
         <p class="eyebrow">26 &middot; Crash Recovery</p>
         <h2 id="brp-26-title">Crash Recovery <span class="spec-tag">Normative — Frozen</span></h2>
-        <p>Crash recovery applies to two distinct layers: VSN-1 container recovery (section 16) and ApplyTransaction workspace recovery.</p>
+        <p>Crash recovery applies to two distinct layers: VSN container recovery (section 16) and ApplyTransaction workspace recovery.</p>
         <p><strong>ApplyTransaction Recovery:</strong> The logical commit marker determines the accepted state:</p>
         <div class="code-card"><div class="code-head"><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="code-title mono">commit marker rule</span></div>
 <pre class="mono tree"><code>LogicalCommitMarker absent
@@ -835,7 +835,7 @@ LogicalCommitMarker present
     -> roll forward projection
     -> finalize</code></pre></div>
         <p><code class="inline-code">RECOVERY_REQUIRED</code> is a physical ApplyTransaction recovery state, not a RevisionSet state. It is not evidence that a RevisionSet was accepted or rejected.</p>
-        <p><strong>VSN-1 Container Recovery:</strong> On open, reader checks CommitMarker generation. If generation matches previous valid generation, container is valid. If generation is incomplete (partial write detected), reader MUST surface <code class="inline-code">CORRUPT_VSN</code> or <code class="inline-code">INCOMPLETE_WRITE</code> — never silent corruption.</p>
+        <p><strong>VSN Container Recovery:</strong> On open, reader checks CommitMarker generation. If generation matches previous valid generation, container is valid. If generation is incomplete (partial write detected), reader MUST surface <code class="inline-code">CORRUPT_VSN</code> or <code class="inline-code">INCOMPLETE_WRITE</code> — never silent corruption.</p>
         <p>Recovery never guesses from timestamps, current file contents, or heuristics. Only the commit marker and generation counter are authoritative.</p>
         <p><a href="#top">Back to top</a></p>
       </div>
@@ -844,7 +844,7 @@ LogicalCommitMarker present
       <div class="container doc">
         <p class="eyebrow">27 &middot; Atomicity</p>
         <h2 id="brp-27-title">Atomicity <span class="spec-tag">Normative — Review</span></h2>
-        <p>The VSN-1 container MUST guarantee atomic writes. After an interrupted write, a reader MUST see either:</p>
+        <p>The VSN container MUST guarantee atomic writes. After an interrupted write, a reader MUST see either:</p>
         <ul class="check-list">
           <li>The previous valid committed generation, OR</li>
           <li>A detected incomplete/corrupt state (surfacing <code class="inline-code">CORRUPT_VSN</code> or <code class="inline-code">INCOMPLETE_WRITE</code>)</li>
@@ -1019,3 +1019,4 @@ LogicalCommitMarker present
         <p><a href="#top">Back to top</a></p>
       </div>
     </section>
+

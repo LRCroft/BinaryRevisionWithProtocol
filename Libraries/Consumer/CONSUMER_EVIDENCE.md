@@ -1,4 +1,4 @@
-# VSN-1 Consumer Test Evidence (raw, unmodified)
+# VSN Consumer Test Evidence (raw, unmodified)
 
 - **Date:** 2026-10-10 · **Environment:** Windows, Docker (canonical per-language images)
 - All commands below were executed and the outputs captured verbatim (truncated to the result summary).

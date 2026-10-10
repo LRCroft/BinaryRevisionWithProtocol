@@ -1,4 +1,4 @@
-"""VSN-1 crash recovery (marker-based, RC-01..RC-45).
+"""VSN crash recovery (marker-based, RC-01..RC-45).
 
 Sequential scan is normative; only marker-covered canonical data is
 accepted. Incomplete tails are tolerated; malformed later data is not.
@@ -52,3 +52,4 @@ def recover(data: bytes) -> RecoveryResult:
     tail = parsed.trailer_generation != gen if parsed.trailer_generation else False
     return RecoveryResult(gen, True, tail, "RECOVERED",
                           "accepted generation %d" % gen)
+

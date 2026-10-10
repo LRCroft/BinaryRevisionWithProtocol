@@ -1,4 +1,4 @@
-// VSN-1 parallel conformance test — Tier 2 (Future)
+// VSN parallel conformance test — Tier 2 (Future)
 // Tier 3: Lock for thread-safe operations
 import 'dart:async';
 import 'dart:typed_data';
@@ -187,3 +187,4 @@ void main() async {
   print(spFail ? 'SP FAILED' : 'SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance');
   if (spFail) exit(1);
 }
+

@@ -1,6 +1,6 @@
-# VSN-1 Canonical Library API Surface (Normative — All 31 Languages)
+# VSN Canonical Library API Surface (Normative — All 31 Languages)
 
-**Status:** Normative reference. Defines the ONE library API every VSN-1 language
+**Status:** Normative reference. Defines the ONE library API every VSN language
 implementation must expose.
 **Rule:** Every implementation MUST provide every operation below with identical
 semantics. Spelling follows each language's native convention (snake_case /
@@ -129,3 +129,4 @@ constant), and the library is importable/copy-ready as a single entry point.
 - Each operation maps to one of the 19 capability groups that the conformance
   runner (`Libraries/Conformance/run_conformance.py`) verifies via `CAP <n> PASS`.
 - **API-Complete == 19/19 caps PASS + all operations above present + single entry point.**
+

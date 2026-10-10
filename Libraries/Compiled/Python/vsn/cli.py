@@ -1,4 +1,4 @@
-"""VSN-1 command-line inspection tool (Python reference CLI).
+"""VSN command-line inspection tool (Python reference CLI).
 
 Usage: python -m vsn.cli COMMAND file.vsn
 Commands: inspect validate verify recover list-files list-revisions
@@ -63,3 +63,4 @@ def main(argv=None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

@@ -1,22 +1,22 @@
 # BinaryRevisionWithProtocol
 
-**VSN-1 — Binary Revision Protocol**
+**VSN — Binary Revision Protocol**
 
 File history, built into a binary format.
 
-VSN-1 defines a standardized binary container for storing file revisions. Instead of reinventing revision history in every application, VSN-1 provides a shared foundation that works across 31 programming languages. Choose your storage strategy—from maximum efficiency to straightforward self-contained content—and let VSN-1 handle the binary format details.
+VSN defines a standardized binary container for storing file revisions. Instead of reinventing revision history in every application, VSN provides a shared foundation that works across 31 programming languages. Choose your storage strategy—from maximum efficiency to straightforward self-contained content—and let VSN handle the binary format details.
 
-## What is VSN-1?
+## What is VSN?
 
-Imagine tracking changes to a file: from version A to version B to version C. VSN-1 gives you a reliable binary container for storing and recovering that history. The format defines how revisions are encoded, while implementations decide how to optimize storage based on your selected policy.
+Imagine tracking changes to a file: from version A to version B to version C. VSN gives you a reliable binary container for storing and recovering that history. The format defines how revisions are encoded, while implementations decide how to optimize storage based on your selected policy.
 
 - **Storage policies** express your intent: prioritize storage efficiency or favor simple, self-contained representations.
-- **Cross-language compatibility** means a VSN-1 file written in Python can be read in C, Java, or any of the 31 supported languages.
+- **Cross-language compatibility** means a VSN file written in Python can be read in C, Java, or any of the 31 supported languages.
 - **Frozen test vectors** ensure implementations stay compatible with the canonical format.
 
 ## The Four Storage Policies
 
-VSN-1 uses four canonical storage policies to guide how implementations store revisions. These are configuration values—not wire-mode identifiers—and map directly to your priorities:
+VSN uses four canonical storage policies to guide how implementations store revisions. These are configuration values—not wire-mode identifiers—and map directly to your priorities:
 
 - **HIGHLY_VERTICAL (1)**: Push storage efficiency to implementation limits. Aggressive deduplication and sharing.
 - **VERTICAL (2)**: Favor storage efficiency with bounded optimization. Preferred sharing within defined limits.
@@ -27,20 +27,20 @@ VSN-1 uses four canonical storage policies to guide how implementations store re
 
 ## Why 31 Languages?
 
-The repository includes VSN-1 implementations for 31 programming languages, from systems languages like C and Rust to higher-level languages like Python and JavaScript. This isn’t just about source code—each implementation has been built, tested against the conformance suite, and verified to read and write the shared binary format.
+The repository includes VSN implementations for 31 programming languages, from systems languages like C and Rust to higher-level languages like Python and JavaScript. This isn’t just about source code—each implementation has been built, tested against the conformance suite, and verified to read and write the shared binary format.
 
 Explore the implementation for your language under `Libraries/<Language>/`. Build outputs and test results are documented in the [compiled artifacts manifest](Libraries/Compiled/BUILD_MANIFEST.json).
 
-## How VSN-1 Works
+## How VSN Works
 
-At a high level, VSN-1 follows a simple lifecycle:
+At a high level, VSN follows a simple lifecycle:
 
 1. **Create** a container with your chosen storage policy.
 2. **Add or update** files as your application evolves.
 3. **Commit** changes to establish an accepted revision.
 4. **Open** the container later to recover any past revision.
 
-The format defines how this lifecycle is encoded in binary. Implementations handle the details—like mapping storage policies to internal optimizations—while ensuring any VSN-1 file can be read by any other implementation.
+The format defines how this lifecycle is encoded in binary. Implementations handle the details—like mapping storage policies to internal optimizations—while ensuring any VSN file can be read by any other implementation.
 
 ## Quick Start
 
@@ -67,7 +67,7 @@ int main() {
     // Commit changes
     vsn_commit(c, buffer, sizeof(buffer), &out_len);
 
-    // Output now contains the canonical VSN-1 bytes
+    // Output now contains the canonical VSN bytes
     fwrite(buffer, 1, out_len, stdout);
 
     vsn_close(c);
@@ -78,7 +78,7 @@ Build and run:
 ```bash
 # From the repository root
 gcc -o example Libraries/C/vsn.c example.c
-./example > hello.vsn  # Creates a VSN-1 container
+./example > hello.vsn  # Creates a VSN container
 ```
 
 ## Where to Go Next
@@ -100,7 +100,7 @@ This executes test suites for all 31 languages in Docker containers and verifies
 ## Contributing
 
 We welcome your interest! Whether you’re looking to:
-- Try VSN-1 in your language of choice
+- Try VSN in your language of choice
 - Report an issue or inconsistency
 - Improve documentation or examples
 - Suggest enhancements to the storage policy guidance
@@ -110,3 +110,4 @@ Start by exploring the [`Libraries/`](Libraries/) directory for your language. C
 ## License
 
 This repository does not currently specify a license. Unless otherwise indicated, all rights are reserved. Please check the repository for any updates regarding licensing.
+

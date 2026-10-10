@@ -198,7 +198,7 @@ type ObjectEntry struct {
 	ByteOffset int
 }
 
-// Container is a parsed VSN-1 container.
+// Container is a parsed VSN container.
 type Container struct {
 	ContainerFormatVersion uint16
 	EncodingVersion        uint16

@@ -1,4 +1,4 @@
-"""VSN-1 representation materialization: DIRECT-1 and EXTENTS-1 (DR-0..DR-12).
+"""VSN representation materialization: DIRECT-1 and EXTENTS-1 (DR-0..DR-12).
 
 An object descriptor payload begins with Representation Identity (u16be)
 and Representation Version (uvarint); the remainder is the representation
@@ -92,3 +92,4 @@ def _apply_operation(operands, resolve, visited) -> bytes:
     if head[0] == "lit":
         return head[1]
     raise VsnError(0x000C, "unknown operation head kind %s" % head[0])
+

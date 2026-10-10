@@ -1,4 +1,4 @@
-"""VSN-1 library-level diff (derived, never canonical).
+"""VSN library-level diff (derived, never canonical).
 
 Compares logical content between containers/revisions/files.
 Diff output is derived data and is never a canonical recovery dependency.
@@ -72,4 +72,5 @@ def diff_revisions(store, file_id: bytes, rev_a: int, rev_b: int) -> dict:
 
 def content_equal(a: bytes, b: bytes) -> bool:
     return a == b
+
 

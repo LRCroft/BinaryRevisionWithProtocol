@@ -34,7 +34,7 @@ proc parse*(data: string): tuple[cfv: int, ev: int, mode: int, byteLength: int] 
   result.byteLength = data.len
 
 proc encode*(mode, gen: int): string =
-  ## Frozen 8-byte VSN-1 header.
+  ## Frozen 8-byte VSN header.
   MAGIC & "\x00\x01\x00\x01"
 
 proc encodeWithSP*(mode, gen, sp: int): string =

@@ -1,4 +1,4 @@
-"""VSN-1 canonical binary primitives (GR-08, GR-21..GR-26).
+"""VSN canonical binary primitives (GR-08, GR-21..GR-26).
 
 All multi-byte integers are big-endian. The uvarint is minimal LEB128,
 1..10 bytes, 7 payload bits per byte, 10th byte contributes 7 bits.
@@ -56,3 +56,4 @@ def put_utf8(s: str) -> bytes:
     if "\x00" in s:
         _reject("string contains NUL")
     return s.encode("utf-8")
+

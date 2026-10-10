@@ -1,4 +1,4 @@
-# VSN-1 parallel conformance test -- full 19 caps
+# VSN parallel conformance test -- full 19 caps
 import vsn, algorithm, strutils
 
 var passed = 0

@@ -1,4 +1,4 @@
-# VSN-1 Packaging Evidence (raw, unmodified)
+# VSN Packaging Evidence (raw, unmodified)
 
 - **Date:** 2026-10-10 · **Method:** source inspection + executed build/test in canonical Docker images.
 - All commands executed; outputs captured (truncated to the material result).

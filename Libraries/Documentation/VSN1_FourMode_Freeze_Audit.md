@@ -1,4 +1,4 @@
-# VSN-1 Four-Mode Semantic Freeze Audit
+# VSN Four-Mode Semantic Freeze Audit
 
 **Verdict: BLOCKED** — not ready for normative freeze as a four-mode architecture.
 
@@ -65,3 +65,4 @@ NO - not ready. The blocker is the normative/informative split: the 4-mode names
 mode value, while the normative core is a 2-mode (MODERN/ENTERPRISE) system that explicitly marks a
 third/fourth mode malformed. Compression and ObjectSerial are already well-specified and are NOT
 blockers. Choose model (a) or (b) in Section 5, then re-run the freeze.
+

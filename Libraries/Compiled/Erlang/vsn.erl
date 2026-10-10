@@ -51,7 +51,7 @@
 -define(STORAGE_POLICY_HORIZONTAL, 3).
 -define(STORAGE_POLICY_HIGHLY_HORIZONTAL, 4).
 
-%% --- Protocol layer (frozen VSN-1 grammar) ---
+%% --- Protocol layer (frozen VSN grammar) ---
 
 parse(Data) when is_binary(Data), byte_size(Data) >= 8 ->
     case Data of
@@ -420,3 +420,4 @@ create_with_policy(P) ->
     Mode = if P =< 2 -> ?MODE_MODERN; true -> ?MODE_ENTERPRISE end,
     S = create(Mode),
     S#{storage_policy => P}.
+

@@ -1,4 +1,4 @@
-# VSN-1 Normative Binary Format — REC_STORAGE_POLICY (0x0009)
+# VSN Normative Binary Format — REC_STORAGE_POLICY (0x0009)
 
 **Status:** Draft — Phase 2 Protocol Contract  
 **Date:** 2026-10-08  

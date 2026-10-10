@@ -1,6 +1,6 @@
-"""VSN-1 canonical writer (encoder).
+"""VSN canonical writer (encoder).
 
-Produces canonical VSN-1 bytes. Only frozen record types, field IDs, and
+Produces canonical VSN bytes. Only frozen record types, field IDs, and
 representations are emitted. Identity is never derived from hash or offset.
 """
 from __future__ import annotations
@@ -51,3 +51,4 @@ def encode(mode: int, records: list, objects: list, generation: int) -> bytes:
 def direct1_descriptor(content: bytes) -> bytes:
     """DR-0 header (DIRECT-1 v1) + raw logical content."""
     return put_u16(C.REP_DIRECT_1) + put_uvarint(C.REP_VERSION_1) + content
+

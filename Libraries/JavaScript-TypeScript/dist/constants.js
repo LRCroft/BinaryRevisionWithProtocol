@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FID_REP_VERSION = exports.FID_REP_IDENTITY = exports.FID_COMMIT_HASH = exports.FID_OBJECT_HASH = exports.FID_HEAD_GENERATION = exports.FID_RSET_DIGEST = exports.FID_RSET_STATE = exports.FID_RSET_MEMBERS = exports.FID_RSET_ID = exports.MAGIC = exports.OP_NESTED = exports.OP_NUMERIC = exports.OP_OBJECT_SOURCE = exports.OP_LITERAL_BYTES = exports.DIRECTORY = exports.DELETED = exports.PRESENT = exports.REP_VERSION_1 = exports.REP_EXTENTS_1 = exports.REP_DIRECT_1 = exports.STORAGE_HIGHLY_HORIZONTAL = exports.STORAGE_HORIZONTAL = exports.STORAGE_VERTICAL = exports.STORAGE_HIGHLY_VERTICAL = exports.MODE_ENTERPRISE = exports.MODE_MODERN = exports.FID_STORAGE_POLICY = exports.FID_MODE = exports.FID_COMMIT_GENERATION = exports.FID_OBJECT_SIZE = exports.FID_OBJECT_SERIAL = exports.FID_HEAD_REV_ID = exports.FID_HEAD_FILE_ID = exports.FID_REV_PRESENCE = exports.FID_REV_PATH = exports.FID_REV_OBJECT_SERIAL = exports.FID_REV_FILE_ID = exports.FID_REV_ID = exports.FID_FILE_ID = exports.FID_RECORDS_END = exports.REC_REPRESENTATION_DESCRIPTOR = exports.REC_STORAGE_POLICY = exports.REC_MODE_DECLARATION = exports.REC_COMMIT_MARKER = exports.REC_CONTENT_OBJECT = exports.REC_FILE_HEAD = exports.REC_REVISION_SET = exports.REC_REVISION = exports.REC_FILE_IDENTITY = exports.REC_END_OF_RECORDS = void 0;
 exports.StoragePolicy = exports.HASH_BLAKE3 = exports.HASH_SHA256 = exports.HASH_NONE = exports.REC_RESERVED = exports.REC_EXTENSION_MAX = exports.REC_EXTENSION_MIN = exports.FID_REP_METADATA = void 0;
-// VSN-1 frozen constants (GR-28, GR-17, VR-*)
+// VSN frozen constants (GR-28, GR-17, VR-*)
 exports.REC_END_OF_RECORDS = 0x0000;
 exports.REC_FILE_IDENTITY = 0x0001;
 exports.REC_REVISION = 0x0002;

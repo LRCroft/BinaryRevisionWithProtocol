@@ -1,8 +1,8 @@
 namespace Vsn;
 
 /// <summary>
-/// VSN-1 canonical writer (encoder).
-/// Produces canonical VSN-1 bytes. Only frozen record types, field IDs, and
+/// VSN canonical writer (encoder).
+/// Produces canonical VSN bytes. Only frozen record types, field IDs, and
 /// representations are emitted. Identity is never derived from hash or offset.
 /// </summary>
 public static class Writer
@@ -111,3 +111,4 @@ public static class Writer
         return result.ToArray();
     }
 }
+

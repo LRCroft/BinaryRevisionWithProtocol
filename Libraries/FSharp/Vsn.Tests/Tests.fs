@@ -1,4 +1,4 @@
-// VSN-1 F# test suite (19 capabilities). Self-contained, prints Passed/Failed.
+// VSN F# test suite (19 capabilities). Self-contained, prints Passed/Failed.
 open System
 open Vsn
 
@@ -264,7 +264,7 @@ let private objectMaterializes (c: Container) (o: ContentObject) : bool =
 
 // Protocol conformance against the frozen executable vectors in ../TestVectors.
 // Each vector's length and SHA-256 must match the manifest, the framing must be
-// VSN-1 with CFV=1/EV=1, and every content object must materialise cleanly.
+// VSN with CFV=1/EV=1, and every content object must materialise cleanly.
 let testProtocol () =
     let tv = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "..", "..", "TestVectors")
     let vectors =
@@ -386,4 +386,5 @@ let main (argv : string[]) : int =
         // SP test results
         printfn "SP 01-12 PASS assertions=14 ops=4 storage policy wire conformance"
         0
+
 

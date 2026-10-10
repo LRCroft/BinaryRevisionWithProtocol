@@ -1,7 +1,7 @@
 {
   "name": "vsn-typescript",
   "version": "1.0.0",
-  "description": "VSN-1 binary revision protocol library (CommonJS, ESM-interop ready)",
+  "description": "VSN binary revision protocol library (CommonJS, ESM-interop ready)",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -47,3 +47,4 @@
     "@esbuild/darwin-arm64": "0.28.2"
   }
 }
+

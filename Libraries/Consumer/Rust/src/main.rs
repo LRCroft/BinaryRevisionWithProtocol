@@ -1,4 +1,4 @@
-//! VSN-1 Rust consumer — uses ONLY the public API of crate `vsn-rust` via a path dependency.
+//! VSN Rust consumer — uses ONLY the public API of crate `vsn-rust` via a path dependency.
 use vsn_rust::*;
 
 fn main() {

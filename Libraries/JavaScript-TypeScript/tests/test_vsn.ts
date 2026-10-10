@@ -1,4 +1,4 @@
-// VSN-1 protocol conformance tests: frozen vectors, framing, registries,
+// VSN protocol conformance tests: frozen vectors, framing, registries,
 // representations, dependencies, uvarint boundaries, and negative cases.
 import * as fs from "fs";
 import * as path from "path";
@@ -276,7 +276,7 @@ test("ENTERPRISE mode rejects EXTENTS-1 reconstruction semantics (GR-43)", () =>
   eq((e as VsnError).code, 0x000C, "GR-43 code");
 });
 
-test("mode does not fork the VSN-1 grammar (same framing both modes)", () => {
+test("mode does not fork the VSN grammar (same framing both modes)", () => {
   const fid = Buffer.alloc(16, 0xaa);
   const modern = new ContainerBuilder(MODE_MODERN);
   modern.addFile(fid);
@@ -331,4 +331,5 @@ test("no CommitMarker yields NO_MARKER", () => {
 });
 
 await run();
+
 

@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-/* VSN-1 error codes */
+/* VSN error codes */
 #define VSN_ERR_OK               0
 #define VSN_ERR_BAD_MAGIC       0x0001
 #define VSN_ERR_MALFORMED       0x0002

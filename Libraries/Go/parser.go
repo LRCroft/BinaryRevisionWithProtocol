@@ -1,4 +1,4 @@
-// VSN-1 container parser: streaming, framing-exact, mode-independent.
+// VSN container parser: streaming, framing-exact, mode-independent.
 //
 // Parsing never consults a hash, index, cache, checkpoint, or any other
 // derived data: the accepted state is derivable from canonical bytes alone.
@@ -39,7 +39,7 @@ func parseFields(payload []byte, base int) ([]Field, error) {
 	return fields, nil
 }
 
-// Parse decodes canonical VSN-1 container bytes.
+// Parse decodes canonical VSN container bytes.
 //
 // Unknown records and fields are skipped by their declared length so that a
 // format-preserving rewrite remains possible (GR-29..GR-33).

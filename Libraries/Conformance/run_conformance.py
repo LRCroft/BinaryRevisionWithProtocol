@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""VSN-1 Conformance Runner - genuine execution-based verification."""
+"""VSN Conformance Runner - genuine execution-based verification."""
 import subprocess, json, sys, os, hashlib, time as _time, re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -286,7 +286,7 @@ def run_conformance(max_workers=12):
     fv = verify_frozen_vectors()
     fv_ok = all(v[0] == "MATCH" for v in fv.values())
     print("=" * 72)
-    print(f"VSN-1 Conformance Runner: {len(ALL_LANGUAGES)} langs, {max_workers} workers")
+    print(f"VSN Conformance Runner: {len(ALL_LANGUAGES)} langs, {max_workers} workers")
     print("=" * 72)
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
         futs = {pool.submit(run_language, l): l for l in ALL_LANGUAGES}
@@ -336,3 +336,4 @@ if __name__ == "__main__":
     results = run_conformance(workers)
     vc = sum(1 for r in results.values() if r["status"] == "VERIFIED")
     sys.exit(0 if vc == 31 else 1)
+

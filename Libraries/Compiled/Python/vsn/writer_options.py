@@ -1,4 +1,4 @@
-"""VSN-1 WriterOptions and OptimizationConfiguration (Library Storage Policy API Contract).
+"""VSN WriterOptions and OptimizationConfiguration (Library Storage Policy API Contract).
 
 This module provides the optional writer-side configuration model defined by the
 frozen VSN1_Library_Storage_Policy_API_Contract.md. All values are writer-local

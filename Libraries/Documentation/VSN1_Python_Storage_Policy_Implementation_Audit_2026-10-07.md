@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-The Python reference implementation for the VSN-1 Writer Storage Policy API is **complete and verified**. The implementation provides:
+The Python reference implementation for the VSN Writer Storage Policy API is **complete and verified**. The implementation provides:
 
 - `StoragePolicy` enum with four values (HIGHLY_Vertical, VERTICAL, HORIZONTAL, HIGHLY_Horizontal)
 - `WireMode` resolution table mapping policies to wire modes
@@ -170,3 +170,4 @@ OptimizationConfiguration:
 **STATUS: COMPLETE — READY FOR FREEZE**
 
 The Python reference implementation for the Writer Storage Policy API is verified against all 37 capability tests (CAP-P01 through CAP-P12), zero regressions from the pre-existing 152 test suite, and frozen vector hashes remain unchanged. The documentation has been updated in README.md and AGENTS.md to reflect the new API surface and test counts.
+

@@ -1,6 +1,6 @@
-// Package vsn is the Go implementation of the VSN-1 Library.
+// Package vsn is the Go implementation of the VSN Library.
 //
-// The frozen VSN-1 protocol (grammar, record types, field ids, representations,
+// The frozen VSN protocol (grammar, record types, field ids, representations,
 // error identifiers) is unchanged; this package only implements Library-level
 // behaviour above it, mirroring the Python/C#/TypeScript references.
 package vsn
@@ -202,3 +202,4 @@ const (
 	OpNumeric      uint64 = 2
 	OpNested       uint64 = 3
 )
+

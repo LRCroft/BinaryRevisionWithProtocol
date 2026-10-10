@@ -1,4 +1,4 @@
-# VSN-1 conformance test (Julia)
+# VSN conformance test (Julia)
 include("vsn.jl")
 using .VSN
 
@@ -116,3 +116,4 @@ println(sp_fail ? "SP FAILED" : "SP 01-12 PASS assertions=14 ops=4 storage polic
 if sp_fail
     exit(1)
 end
+

@@ -1,4 +1,4 @@
-"""VSN-1 reader: streaming decode of primitives and framing.
+"""VSN reader: streaming decode of primitives and framing.
 
 A Cursor tracks a byte position so all reads are bounds-checked and
 distinguish truncation (physical end reached) from malformed data.
@@ -65,3 +65,4 @@ class Cursor:
         # zero group means a shorter canonical encoding exists.
         if last_byte == 0 and shift > 0:
             raise PrimitiveError("non-minimal uvarint")
+

@@ -1,4 +1,4 @@
-"""VSN-1 binary-safe import/export.
+"""VSN binary-safe import/export.
 
 Import: raw bytes → VSN object.
 Export: VSN object → raw bytes.
@@ -57,3 +57,4 @@ def import_multiple(store, files: dict[str, bytes]) -> dict[str, bytes]:
 def export_multiple(store, file_ids: list[bytes]) -> dict[bytes, bytes]:
     """Export multiple files. Returns {FileId: content}."""
     return {fid: store.read_file(fid) for fid in file_ids}
+

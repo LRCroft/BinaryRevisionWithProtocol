@@ -19,7 +19,7 @@ function record(rtype: number, fields: EncodedField[]): Buffer {
 }
 
 /**
- * Encode a canonical VSN-1 container.
+ * Encode a canonical VSN container.
  * GR-13: the trailer canonical record count excludes ModeDeclaration.
  * Identity is never derived from a hash or an offset.
  */
@@ -77,4 +77,5 @@ export function extents1Descriptor(operations: Buffer[]): Buffer {
     putUvarint(operations.length), ...operations,
   ]);
 }
+
 

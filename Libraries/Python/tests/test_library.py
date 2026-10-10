@@ -1,4 +1,4 @@
-"""Tests for VSN-1 Library capabilities: container lifecycle, file API, revision API."""
+"""Tests for VSN Library capabilities: container lifecycle, file API, revision API."""
 import unittest
 import vsn
 from vsn import VsnStore, Transaction, VsnError
@@ -178,3 +178,4 @@ class RevisionApiTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+

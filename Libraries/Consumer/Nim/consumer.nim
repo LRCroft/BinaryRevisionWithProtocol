@@ -1,4 +1,4 @@
-# VSN-1 independent consumer (Nim) -- Storage Policy round-trip.
+# VSN independent consumer (Nim) -- Storage Policy round-trip.
 # Uses the library's encodeWithSP (wire-out) + importBytes (wire-in).
 import vsn, strutils
 
@@ -24,3 +24,4 @@ if bad:
   quit(1)
 else:
   echo "CONSUMER NIM PASS"
+

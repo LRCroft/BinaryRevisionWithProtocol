@@ -1,4 +1,4 @@
-/* VSN-1 parallel conformance test -- Tier 2 (pthread) + full 19 caps */
+/* VSN parallel conformance test -- Tier 2 (pthread) + full 19 caps */
 #define _GNU_SOURCE 1
 #include "vsn.h"
 #include <stdio.h>
