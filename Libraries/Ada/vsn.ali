@@ -12,7 +12,7 @@ RV NO_DEFAULT_INITIALIZATION
 RV NO_DYNAMIC_SIZED_OBJECTS
 RV NO_ELABORATION_CODE
 
-U vsn%b			vsn.adb			d8e5889d NE OO PK IU
+U vsn%b			vsn.adb			43284745 NE OO PK IU
 W ada%s			ada.ads			ada.ali
 W ada.strings%s		a-string.ads		a-string.ali
 Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
@@ -52,7 +52,7 @@ D s-traent.ads		20220819080952 c81cbf8c system.traceback_entries%s
 D s-unstyp.ads		20220819080952 fa2a7f59 system.unsigned_types%s
 D unchconv.ads		20220819080952 ca2f9e18 unchecked_conversion%s
 D vsn.ads		20261008143313 59875b3b vsn%s
-D vsn.adb		20261008113643 11ceb431 vsn%b
+D vsn.adb		20261009233328 8a037be9 vsn%b
 G a e
 G c Z s b [parse vsn 30 13 none]
 G c Z s b [encode vsn 31 13 none]
@@ -88,24 +88,24 @@ G c Z s s [vsn_containerIP vsn 24 9 none]
 G c Z s s [storeDA vsn 64 9 none]
 G c Z s s [storeDF vsn 64 9 none]
 G c Z s s [storeIP vsn 64 9 none]
-G c Z b b [encode_with_policy vsn 202 14 none]
+G c Z b b [encode_with_policy vsn 184 14 none]
 X 1 ada.ads
-16K9*Ada 20e8 25|1r6 1r23 148r11 203r12
+16K9*Ada 20e8 25|1r6 1r23 129r11 185r12
 X 4 a-string.ads
-16K13*Strings 35e16 25|1w10 1r27 148r15 203r16
+16K13*Strings 35e16 25|1w10 1r27 129r15 185r16
 X 24 vsn.ads
-1K9*VSN 64E9 75l5 75e8 25|2b14 229l5 229t8
+1K9*VSN 64E9 75l5 75e8 25|2b14 211l5 211t8
 3a4*Magic{string}
 4i4*CFV{positive}
 5i4*EV{positive}
-7i5*MODE_MODERN{positive} 27r26 65r26 25|185r24 192r17
+7i5*MODE_MODERN{positive} 27r26 65r26 25|167r24 174r17
 11i4*STORAGE_POLICY_HIGHLY_VERTICAL{positive}
-12i4*STORAGE_POLICY_VERTICAL{positive} 73r36 25|111r28 163r26
+12i4*STORAGE_POLICY_VERTICAL{positive} 73r36 25|145r26
 13i4*STORAGE_POLICY_HORIZONTAL{positive}
 14i4*STORAGE_POLICY_HIGHLY_HORIZONTAL{positive}
-16i4*REC_STORAGE_POLICY{positive} 25|122r27
+16i4*REC_STORAGE_POLICY{positive}
 17i4*FID_STORAGE_POLICY{positive}
-19i5*MODE_ENTERPRISE{positive} 25|185r37
+19i5*MODE_ENTERPRISE{positive} 25|167r37
 22i4*REP_DIRECT_1{positive}
 23i4*REP_EXTENTS_1{positive}
 24R9*Vsn_Container 29e14
@@ -129,8 +129,8 @@ X 24 vsn.ads
 . 48r31 49p13 49r28 50p13 50r36 51p13 51r29 52p13 52r27 53p13 53r38 54p13
 . 54r29 55p13 55r31 56p13 56r31 57p13 57r30 58p13 58r29 59p13 59r29 61p13
 . 61r59 62p13 62r37 64c9 74e14 25|30r45 31r11 36r32 40r27 44r38 52r30 56r32
-. 61r37 66r38 70r35 74r33 78r39 87r31 91r28 95r36 100r29 105r27 109r38 147r31
-. 167r29 171r31 175r30 179r29 183r29 189r59 190r11 196r37
+. 61r37 66r38 70r35 74r33 78r39 87r31 91r28 95r36 100r29 105r27 109r38 128r31
+. 149r29 153r31 157r30 161r29 165r29 171r59 172r11 178r37
 37V13*Create{36R9} 37>21 25|30b13 35l8 35t14
 37i21 mode{positive} 25|30b21 33r17
 38U14*Close 38=21 25|36b14 39l8 39t13
@@ -175,60 +175,54 @@ X 24 vsn.ads
 51i36 other_count{natural} 25|100b36 102r25 102r64 103r14
 52V13*Merge_Ok{boolean} 52>23 25|105b13 108l8 108t16
 52r23 s{36R9} 25|105b23
-53V13*Import_Bytes{boolean} 53=27 53>45 25|109b13 145l8 145t20
-53r27 s{36R9} 25|109b27 139m16
-53a45 data{string} 25|109b45 113r10 114r10 116r24 117r55 117r88 118r49 121r36
-. 126r39 127r39 128r65 131r55
-54V13*Export_Len{natural} 54>25 25|167b13 170l8 170t18
-54r25 s{36R9} 25|167b25
-55V13*Export_Bytes{string} 55>27 25|147b13 166l8 166t20
-55r27 s{36R9} 25|147b27 160r10 160r36 161r26
-56V13*Integrity_Ok{boolean} 56>27 25|171b13 174l8 174t20
-56r27 s{36R9} 25|171b27 173r18
-57V13*Stats_Files{natural} 57>26 25|175b13 178l8 178t19
-57r26 s{36R9} 25|175b26 177r14
-58V13*Stats_Revs{natural} 58>25 25|179b13 182l8 182t18
-58r25 s{36R9} 25|179b25 181r14
-59V13*Builder_Ok{boolean} 59>25 25|183b13 186l8 186t18
-59r25 s{36R9} 25|183b25 185r14
-61V13*Create_With_Policy{36R9} 61>33 25|189b13 195l8 195t26
-61i33 policy{positive} 25|189b33 193r27
-62V13*Get_Storage_Policy{positive} 62>33 25|196b13 199l8 199t26
-62r33 s{36R9} 25|196b33 198r14
-65i7*mval{positive} 25|33m9 42r16 185r16 192m9
+53V13*Import_Bytes{boolean} 53=27 53>45 25|109b13 126l8 126t20
+53r27 s{36R9} 25|109b27 121m36
+53a45 data{string} 25|109b45 111r10 112r10 115r23 116r13 116r46 117r17 117r54
+. 119r50
+54V13*Export_Len{natural} 54>25 25|149b13 152l8 152t18
+54r25 s{36R9} 25|149b25
+55V13*Export_Bytes{string} 55>27 25|128b13 148l8 148t20
+55r27 s{36R9} 25|128b27 142r10 142r36 143r26
+56V13*Integrity_Ok{boolean} 56>27 25|153b13 156l8 156t20
+56r27 s{36R9} 25|153b27 155r18
+57V13*Stats_Files{natural} 57>26 25|157b13 160l8 160t19
+57r26 s{36R9} 25|157b26 159r14
+58V13*Stats_Revs{natural} 58>25 25|161b13 164l8 164t18
+58r25 s{36R9} 25|161b25 163r14
+59V13*Builder_Ok{boolean} 59>25 25|165b13 168l8 168t18
+59r25 s{36R9} 25|165b25 167r14
+61V13*Create_With_Policy{36R9} 61>33 25|171b13 177l8 177t26
+61i33 policy{positive} 25|171b33 175r27
+62V13*Get_Storage_Policy{positive} 62>33 25|178b13 181l8 181t26
+62r33 s{36R9} 25|178b33 180r14
+65i7*mval{positive} 25|33m9 42r16 167r16 174m9
 66i7*generation{natural} 25|93r16 97m9 97r25
 67i7*file_count{natural} 25|47m9 47r25 54r16 58r12 68r12 68m34 68r50 102r12
-. 102r51 103r30 177r16
+. 102r51 103r30 159r16
 68i7*rev_count{natural} 25|48m9 48r24 63m9 63r24 76r16 81r12 82m12 82r27
-. 181r16
+. 163r16
 69i7*obj_count{natural} 25|49m9 49r24 89r16
 70i7*next_rev{positive} 25|50m9 50r23 64m9 64r23 72r16
-71b7*isclosed{boolean} 25|38m9 46r12 173r20
+71b7*isclosed{boolean} 25|38m9 46r12 155r20
 72i7*next_obj{positive}
-73i7*storage_policy{positive} 25|139m18 160r12 160r38 161r28 193m9 198r16
+73i7*storage_policy{positive} 25|121m38 142r12 142r38 143r28 175m9 180r16
 X 25 vsn.adb
 31r7 s{24|36R9} 33m7 34r14
-110i7 pos{natural} 116r13 117r60 117r93 118r54 119r35 141m13
-111i7 sp_val{positive} 131m31 139r36
-117i18 rec_type{positive} 122r16
-118i13 plen_len{natural} 121r25 122r50 125r49 130r68 141r29
-119i13 pstart{natural} 121r16 123r45 125r40 130r59 141r20
-123i24 fid_pos{natural} 125r25 126r44 127r44 128r70 130r44 131r60 136m22
-. 136r33
-128i33 vlen{natural} 130r31
-149a7 result{string} 152r21 152m38 165r14
-150i7 p{natural} 152r16 152r45 152m54 152r59 165r24
-151U17 W 151b17 151>19 152l78 152t79 154s7 154s15 154s23 154s31 155s7 155s28
-. 156s7 156s28 157s7 158s7 158s28 159s7 161s10 163s10
-151e19 c{character} 152r51
-190r7 s{24|36R9} 192m7 193m7 194r14
-202V14 Encode_With_Policy{string} 202b14 202>34 202>51 202>67 227l9 227t27
-202i34 mode{positive}
-202i51 gen{positive}
-202i67 sp{positive} 221r11 221r23 222r30
-204a8 result{string} 208r21 209m14 226r15
-205i8 pos{natural} 208r14 209r21 210m14 210r21 226r25
-206U18 Emit 206b18 206>23 212l12 212t16 214s8 214s19 214s30 214s41 215s8
-. 215s32 216s8 216s32 217s8 217s32 218s8 219s8 219s32 220s8 222s11 224s11
-206e23 c{character} 209r29
+115i11 pos{integer} 116r18 116r51 117r22 117r59 119r55
+119i21 v{natural} 121r19 121r56
+130a7 result{string} 133r21 133m38 147r14
+131i7 p{natural} 133r16 133r45 133m54 133r59 147r24
+132U17 W 132b17 132>19 133l78 133t79 135s7 135s15 135s23 135s31 136s7 136s28
+. 137s7 137s28 138s7 138s28 139s7 140s7 140s28 141s7 143s10 145s10
+132e19 c{character} 133r51
+172r7 s{24|36R9} 174m7 175m7 176r14
+184V14 Encode_With_Policy{string} 184b14 184>34 184>51 184>67 209l9 209t27
+184i34 mode{positive}
+184i51 gen{positive}
+184i67 sp{positive} 203r11 203r23 204r30
+186a8 result{string} 190r21 191m14 208r15
+187i8 pos{natural} 190r14 191r21 192m14 192r21 208r25
+188U18 Emit 188b18 188>23 194l12 194t16 196s8 196s19 196s30 196s41 197s8
+. 197s32 198s8 198s32 199s8 199s32 200s8 201s8 201s32 202s8 204s11 206s11
+188e23 c{character} 191r29
 

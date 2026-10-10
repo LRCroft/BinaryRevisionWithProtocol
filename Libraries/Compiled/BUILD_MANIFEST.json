@@ -1,0 +1,1332 @@
+{
+  "report": "BUILD_MANIFEST",
+  "generated": "2026-10-10",
+  "build_command": "per-language Docker/native builds (see BUILD_REPORT.md)",
+  "languages_total": 31,
+  "summary": {
+    "built_pass": 31,
+    "failed": 0,
+    "blocked": 0,
+    "consumer_pass": 31
+  },
+  "languages": [
+    {
+      "language": "Ada",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Ada/vsn.adb",
+          "sha256": "10f45f682455d230275caef33e53de2facbdc5666d080e4bb525cad57e44139a",
+          "bytes": 7599
+        },
+        {
+          "path": "Ada/vsn.ads",
+          "sha256": "136312ae810fba32d1d13d43d4817ddc71d2495064f19e7c1b83f65be302643c",
+          "bytes": 3692
+        },
+        {
+          "path": "Ada/vsn.ali",
+          "sha256": "28de654f54fc43dc68040f14583e582b966004d9887f4a27681b9e4c153fc80c",
+          "bytes": 9580
+        },
+        {
+          "path": "Ada/vsn.o",
+          "sha256": "ebaa6a2dabf938af0a36e4c574c2776c3405c1041e54524cac739bb550e8f318",
+          "bytes": 19808
+        }
+      ],
+      "artifact_count": 4
+    },
+    {
+      "language": "C",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "C/libvsn.a",
+          "sha256": "37843b5a96d2baf3b0cba38a979c9263cb58ecc6dd84027a40576ff129770bf4",
+          "bytes": 32266
+        },
+        {
+          "path": "C/libvsn.so",
+          "sha256": "c742df22a976035b2f4824d9b6d938caa9f832935c6cd68fdbe67d70367d5264",
+          "bytes": 42824
+        },
+        {
+          "path": "C/vsn.c",
+          "sha256": "a9eb2c214f4d2295f993d83db2c6c96a645475d035e722ede350dea4aac201cb",
+          "bytes": 44329
+        },
+        {
+          "path": "C/vsn.h",
+          "sha256": "bbe9139823305d552df1ab0d3cd0aabac326895537b584035b13cf95164e2ec3",
+          "bytes": 9573
+        }
+      ],
+      "artifact_count": 4
+    },
+    {
+      "language": "COBOL",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "COBOL/vsn_lib.cbl",
+          "sha256": "219343fdb28565e0d3ceb621d1c6f10018871c16f637070f71e1a5dbb4348380",
+          "bytes": 9195
+        },
+        {
+          "path": "COBOL/vsn_lib.o",
+          "sha256": "62941912b3497dd0afc7c59dec85747231acf4ffa2ac0f44acdd01b0eca13e28",
+          "bytes": 19384
+        }
+      ],
+      "artifact_count": 2
+    },
+    {
+      "language": "CSharp",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "CSharp/Builder.cs",
+          "sha256": "2a558ebd16a3670725c4176bb3a786b9c69430ea2361cbf5e5a7777e6d755ca0",
+          "bytes": 6297
+        },
+        {
+          "path": "CSharp/Constants.cs",
+          "sha256": "aaced625444b21c538ec91f15dfa302e5dc9b362643b283371c2ac043759a24a",
+          "bytes": 3831
+        },
+        {
+          "path": "CSharp/ContainerParser.cs",
+          "sha256": "0a72bbb25fddf29fdae29e31da3b897bfedebae9978bc925e4e6c1cdb1b6e0c4",
+          "bytes": 5739
+        },
+        {
+          "path": "CSharp/Diagnostics.cs",
+          "sha256": "baeefc30d505b9389c062ae853036c5d9f0bab91ddc7535eb1948c56a9c6f46b",
+          "bytes": 3271
+        },
+        {
+          "path": "CSharp/Diff.cs",
+          "sha256": "3905be426cde8ebdb2bdfeb1512cc34a3117fac89ed0cba2e7959c2e842afca9",
+          "bytes": 3031
+        },
+        {
+          "path": "CSharp/Integrity.cs",
+          "sha256": "d5c30d08661f29929e7f3ee3a1852b58a38c7877fdfa7fbd01e89a4a11c0e4c1",
+          "bytes": 2272
+        },
+        {
+          "path": "CSharp/IoOps.cs",
+          "sha256": "d8fb0edfaf1cca688485d60bc50ada68a6cc7d2b3ef0e85f8d9aad9a982e6f96",
+          "bytes": 2314
+        },
+        {
+          "path": "CSharp/Merge.cs",
+          "sha256": "b955dbf5202a64f0a58648e9d4be8121454e1933d1d4d9832c9e77c283b2d713",
+          "bytes": 3394
+        },
+        {
+          "path": "CSharp/Model.cs",
+          "sha256": "671e39aa15e9bde7ac5d2fb697f3e3fe86b47ae9d76402595dfac341f88ad4fb",
+          "bytes": 2807
+        },
+        {
+          "path": "CSharp/Primitives.cs",
+          "sha256": "ffdb380208818b458c860398db367770e01dc672dc8ba0a28643bd2bd42f6c40",
+          "bytes": 1971
+        },
+        {
+          "path": "CSharp/Recovery.cs",
+          "sha256": "d5df78f0ddf5c9c9ca8b503e51413248f5bbeefbfd9c56d4f36553f67f13373a",
+          "bytes": 2072
+        },
+        {
+          "path": "CSharp/Representations.cs",
+          "sha256": "1cd7f6f489e402a9b8e35025fc3eb71fd8818ff88136ff316280cc271e2b7c97",
+          "bytes": 5527
+        },
+        {
+          "path": "CSharp/Storage.cs",
+          "sha256": "980d45bfced37376ff0acd564a7f8ff60b307cb1cbe7e7abbc006b63c0d32e24",
+          "bytes": 3153
+        },
+        {
+          "path": "CSharp/StoragePolicy.cs",
+          "sha256": "d2c422b3a1233e2b9eae5489ebe02b6d35be5fec723ce0ca0ee77a0b3142f1c6",
+          "bytes": 4362
+        },
+        {
+          "path": "CSharp/Store.cs",
+          "sha256": "41d40418e9b87fca1b6816449bef8f698264bb824fbdd46acfefa3e44e174365",
+          "bytes": 24031
+        },
+        {
+          "path": "CSharp/StoreModel.cs",
+          "sha256": "c53c44eba79a2c5dec1219e0e339b71e0d041defd21214e171aa4446929f9c5c",
+          "bytes": 1812
+        },
+        {
+          "path": "CSharp/Transactions.cs",
+          "sha256": "3799c66754a681b7c73de1ea3fce29106ddf36512fff2ef3acb25c4a87f39549",
+          "bytes": 3424
+        },
+        {
+          "path": "CSharp/Validate.cs",
+          "sha256": "af3cdbee3d9debbe0fe4d13eb20785785a586b06bb8ea5f61942207b819b20c0",
+          "bytes": 8263
+        },
+        {
+          "path": "CSharp/Vsn.csproj",
+          "sha256": "61e3f2d043e37f0db4be1d8083dd31bebbfbb8fde2cf027327db2556c16bc385",
+          "bytes": 219
+        },
+        {
+          "path": "CSharp/Vsn.dll",
+          "sha256": "409cb9000989194a911f0db48d946dc55a0db1519e7d446b381e8cae128bf8a6",
+          "bytes": 72192
+        },
+        {
+          "path": "CSharp/VsnContainer.cs",
+          "sha256": "ed8a40e683958f03890b858c526f4601004edac69445ba1834c20363eff7cabd",
+          "bytes": 2808
+        },
+        {
+          "path": "CSharp/VsnException.cs",
+          "sha256": "7025d39582603ed63fb10f3cb5fcec4985515071d52900ae6e6144d316063198",
+          "bytes": 1784
+        },
+        {
+          "path": "CSharp/Writer.cs",
+          "sha256": "71f6bda85b5311602e6c3d98fdf1371e5c9ea131b360dc65eeca2f32541ecdd0",
+          "bytes": 4999
+        }
+      ],
+      "artifact_count": 23
+    },
+    {
+      "language": "Cpp",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Cpp/libvsncpp.a",
+          "sha256": "e793727909ff2b16852f7399fc6aac966eed5314891f7b9cdb573f0287b0270f",
+          "bytes": 28136
+        },
+        {
+          "path": "Cpp/libvsncpp.so",
+          "sha256": "689cc2228a1abb9d61d14ad9a7d38d99ba2fc1c643abd2723e3bd4d186e79884",
+          "bytes": 55704
+        },
+        {
+          "path": "Cpp/vsn.cpp",
+          "sha256": "a0ee69ee03712c37cc52b5865fa7a5bcc98b6b707eeafd01053ee35dd966302b",
+          "bytes": 5178
+        },
+        {
+          "path": "Cpp/vsn.hpp",
+          "sha256": "98c58f51e536c8078a4ab26a5d8349442d777da704a875d7db29151ae06050c7",
+          "bytes": 4858
+        }
+      ],
+      "artifact_count": 4
+    },
+    {
+      "language": "Crystal",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Crystal/shard.yml",
+          "sha256": "88c460d320e2d9385629670cf24465f6a8046b364d9c8d4999dbc04f5d36d6b1",
+          "bytes": 61
+        },
+        {
+          "path": "Crystal/vsn.cr",
+          "sha256": "2980be3e5405641dfa8a11a6f0d17f9a730932ac3a2bf1b48a6e5d34aa820849",
+          "bytes": 14473
+        }
+      ],
+      "artifact_count": 2
+    },
+    {
+      "language": "D",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "D/dub.json",
+          "sha256": "fd7bdda956c462ba4e87ea211940760d8d245364a5cfbaf1d1fbe6a7c65f525b",
+          "bytes": 71
+        },
+        {
+          "path": "D/libvsnd.a",
+          "sha256": "8bdd0f6dbf4134ac198e490aa16991dae73cd1e0fe741400683066017b679b3f",
+          "bytes": 60628
+        },
+        {
+          "path": "D/vsn.d",
+          "sha256": "cc0bd69a8620a911acb224f8cb2765697946494bfdf535cc355f7ee5106bb445",
+          "bytes": 7134
+        },
+        {
+          "path": "D/vsn_d.o",
+          "sha256": "3872696408a49a8a619a3dda89086291fa6c37fad0e1406576c39f3e9839c45a",
+          "bytes": 55868
+        }
+      ],
+      "artifact_count": 4
+    },
+    {
+      "language": "Dart",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Dart/pubspec.yaml",
+          "sha256": "34c407b5f5e5ba5b1a9b9295fcaf7a8f112d9815281ff43f2420fe0b08feb157",
+          "bytes": 92
+        },
+        {
+          "path": "Dart/vsn.dart",
+          "sha256": "b6f48905f8e54e35c2fca2d0c0b3925edd769b272119a7810d149f1b837b1a26",
+          "bytes": 11383
+        }
+      ],
+      "artifact_count": 2
+    },
+    {
+      "language": "Elixir",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Elixir/Elixir.VSN.MutableStore.beam",
+          "sha256": "c7dfc0bcec3b13fc7375c64fe75678abd27f8cbb8edaf1fdd3d272a32b760155",
+          "bytes": 31144
+        },
+        {
+          "path": "Elixir/Elixir.VSN.beam",
+          "sha256": "a99bc68639e3339babe9c5b972fb4f7159a728b0ad4f97e67623daff388c3ee1",
+          "bytes": 9812
+        },
+        {
+          "path": "Elixir/vsn.ex",
+          "sha256": "e7920bd8a2565671de88a5c36980283aca4e00b49b34077b795d03286854c838",
+          "bytes": 15961
+        }
+      ],
+      "artifact_count": 3
+    },
+    {
+      "language": "Erlang",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Erlang/rebar.config",
+          "sha256": "3752fe672f5a0cfde2675a66c5fafa30b11a108acdf62e862b12208f1b339d45",
+          "bytes": 62
+        },
+        {
+          "path": "Erlang/vsn.beam",
+          "sha256": "7de569f698a93705c5139f6ee8a2322ffdaeaf7a81ee4a2baac2e661a9a924cb",
+          "bytes": 8904
+        },
+        {
+          "path": "Erlang/vsn.erl",
+          "sha256": "9f509db7ac54f97784ee1defa44a1b0bbf1ec546f89fe035c3f6b5cd7a1943a3",
+          "bytes": 15681
+        }
+      ],
+      "artifact_count": 3
+    },
+    {
+      "language": "FSharp",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "FSharp/Vsn.dll",
+          "sha256": "7310942cbf8c57f16df7afe78b809710cad38fca876821d4c2770d8e9bbc0767",
+          "bytes": 75776
+        },
+        {
+          "path": "FSharp/Vsn.fs",
+          "sha256": "9d4cdf98409436e0adcbb6b982f153d039119e2ffdca6fc87a291fef7648a96f",
+          "bytes": 41116
+        },
+        {
+          "path": "FSharp/Vsn.fsproj",
+          "sha256": "cdfc069cf45bfd97bd1319514557e9dfc646b9dcbae2db1f3fefbf9fa18dc7aa",
+          "bytes": 303
+        }
+      ],
+      "artifact_count": 3
+    },
+    {
+      "language": "Fortran",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Fortran/libvsnfortran.a",
+          "sha256": "7ab56117acab0d4d1328c3d3e325a51b0d2b143aa99f2bdf153a4214f8986226",
+          "bytes": 8102
+        },
+        {
+          "path": "Fortran/vsn.f90",
+          "sha256": "37cd508ec1c5f4a30efc6f97093a3c3b2517ae44581dc9a0a1a4febb4ecb06d7",
+          "bytes": 7838
+        },
+        {
+          "path": "Fortran/vsn_mod.mod",
+          "sha256": "d5b5b880ee304ba0c503cd48f8a3338293efa375458a7a490606174668edc706",
+          "bytes": 2114
+        }
+      ],
+      "artifact_count": 3
+    },
+    {
+      "language": "Go",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Go/builder.go",
+          "sha256": "83584fb49c15b813317fcd61071e94142f3af9eb14a6da8b451438ddeed8c0ab",
+          "bytes": 11881
+        },
+        {
+          "path": "Go/constants.go",
+          "sha256": "2861f00741ea5724d0d187815ab32c85e8e07881067391b988520727bbec2eca",
+          "bytes": 7303
+        },
+        {
+          "path": "Go/diagnostics.go",
+          "sha256": "9ef4b8d861e232e61df4c4c9c7017cc309ec21444363e06f81f666de1b3c2c08",
+          "bytes": 7003
+        },
+        {
+          "path": "Go/diff.go",
+          "sha256": "096f7d2de48a1207fc7524d514fca24866d2ad365036ac922d52075ba47a0b63",
+          "bytes": 3319
+        },
+        {
+          "path": "Go/encoder.go",
+          "sha256": "54991e0d0d39b6662bc290b39e672964c6529b63dd73c969f4ccf673f902f8ce",
+          "bytes": 1940
+        },
+        {
+          "path": "Go/go.mod",
+          "sha256": "eafc2d77a9fe676beb96e4373e1f8de13f105b7ea3485a2841b5ed8825dd4c65",
+          "bytes": 46
+        },
+        {
+          "path": "Go/integrity.go",
+          "sha256": "1826ba6f81f1f8d012bf39b8c4762b5f7a22086e8ee12a5c4db340594c09d314",
+          "bytes": 5963
+        },
+        {
+          "path": "Go/library_test.go",
+          "sha256": "ceecc56e36d3a7dd397f0fa99ce99b15e0d7f1f60c1cb4ddc96462c29c8de52f",
+          "bytes": 12493
+        },
+        {
+          "path": "Go/merge.go",
+          "sha256": "c9040b57ac55c202b3943c7e7df3ed4b2b34572b446feee59f629a656ed49bc9",
+          "bytes": 3568
+        },
+        {
+          "path": "Go/model.go",
+          "sha256": "7d2a97cdd24fd4db2b83045a03e718fb82598c4743c04acbc868c6c164a1246c",
+          "bytes": 6031
+        },
+        {
+          "path": "Go/parser.go",
+          "sha256": "02edf6a1509a8b1da72d8d2a02d9b60a2b291be2e9912736749db61672b12b8e",
+          "bytes": 4417
+        },
+        {
+          "path": "Go/recovery.go",
+          "sha256": "f554c8ba649c620a7b244ddf80299dcb22dc5eb0b5b4f8d2307a9aa5a8dbc35e",
+          "bytes": 1791
+        },
+        {
+          "path": "Go/representations.go",
+          "sha256": "0c8f2a61b08261a07a23b5ed056c7f76de981b0043e1ad51f72cd095e0d7b0e6",
+          "bytes": 4619
+        },
+        {
+          "path": "Go/store.go",
+          "sha256": "991db7d22c409eb5e91f8d55eb64b597e241f6904cdd462fac223f8543dcf97e",
+          "bytes": 24598
+        },
+        {
+          "path": "Go/test_vsn_test.go",
+          "sha256": "4ec11e3380b8619cfc588f01b18bd9045e9db91b79641f818f67e1ccb80d3ae5",
+          "bytes": 17766
+        },
+        {
+          "path": "Go/transactions.go",
+          "sha256": "baa80dc5189a0cf6f19b75352003435b309cc438ccd1164f22fde92f2f269e71",
+          "bytes": 4460
+        },
+        {
+          "path": "Go/validate.go",
+          "sha256": "42313a7c8a328bbd108caa524173b6ece8f2d232bb8154600ac058109f67ba92",
+          "bytes": 7377
+        },
+        {
+          "path": "Go/vsn_test.go",
+          "sha256": "76ad27039cb53a8fd26389e616f5a7659fd34d253a42802d94ac68a28ae43cf6",
+          "bytes": 6631
+        }
+      ],
+      "artifact_count": 18
+    },
+    {
+      "language": "Haskell",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Haskell/VSN.hi",
+          "sha256": "1d49c27814d43cac1d10ea3bb9cda8ff51575b5ef2a26225f3c8d15d70e88327",
+          "bytes": 72707
+        },
+        {
+          "path": "Haskell/VSN.hs",
+          "sha256": "200f52999adf141d27a1c3b7dcdc6f4ae8cc161f93ee51dcd2290bb6a989783f",
+          "bytes": 16467
+        },
+        {
+          "path": "Haskell/VSN.o",
+          "sha256": "4f19b2e1c31c1b9fb6fc68105a2126cab666989671d736b577fd049b0bc22569",
+          "bytes": 217112
+        },
+        {
+          "path": "Haskell/libvsnhaskell.a",
+          "sha256": "ed7c6d4b80b83632c6011190887833b8045e12cda551722b3e4c298b7587f7e4",
+          "bytes": 234580
+        }
+      ],
+      "artifact_count": 4
+    },
+    {
+      "language": "Java",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Java/VsnLib.java",
+          "sha256": "32b670a32cda10d229894063c04ec5f68f0af04a6c12d789d7ae0b5f3e1df965",
+          "bytes": 16338
+        },
+        {
+          "path": "Java/vsn-java.jar",
+          "sha256": "f04fdf5abe69bfc27ce5016d939e69c21a56f8e272d8b1ce266f051992f348dc",
+          "bytes": 13266
+        }
+      ],
+      "artifact_count": 2
+    },
+    {
+      "language": "JavaScript-TypeScript",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "JavaScript-TypeScript/dist/api.d.ts",
+          "sha256": "fe89d81688b5895da37776bd8e9461faabdb7d42e40fb86b1d3841a15c1025eb",
+          "bytes": 666
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/api.js",
+          "sha256": "47b516665a8ea7b9c5bd2992b3fddd9d57dc70055ded5765629f127b80e147ae",
+          "bytes": 3871
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/api.js.map",
+          "sha256": "c71d7b0b93c5fabb3e1b67487fad164940a7de444039d988b0e698f8d4c9cd3f",
+          "bytes": 3424
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/builder.d.ts",
+          "sha256": "d0e928161ba19b601b47dd3a45f432322ec1c9183bcf96086fa3a4738d624acd",
+          "bytes": 1668
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/builder.js",
+          "sha256": "29438fa8b77b5cb2d08a9dff0c1237058879db14fdb9bc643af66fc3891111dc",
+          "bytes": 7339
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/builder.js.map",
+          "sha256": "1642201ccb57f8facbaab7f2973c66131c2f77c19983e0237b65019391762474",
+          "bytes": 5867
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/constants.d.ts",
+          "sha256": "44ea1c0b3180088d63f95cba721a02164b7c54edb26e77df1893f3dd6dc14717",
+          "bytes": 2596
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/constants.js",
+          "sha256": "1ecfb3789194b854b1ac4a849fa54963a6af127a75db544b430ecfa36bf006b6",
+          "bytes": 4728
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/constants.js.map",
+          "sha256": "f9b56a9d4e7341bfcf3eb052a812d58a736098b3ec817d78bedee1e859e62300",
+          "bytes": 2318
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/container.d.ts",
+          "sha256": "ee78920f73e35d320eb8d250aa4b72ff2fb4de93d7b74f1f41bac33c24660b82",
+          "bytes": 729
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/container.js",
+          "sha256": "ec50d0727bb6e8cff6834904c4b5e9b26133230f5d83862be1abe190a3a89683",
+          "bytes": 4647
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/container.js.map",
+          "sha256": "607bc96aebdd5e337b50111e32ecc35a4f05297de72372c3b4c158bf726429a7",
+          "bytes": 4620
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/diagnostics.d.ts",
+          "sha256": "a03ad17d73bb68c528ef6dee6a828dc7cd3e5ec04cb182bcce3bc707355bc8fc",
+          "bytes": 1552
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/diagnostics.js",
+          "sha256": "780303d663d57eb48eae6409a28ae696dbb6f428955e394e132e15c2fc8df0f1",
+          "bytes": 2689
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/diagnostics.js.map",
+          "sha256": "426bf4bff2da5a8a61144b3e39e22f5b9b82ba9de980eedc3d8dfdfa4cd6b41f",
+          "bytes": 1957
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/diff.d.ts",
+          "sha256": "1da8896350c7108fd1110a73854979531e74a84d0cbf65e7a87d805c205e81dc",
+          "bytes": 1123
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/diff.js",
+          "sha256": "be3f6181b8947082e9dbe0e2998d8df83faeabf72026ba23ed8de6183ff08fe4",
+          "bytes": 2245
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/diff.js.map",
+          "sha256": "d60d58705703c120bda794a5a63ded39d8397ea6e7efefba39d1c1a5d5b76c59",
+          "bytes": 2775
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/errors.d.ts",
+          "sha256": "cf40f69e631e8ce65ea372426e7bbffa4a3917f968e5add38e1d1212e2bb2f7f",
+          "bytes": 603
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/errors.js",
+          "sha256": "b4f6ec4b56f8eb304ced5671cfe5a42a2344ea60bca329334fe9101740409ad5",
+          "bytes": 1931
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/errors.js.map",
+          "sha256": "872624817034e7b4966cae0a29d7bd189bb6e9648993bb3eff3d6d3603579660",
+          "bytes": 1153
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/index.d.ts",
+          "sha256": "ec56c13ae16227c759d9194b0e42e675c64e52e73ce6d3612fe120673791816f",
+          "bytes": 2310
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/index.js",
+          "sha256": "0b4d5645c73b02b5ee9bc3c9700d3dd0476e087a9786344d0bfbb90d4faad380",
+          "bytes": 5459
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/index.js.map",
+          "sha256": "eba3808c4c54fdd5741f04e8d4ada35310790ac41b2874089df9234220b0848d",
+          "bytes": 1451
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/integrity.d.ts",
+          "sha256": "88cc3a776192730b2ec34e96112eaf6d2e30892221a3f6e06ef2a39bd4e0b940",
+          "bytes": 842
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/integrity.js",
+          "sha256": "d0a79927042626cd73b25d6e5c814bbaa920bff761c1ebf00395e0b773b8027a",
+          "bytes": 1584
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/integrity.js.map",
+          "sha256": "fa6e3746b801e0e320b279f34fd5db1a516dd23a2f99b857c4442be9a66ecb5b",
+          "bytes": 1420
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/io_ops.d.ts",
+          "sha256": "90b7fd01fa6497d5bb13c0737553ef77344359507720f919336b4a77e10e630a",
+          "bytes": 1078
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/io_ops.js",
+          "sha256": "1a52e2b5e58177dc54570378381523e2aee1603e00902eb130f1e08b0810908d",
+          "bytes": 1974
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/io_ops.js.map",
+          "sha256": "953c7e9caa2c8bf8464bedf6b670c0f44bfd5b7d977e1dfd3b50a82f4e9ccec2",
+          "bytes": 1663
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/merge.d.ts",
+          "sha256": "773a8b47357eb7daf19c349965252827749ed1d44e651750cc6f0227984b357e",
+          "bytes": 1004
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/merge.js",
+          "sha256": "1760c510681f3025293a2001d9c8645dab972c11ce18365b57767401127e4493",
+          "bytes": 2562
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/merge.js.map",
+          "sha256": "d79d2a067230ec2a94edfe98aea7f3ae831312423cdae87b4895b24689821850",
+          "bytes": 2680
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/primitives.d.ts",
+          "sha256": "2b5e515009f1a67c92120bd8ce3209721f4555700e3dd88a7be086853b3732da",
+          "bytes": 360
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/primitives.js",
+          "sha256": "362d71b0f743ac06efd06bc8a938380d5cb53117efbc605b2ee146fdd9b0ef3d",
+          "bytes": 1683
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/primitives.js.map",
+          "sha256": "42a99b52512467eb393550a99fb8740aa7031dee0dd8b9edeadc3b9741219caf",
+          "bytes": 1762
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/recovery.d.ts",
+          "sha256": "cdbc9ce569b7bc295dfd730828489547cdae29ead60b3c6f3924457c25c48f19",
+          "bytes": 633
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/recovery.js",
+          "sha256": "7d1d46ed80b31ecfbd6e71077161482ce51fbbb048ad5992a7b53bc9cfe6cc06",
+          "bytes": 2002
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/recovery.js.map",
+          "sha256": "dca12ce55e109fd07899e9a028be48f4daf7964e999bbf8556a43ffdeb67aefb",
+          "bytes": 1546
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/representations.d.ts",
+          "sha256": "d7cc3fe11d85ba9406157fac9bd00badc316ba0624d9aab3cbccf58524819f79",
+          "bytes": 803
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/representations.js",
+          "sha256": "d5a6b17759f5c3d2aa2a66d2aa1b5c620785f3c28bd9ec9ee7d773dbfbd91792",
+          "bytes": 5072
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/representations.js.map",
+          "sha256": "f3e600977bc84583d76b2fedaaf730345913c2de87a31369c8645a37783d84b1",
+          "bytes": 4964
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/storage.d.ts",
+          "sha256": "b8cf80a25379ce69be7657cc44f2fc0d6d43e7bc4f126dc7987f01b23814d9e3",
+          "bytes": 1607
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/storage.js",
+          "sha256": "06ed15d543f4470722b8c4ec368a244ec170a37138436ab998e82329a3750ca7",
+          "bytes": 2959
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/storage.js.map",
+          "sha256": "c11238e6bc45d94b92a5cb0d30855dd1e992752acedcf5c9580fd9e3825774fb",
+          "bytes": 2436
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/store.d.ts",
+          "sha256": "44f2ee9dba30776ce57e8226fd9adf926034808483f1f4bc927d425ebb92ccfc",
+          "bytes": 5446
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/store.js",
+          "sha256": "77b5289ecac3dc35c9aced4673fd32e53c9841c0836c6a6345ee0e76799d79fb",
+          "bytes": 25164
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/store.js.map",
+          "sha256": "2680af4da3aeef5b62be14ef1fcfee7a0cae6e853de07c9823ffccf88544aa04",
+          "bytes": 22816
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/transactions.d.ts",
+          "sha256": "8f96b35a7064f9ea52155b93a33745ccc1195450e391bee76b563f3e57810d0e",
+          "bytes": 1270
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/transactions.js",
+          "sha256": "f8378bcc357c4da11514e04e73768ab3ea75fbc1038b1829ccd83264b164b005",
+          "bytes": 2684
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/transactions.js.map",
+          "sha256": "83b2c3488d254059dd80263403a156911a0df8576026cc4384e663033115befe",
+          "bytes": 2210
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/validate.d.ts",
+          "sha256": "4a9326c94827c3a592e34869b52ed323ce872aab237ca8d1eeb6a544344d198d",
+          "bytes": 1061
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/validate.js",
+          "sha256": "ee2e8d50f3dcd2727004f22474bda5ef08598bbe7ace998cd13b514d5f531dc5",
+          "bytes": 7267
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/validate.js.map",
+          "sha256": "2475942b8f44982a6c822dc25187b5277431a634cf5058e750016becc44a60bd",
+          "bytes": 5969
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/writer.d.ts",
+          "sha256": "dd3e6d3c98d32b4fc813c0cb0a6e69fab8ab82d46c2dfa4c5362a60af799c6cf",
+          "bytes": 1163
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/writer.js",
+          "sha256": "4875f923248a04f5b4a2043b9e7c2397e73cd84b30c0ffb2084c115a5162fd14",
+          "bytes": 3574
+        },
+        {
+          "path": "JavaScript-TypeScript/dist/writer.js.map",
+          "sha256": "bcdadc4b4df7ca5eb85f3c0871282d99db4c53e1666f02371222ce66e1dba7c8",
+          "bytes": 2613
+        },
+        {
+          "path": "JavaScript-TypeScript/package.json",
+          "sha256": "053fb8a9b4d47ddabcdb7b93a01a30e8022a89026c033967596e50923a8e19d3",
+          "bytes": 1348
+        },
+        {
+          "path": "JavaScript-TypeScript/src/api.ts",
+          "sha256": "d902878d2879ce719ae6e109ed8dd63787bf432fbe006210366636add01bff6c",
+          "bytes": 3481
+        },
+        {
+          "path": "JavaScript-TypeScript/src/builder.ts",
+          "sha256": "7efbfc9f0aa757b6bd5804dab788d05ca17844a6e8389a1a94545ce33eeb7bdf",
+          "bytes": 6792
+        },
+        {
+          "path": "JavaScript-TypeScript/src/constants.ts",
+          "sha256": "d533ed0a6e3562f225af84b5b64530658694ab9375315d2063141b616fb63512",
+          "bytes": 3285
+        },
+        {
+          "path": "JavaScript-TypeScript/src/container.ts",
+          "sha256": "53892a0b0a35bf1d2804559fa4cabf499b12876879c781aae4303b46aefc1e39",
+          "bytes": 4701
+        },
+        {
+          "path": "JavaScript-TypeScript/src/diagnostics.ts",
+          "sha256": "c2176bc4e48e1db57acfa72290aa705664f7603dd59337b791cc14103d4135a8",
+          "bytes": 2874
+        },
+        {
+          "path": "JavaScript-TypeScript/src/diff.ts",
+          "sha256": "3e2b53ef892d508d285685f2a04a9909766e1c5b635e6b54ee42e762cb011384",
+          "bytes": 2674
+        },
+        {
+          "path": "JavaScript-TypeScript/src/errors.ts",
+          "sha256": "5a48beb6f83958017d83aef7add4a06fe4e5aeb29bfcae94fed5cef7398672bf",
+          "bytes": 1761
+        },
+        {
+          "path": "JavaScript-TypeScript/src/index.ts",
+          "sha256": "a89b16f839a1a870b444ff96a6405a6322c8711b6138b02f3190422c696c574b",
+          "bytes": 2901
+        },
+        {
+          "path": "JavaScript-TypeScript/src/integrity.ts",
+          "sha256": "4449f1b56a5a9d0c790157b353092a767f7ebc0596cabcbbd09c6855c819dd47",
+          "bytes": 1883
+        },
+        {
+          "path": "JavaScript-TypeScript/src/io_ops.ts",
+          "sha256": "d5b0fd24d4858eff39ba635512d152a99bb6377e530e2cfe6ca16fb55526af1c",
+          "bytes": 2038
+        },
+        {
+          "path": "JavaScript-TypeScript/src/merge.ts",
+          "sha256": "85f4056089a24dd668e6669a5149abdfd7c762c94c0e5a1c4ff9c4e57275b34a",
+          "bytes": 2863
+        },
+        {
+          "path": "JavaScript-TypeScript/src/primitives.ts",
+          "sha256": "23e411fae15cc250e16ffa7124a193d4811b6f8bb726376ef645335157b462d9",
+          "bytes": 1456
+        },
+        {
+          "path": "JavaScript-TypeScript/src/recovery.ts",
+          "sha256": "823d519cac9b258bd996a1ead9e41e9fc7477577fed377d5220a1589277b2977",
+          "bytes": 1994
+        },
+        {
+          "path": "JavaScript-TypeScript/src/representations.ts",
+          "sha256": "86192a32ca102be5ad4662c2a990d58286655035ae68de92e3b0ace108545053",
+          "bytes": 4549
+        },
+        {
+          "path": "JavaScript-TypeScript/src/storage.ts",
+          "sha256": "623381c5e86010363f34a6404080a3ed1cadf18d131336b751066f3f0a67c691",
+          "bytes": 3207
+        },
+        {
+          "path": "JavaScript-TypeScript/src/store.ts",
+          "sha256": "57b391e12317b569debb2e2e11644984c90fc270a1fa42b64658431e92e259de",
+          "bytes": 23775
+        },
+        {
+          "path": "JavaScript-TypeScript/src/transactions.ts",
+          "sha256": "9a26c194ed5f9d4b82fafed17ed540e3fbd63708898e9e7ac850a5769d0d44c0",
+          "bytes": 2826
+        },
+        {
+          "path": "JavaScript-TypeScript/src/validate.ts",
+          "sha256": "3fe79079204ff36cbf1590fa48122f06bdde4674ad7b9c61ef64d12c1ec8d292",
+          "bytes": 6569
+        },
+        {
+          "path": "JavaScript-TypeScript/src/writer.ts",
+          "sha256": "48b680e92af2cdaf8fad1562961a0070ea5cd3d8370092ffae21e2f7a723c1fe",
+          "bytes": 3010
+        }
+      ],
+      "artifact_count": 77
+    },
+    {
+      "language": "Julia",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Julia/vsn.jl",
+          "sha256": "615eb32339617d12c8500f36a328df76f04a5be03442696855777e173751e8a1",
+          "bytes": 15692
+        }
+      ],
+      "artifact_count": 1
+    },
+    {
+      "language": "Kotlin",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Kotlin/Vsn.kt",
+          "sha256": "ce0349d86b043e3b5c63d00f19ea9f2aea90df1629ca63f6c5c3539a71e654bb",
+          "bytes": 11838
+        },
+        {
+          "path": "Kotlin/vsn-kotlin.jar",
+          "sha256": "8a21309bcfc3a3af6d9aef9df5c6879a2e3d6be55ac37064f5f7b0fe2968138e",
+          "bytes": 20358
+        }
+      ],
+      "artifact_count": 2
+    },
+    {
+      "language": "Lua",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Lua/vsn.lua",
+          "sha256": "8dbd7679cc764d268fd530dd8db45eadbf1a1aa67de2d9fa0a56945e0cfb8f0c",
+          "bytes": 59548
+        }
+      ],
+      "artifact_count": 1
+    },
+    {
+      "language": "Nim",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Nim/libvsnnim.a",
+          "sha256": "8cd991fc19d9ac82f46f2bb7c7a64b7e7c46f61cb50d8a5c656834be48d99526",
+          "bytes": 143400
+        },
+        {
+          "path": "Nim/vsn.nim",
+          "sha256": "c7ac157474eddd3e64132b754af4e201931297e76fb2b8acd9194269c42eea73",
+          "bytes": 12738
+        }
+      ],
+      "artifact_count": 2
+    },
+    {
+      "language": "Objective-C",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Objective-C/VSN.h",
+          "sha256": "0ddd4d37062daa1c0794a1821d1dd9c13799a2fe07f0e45ae3b16fee94dad84e",
+          "bytes": 1429
+        },
+        {
+          "path": "Objective-C/VSN.m",
+          "sha256": "9c050e03d4becb1251c9c36007296707e761eb1bb0836a87db337f3feeceb2aa",
+          "bytes": 2228
+        },
+        {
+          "path": "Objective-C/libvsnobjc.a",
+          "sha256": "ec8d3c0b6439304c1453d7c6681623c3f887052dc0a42d84a7ed21e414a587a9",
+          "bytes": 1876
+        },
+        {
+          "path": "Objective-C/libvsnobjc.so",
+          "sha256": "71c40d390119509c306d827e58bbfbb7b7e66a0da70752d0d758e59afb4b4b22",
+          "bytes": 15232
+        },
+        {
+          "path": "Objective-C/vsn_sp_c.c",
+          "sha256": "31e28b09c3eb92b7165a3ce2bb5ba23d7e2215e129e5ba273220e93414c62378",
+          "bytes": 2474
+        }
+      ],
+      "artifact_count": 5
+    },
+    {
+      "language": "OCaml",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "OCaml/vsn.cma",
+          "sha256": "35bf093bc89736acc9309658c79b601a3cc0fa5e3bb398ae294a911a6f3d4dd2",
+          "bytes": 11819
+        },
+        {
+          "path": "OCaml/vsn.cmi",
+          "sha256": "4afc1c28951666934a19763042744c9084889a268b8c9c4ac45d08db8178929b",
+          "bytes": 10104
+        },
+        {
+          "path": "OCaml/vsn.ml",
+          "sha256": "8e17f26a398d4161112453141f218b77ca4f96e5bb0c38f7face5d91a7520372",
+          "bytes": 10901
+        },
+        {
+          "path": "OCaml/vsn_ocaml.cmo",
+          "sha256": "d0c79bba58e4b49aa04b920453a8725c7da878b49f26418c980366a68e5eb40b",
+          "bytes": 11812
+        }
+      ],
+      "artifact_count": 4
+    },
+    {
+      "language": "Perl",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Perl/vsn.pl",
+          "sha256": "c14eb3f9192d74a60063d536247784dfaeff2afd6afe7546dcb962e2eff3f23c",
+          "bytes": 13120
+        }
+      ],
+      "artifact_count": 1
+    },
+    {
+      "language": "PHP",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "PHP/vsn.php",
+          "sha256": "1e66089dd7caec88f6f6750176ebe2496b3c78add2ca0ed445dc328954512b26",
+          "bytes": 13498
+        }
+      ],
+      "artifact_count": 1
+    },
+    {
+      "language": "Python",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Python/conformance_test.py",
+          "sha256": "b0d4a54f8e8866957e1ad9f6e1adde2a7ee05673c85e042c1999323df60ed131",
+          "bytes": 11463
+        },
+        {
+          "path": "Python/vsn/__init__.py",
+          "sha256": "66c94848238df3ae947e262f068b373bd63e72ebbd25750bc5fc6f8e6bbe93b3",
+          "bytes": 2274
+        },
+        {
+          "path": "Python/vsn/api.py",
+          "sha256": "745cab1137f02a196d0a7f52f739290ce07de8a2cafb175de5075a67ae512390",
+          "bytes": 3088
+        },
+        {
+          "path": "Python/vsn/builder.py",
+          "sha256": "67e092da61596d339c885de0922eb0ea3b8b384d44145caa767bd15d4afe2d27",
+          "bytes": 4164
+        },
+        {
+          "path": "Python/vsn/cli.py",
+          "sha256": "80f849817a05ff06d169d3ab3f6cd7fcfbb6c610b8fa5a71e6e39097ad03c7a5",
+          "bytes": 2236
+        },
+        {
+          "path": "Python/vsn/constants.py",
+          "sha256": "3f6d47adf5b07ac34d580a77e38d17576a3cf2f161dd2b88307166318ed12f24",
+          "bytes": 4435
+        },
+        {
+          "path": "Python/vsn/container.py",
+          "sha256": "9b0aeeb7ef17974d793d5d15e8b61dd4fe34cc52ee9280c51e12a93ee35f1bdd",
+          "bytes": 3984
+        },
+        {
+          "path": "Python/vsn/diagnostics.py",
+          "sha256": "de2a5e953b216f8f18f8b161cabd0938cb39d4144281d9d5305cb85fdf323cd7",
+          "bytes": 3546
+        },
+        {
+          "path": "Python/vsn/diff.py",
+          "sha256": "b9e3912d3a13aaf37793ad5c2bf754346b31bf9420882b544f230200cf936495",
+          "bytes": 2764
+        },
+        {
+          "path": "Python/vsn/errors.py",
+          "sha256": "657382b1f0f95be2d195f2e753c196b9ea3e7af61d110ada292433d477be2816",
+          "bytes": 3838
+        },
+        {
+          "path": "Python/vsn/io_ops.py",
+          "sha256": "809130cbf39121d7c2056b736d194e775bbfbb3725c290499382a984d6686882",
+          "bytes": 1954
+        },
+        {
+          "path": "Python/vsn/merge.py",
+          "sha256": "992ed81dbaeeb8cd7c07ffe60b10f167e561ef9e61f4c35c3a0470230d48a683",
+          "bytes": 3047
+        },
+        {
+          "path": "Python/vsn/model.py",
+          "sha256": "c6a105498a2ba36380e121f36215e84dc868a9d47f8a4b5930322fda7eac3985",
+          "bytes": 1717
+        },
+        {
+          "path": "Python/vsn/primitives.py",
+          "sha256": "eec1ab202527f5f58b4916b32c61fe5a465a35259b993f7b5ed121cdfeb687b9",
+          "bytes": 1424
+        },
+        {
+          "path": "Python/vsn/reader.py",
+          "sha256": "e1f433b7a9b3271898260e11cfa641b99f23029313a323c03233efcd50cbb93e",
+          "bytes": 2265
+        },
+        {
+          "path": "Python/vsn/recovery.py",
+          "sha256": "1f63d5186817541e2f20d08101ffdc886669162fba7be003bb1dff2a9d8263ff",
+          "bytes": 1828
+        },
+        {
+          "path": "Python/vsn/representations.py",
+          "sha256": "ca149c8bedc66e78547c2c0c7917c83fb89aaa8bc880e9aca7a38c7f48228ad5",
+          "bytes": 3413
+        },
+        {
+          "path": "Python/vsn/storage.py",
+          "sha256": "ce416ea792f9cd68207618f482d783e92bd52a4dfb99ccecdac479ac0360e1b7",
+          "bytes": 2809
+        },
+        {
+          "path": "Python/vsn/store.py",
+          "sha256": "316200a9b8d77165fba27e80b6ce3bc0fa79ad044086242547c47b30acd297a6",
+          "bytes": 24033
+        },
+        {
+          "path": "Python/vsn/transactions.py",
+          "sha256": "23382323e150d51eb8255b066606b3181c2e257a36b807384cbdf7bd96591934",
+          "bytes": 3371
+        },
+        {
+          "path": "Python/vsn/validate.py",
+          "sha256": "7e408164edf9e6176fa53a3202e0da0dcadbe6dce70c5c7a22881c7df57901b4",
+          "bytes": 7388
+        },
+        {
+          "path": "Python/vsn/writer.py",
+          "sha256": "4e54c86f10085280ebf68a825929a5ac5d961666adf4c4e0ea1bbf4736af51b8",
+          "bytes": 2070
+        },
+        {
+          "path": "Python/vsn/writer_options.py",
+          "sha256": "eeca22145d2ba492bec2e0b7132304a4f7b3116b39a434f4fddf832ba892bb2b",
+          "bytes": 6393
+        }
+      ],
+      "artifact_count": 23
+    },
+    {
+      "language": "R",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "R/vsn.R",
+          "sha256": "880679368d87ffd76e92bbdbf16781979b6b3a496a9a38f1be12d13ef7af5509",
+          "bytes": 21296
+        }
+      ],
+      "artifact_count": 1
+    },
+    {
+      "language": "Ruby",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Ruby/vsn.rb",
+          "sha256": "0d2845a0452b0fd973bd026c8c1b1278cf22de8819686c39ba674cf02890f263",
+          "bytes": 10544
+        }
+      ],
+      "artifact_count": 1
+    },
+    {
+      "language": "Rust",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Rust/Cargo.lock",
+          "sha256": "60700e09a6450a3870b0f65869ac7f6a5aa453611084aada38c068de17b42466",
+          "bytes": 152
+        },
+        {
+          "path": "Rust/Cargo.toml",
+          "sha256": "7c243fc9f6472e7fc378c15d4ce9128ffc140630c3c709936ee40d0341f74274",
+          "bytes": 219
+        },
+        {
+          "path": "Rust/libvsn_rust.rlib",
+          "sha256": "681303f15f2ecbf0debc494dea974c9d74caf85d4fdd5f4655c99b5440d95247",
+          "bytes": 122408
+        },
+        {
+          "path": "Rust/src/lib.rs",
+          "sha256": "9495ca5b4b956d3997673287ca01b0e0c50e2ed89dc3330627b78c2ec965c7ab",
+          "bytes": 11698
+        }
+      ],
+      "artifact_count": 4
+    },
+    {
+      "language": "Scala",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Scala/vsn-scala.jar",
+          "sha256": "e0f2718c155cb7eaacb5692b38d0f0966b90a79ce7e7a45e6330b7f12956abc0",
+          "bytes": 24110
+        },
+        {
+          "path": "Scala/vsn.scala",
+          "sha256": "4a0233d26fdaf8abb2707816c1c02aa6c2c57b41d8fd603337e3e549474dc906",
+          "bytes": 6460
+        }
+      ],
+      "artifact_count": 2
+    },
+    {
+      "language": "Swift",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Swift/Package.swift",
+          "sha256": "8abf41218c2604100e7d5c5dd255d8480a0403b5b975eeec5327e44e25ba2530",
+          "bytes": 296
+        },
+        {
+          "path": "Swift/VSN.swiftdoc",
+          "sha256": "d17935157893406f94904c6e3b7671ae5d3273a23c648938091bb669a9f82dbc",
+          "bytes": 368
+        },
+        {
+          "path": "Swift/VSN.swiftmodule",
+          "sha256": "fc0b2b579b745edefa51af53209a20f61c5f063ec8fed998a3123808a9a0d6f0",
+          "bytes": 51748
+        },
+        {
+          "path": "Swift/Vsn.swift",
+          "sha256": "7af7d64dad4e2f9617bf4b6579a5583ab935b7cec7fa071a382590d199642ad6",
+          "bytes": 9716
+        },
+        {
+          "path": "Swift/test_vsn.swift",
+          "sha256": "7784ed9e9bb4a528ef425a2f683d6a05017e220daf512c43e704d5d9b08c0a59",
+          "bytes": 14226
+        }
+      ],
+      "artifact_count": 5
+    },
+    {
+      "language": "Zig",
+      "build": "PASS",
+      "consumer_test": "PASS",
+      "artifacts": [
+        {
+          "path": "Zig/build.zig",
+          "sha256": "093c4ab7025c182fad579f639433cecd326d695b64805ad696e9a365c5ba98a0",
+          "bytes": 251
+        },
+        {
+          "path": "Zig/libvsnzig.a",
+          "sha256": "aa0e6dc738ef1671482646b2880e47f1d3c9390fa738d24d705e7ff70be06aaf",
+          "bytes": 7448
+        },
+        {
+          "path": "Zig/vsn.zig",
+          "sha256": "9d059b033bac0805170213aa4a0faf947c228b6e9453784c1e674bec23e89dea",
+          "bytes": 6799
+        }
+      ],
+      "artifact_count": 3
+    }
+  ]
+}

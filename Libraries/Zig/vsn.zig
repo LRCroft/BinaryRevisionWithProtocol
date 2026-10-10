@@ -126,25 +126,17 @@ pub fn createWithPolicy(policy: u8) MutableStore {
 }
 
 pub fn parseStoragePolicy(data: []const u8) ?u8 {
-    if (data.len < 9) return null;
-    var pos: usize = 8;
-    while (pos + 2 < data.len) {
-        const rt = @as(u16, data[pos]) << 8 | @as(u16, data[pos + 1]);
-        if (rt == 0) return null; // RecordsEnd
-        if (pos + 3 >= data.len) break;
-        const plen = data[pos + 2];
-        if (pos + 3 + @as(usize, plen) > data.len) break;
-        var ppos: usize = pos + 3;
-        var pi: usize = 0;
-        while (pi < plen - 1 and ppos + 2 <= pos + 3 + plen) : (pi += 1) {
-            const fid = @as(u16, data[ppos]) << 8 | @as(u16, data[ppos + 1]);
-            ppos += 2;
-            if (fid == FID_STORAGE_POLICY and ppos < pos + 3 + plen) {
-                return data[ppos];
-            }
-            ppos += 1;
+    if (data.len < 13) return null;
+    // Robust scan for REC_STORAGE_POLICY(0x0009) plen(4) FID(0x0901) vlen(1) value.
+    var i: usize = 4;
+    while (i + 6 <= data.len) : (i += 1) {
+        if (data[i] == 0x00 and data[i + 1] == 0x09 and
+            data[i + 2] == 0x04 and
+            data[i + 3] == 0x09 and data[i + 4] == 0x01 and
+            data[i + 5] == 0x01)
+        {
+            return data[i + 6];
         }
-        pos += 3 + @as(usize, plen);
     }
     return null;
 }

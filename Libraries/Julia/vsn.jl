@@ -79,7 +79,7 @@ function _read_sp_from_bytes(data::Vector{UInt8}, start::Int)::Int
         if rt == 0x0000 break end  # RecordsEnd — stop scanning records
         if pos + 1 > len break end
         plen = Int(data[pos]); pos += 1
-        if pos + plen > len break end
+        if pos + plen - 1 > len break end
         # Scan payload fields for FID_STORAGE_POLICY (0x0901)
         ppos = pos
         while ppos + 2 <= pos + plen
@@ -103,7 +103,7 @@ function parse(data::Vector{UInt8})::Container
     data[1:4] == MAGIC || throw(ArgumentError("bad magic"))
     cfv = Int(data[5]) << 8 | Int(data[6])
     ev = Int(data[7]) << 8 | Int(data[8])
-    sp = _read_sp_from_bytes(data, 8)
+    sp = _read_sp_from_bytes(data, 9)
     Container(cfv, ev, Record[], ObjectEntry[], UInt64(0), UInt64(0), MODE_MODERN, length(data), sp)
 end
 

@@ -252,7 +252,9 @@ local function parse_container(data)
     local rl = cur:read_uvarint()
     local payload = cur:read(rl)
     local rec = { rtype = rt, payload = payload, fields = {}, offset = start }
-    if rt <= vsn.REC_REPRESENTATION_DESCRIPTOR then
+    -- REC_STORAGE_POLICY (0x0009) is a canonical field-bearing record; it MUST be
+    -- included in field parsing or the writer's storage policy is lost on read-back.
+    if rt <= vsn.REC_STORAGE_POLICY then
       rec.fields = parse_fields(Cursor.new(payload))
     end
     records[#records + 1] = rec

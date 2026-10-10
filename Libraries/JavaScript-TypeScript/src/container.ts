@@ -110,7 +110,9 @@ export function parse(data: Buffer): ParsedContainer {
     const rl = readUvarint(data, off);
     const payload = sliceChecked(data, off, Number(rl), "record payload");
     const rec = makeRecord(rt, payload, start);
-    if (rt <= 0x0008) parseFields(payload, rec);
+    // REC_STORAGE_POLICY (0x0009) is a canonical field-bearing record; it MUST be
+    // included in field parsing or the writer's storage policy is lost on read-back.
+    if (rt <= REC_STORAGE_POLICY) parseFields(payload, rec);
     records.push(rec);
   }
 

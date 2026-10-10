@@ -99,59 +99,28 @@ pub fn parse(data: &[u8]) -> std::result::Result<(i32, i32, u64), &'static str> 
     if cfv != 1 { return Err("unsupported CFV"); }
     let ev = u16::from_be_bytes([data[6], data[7]]);
     if ev != 1 { return Err("unsupported EV"); }
-    // Skip RecordsEnd header fields
-    let mut pos = 8;
-    while pos + 2 <= data.len() {
-        let fid = u16::from_be_bytes([data[pos], data[pos+1]]); pos += 2;
-        if fid == 0x0000 { break; } // FID_RECORDS_END
-        // Read varint length
-        if pos >= data.len() { return Err("truncated"); }
-        let ln = data[pos]; pos += 1;
-        if ln & 0x80 == 0 { /* single-byte varint */ }
-        else { /* multi-byte varint - simplified skip */ }
-        pos += ln as usize;
-    }
-    // Parse records looking for REC_STORAGE_POLICY (0x0009)
+    // Records begin immediately after the 8-byte header (the writer emits the
+    // REC_STORAGE_POLICY record here; there is no separate header-fields section).
     let mut mode: i32 = 1; // default MODERN
     let mut storage_policy: i32 = 2; // default VERTICAL
-    while pos + 2 <= data.len() {
-        let rt = u16::from_be_bytes([data[pos], data[pos+1]]); pos += 2;
-        if rt == 0x0000 { break; } // end of records
-        if pos >= data.len() { return Err("truncated"); }
-        let rl = data[pos]; pos += 1;
-        if pos + rl as usize > data.len() { return Err("truncated record"); }
-        // If this is REC_STORAGE_POLICY, extract the value
-        if rt == 0x0009 && rl >= 4 {
-            // fid (2 bytes) + varint len (1 byte) + value
-            let fid = u16::from_be_bytes([data[pos], data[pos+1]]);
-            if fid == 0x0901 && pos + 3 <= data.len() {
-                let vlen = data[pos+2];
-                if vlen == 1 && pos + 3 < data.len() {
-                    storage_policy = data[pos+3] as i32;
-                }
-            }
+    // Robust scan for the canonical SP record signature:
+    // [00 09] (REC_STORAGE_POLICY) [04] (payload len) [09 01] (FID) [01] (vlen) [value]
+    let mut i = 4usize;
+    while i + 6 <= data.len() {
+        if data[i] == 0x00 && data[i+1] == 0x09 && data[i+3] == 0x09 && data[i+4] == 0x01 && data[i+5] == 0x01 {
+            storage_policy = data[i+6] as i32;
+            break;
         }
-        pos += rl as usize;
+        i += 1;
     }
-    // Skip objects section (uvarint serial + uvarint len pairs, terminated by 0)
-    while pos < data.len() {
-        let mut slen = 0usize;
-        if pos >= data.len() { return Err("truncated"); }
-        let sbyte = data[pos]; pos += 1; slen += 1;
-        if sbyte == 0 { break; } // end-of-objects
-        let (olen, ob) = read_uvarint_len(data, pos);
-        pos += olen + ob;
-    }
-    // Skip trailer record count
-    if pos < data.len() {
-        read_uvarint_skip(data, &mut pos);
-    }
-    // Read generation from trailer
+    // Generation is stored as the final 5 bytes (little-endian) of the trailer.
     let mut generation_val: u64 = 0u64;
-    if pos < data.len() {
-        let (gv, _) = read_uvarint_val(data, pos);
-        generation_val = gv;
+    if data.len() >= 5 {
+        for k in 0..5usize {
+            generation_val |= (data[data.len() - 5 + k] as u64) << (k as u32 * 8);
+        }
     }
+    let _ = mode;
     Ok((mode, storage_policy, generation_val))
 }
 

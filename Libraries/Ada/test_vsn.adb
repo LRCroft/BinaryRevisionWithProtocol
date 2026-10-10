@@ -175,16 +175,13 @@ begin
       Cap(19, "interop", c);
    end;
    Put_Line("All 19 capabilities verified: 19/19");
-    -- Storage Policy P01-P12 inline test using Create_With_Policy + Mode_From_Policy
+    -- Storage Policy P01-P12 inline test using Create_With_Policy + Get_Storage_Policy
+    -- SP values are authoritative on the wire; no MODERN/ENTERPRISE mode inference.
     declare
        sp1 : VSN.Store := VSN.Create_With_Policy(1);
        sp2 : VSN.Store := VSN.Create_With_Policy(2);
        sp3 : VSN.Store := VSN.Create_With_Policy(3);
        sp4 : VSN.Store := VSN.Create_With_Policy(4);
-       m1  : Positive := 1; -- HIGHLY_VERTICAL -> MODERN wire mode
-       m2  : Positive := 1; -- VERTICAL -> MODERN wire mode
-       m3  : Positive := 2; -- HORIZONTAL -> ENTERPRISE wire mode
-       m4  : Positive := 2; -- HIGHLY_HORIZONTAL -> ENTERPRISE wire mode
        ok14 : Boolean := (VSN.Get_Storage_Policy(sp1)=1 and VSN.Get_Storage_Policy(sp2)=2
                           and VSN.Get_Storage_Policy(sp3)=3 and VSN.Get_Storage_Policy(sp4)=4);
     begin

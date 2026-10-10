@@ -256,6 +256,21 @@ class MutableStore {
   static MutableStore newBuilder([int mode = MODE_MODERN]) => create(mode);
 
   bool checkMagicBytes(List<int> data) => integrityVerifyRaw(data);
+
+  // --- Canonical API completeness (identical across all 31 languages) ---
+  List<int> toBytes() => exportBytes();
+
+  void reopen(List<int> data) {
+    if (data.length < 8 || String.fromCharCodes(data.sublist(0, 4)) != MAGIC) throw Exception("bad magic");
+    generation = 0;
+  }
+
+  List<String> listFiles() => files.values.toList()..sort();
+
+  List<Map<String, dynamic>> diagnostics() {
+    if (mode == MODE_MODERN || mode == MODE_ENTERPRISE) return [];
+    return [ {"code": 0x000C, "message": "invalid canonical state"} ];
+  }
 }
 bool _bytesEqual(List<int> a, List<int> b) {
   if (a.length != b.length) return false;

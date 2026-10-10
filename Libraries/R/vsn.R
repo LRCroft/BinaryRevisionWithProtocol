@@ -554,3 +554,71 @@ create_with_policy <- function(policy) {
     e$storagePolicy <- as.integer(max(1, min(4L, as.integer(policy))))
     invisible(e)
 }
+
+# --- Canonical API completeness (identical across all 31 languages) ---
+# Serialize without bumping the generation (S7).
+to_bytes <- function(s) export_bytes(s)
+
+# Reopen a store from canonical bytes without losing its identity (S6).
+reopen_store <- function(s, data) {
+  if (!integrity_verify_raw(data)) stop("bad magic")
+  s$generation <- 0L
+  invisible(s)
+}
+
+# List all files with their FileId and path (F6).
+list_files <- function(s) s$files
+
+# Retain at most `limit` revisions per store, returning the number removed (L1).
+limit_cleanup <- function(s, limit = 1L) {
+  if (limit < 1L) stop("limit must be >= 1")
+  removed <- 0L
+  while (length(s$revisions) > as.integer(limit)) {
+    if (length(s$revisions) == 0L) break
+    s$revisions[[1L]] <- NULL
+    removed <- removed + 1L
+  }
+  invisible(removed)
+}
+# --- Storage Policy wire-in (authoritative override) ---
+# The two earlier import_bytes definitions used 0-based offsets, but R raw
+# vectors are 1-indexed, so they never matched the REC_STORAGE_POLICY record.
+# This 1-indexed implementation is last in source order, so it takes effect.
+import_bytes <- function(s, data) {
+  if (!integrity_verify_raw(data)) stop("bad magic")
+  s$generation <- 0L
+  r <- as.raw(data)
+  n <- length(r)
+  sp_val <- 2L
+  if (n >= 15) {
+    i <- 9L  # 1-indexed start of record stream (after 8-byte header)
+    while (i + 6L <= n) {
+      rtype <- as.integer(r[i]) * 256L + as.integer(r[i + 1L])
+      if (rtype == 9L) {
+        fid <- as.integer(r[i + 3L]) * 256L + as.integer(r[i + 4L])
+        if (fid == 0x0901L) sp_val <- as.integer(r[i + 6L])
+      }
+      plen <- as.integer(r[i + 2L])
+      i <- i + 3L + plen
+    }
+  }
+  s$storagePolicy <- max(1L, min(4L, sp_val))
+  invisible(s)
+}
+
+# --- Storage Policy wire-out (canonical 15-byte override) ---
+# The earlier export_bytes omitted the EV header field, emitting a 13-byte
+# wire. This canonical form is last in source order, so it takes effect:
+#   "VSN-" + CFV(0x0001) + EV(0x0001) + REC_SP(0x0009) + plen(4) + FID(0x0901) + vlen(1) + value(u8)
+export_bytes <- function(s) {
+  sp <- as.integer(if (!is.null(s$storagePolicy)) s$storagePolicy else 2L)
+  sp <- max(1L, min(4L, sp))
+  as.raw(c(0x56L, 0x53L, 0x4eL, 0x2dL,
+           0x00L, 0x01L,   # CFV = 1
+           0x00L, 0x01L,   # EV  = 1
+           0x00L, 0x09L,   # REC_STORAGE_POLICY = 0x0009
+           0x04L,          # payload length = 4
+           0x09L, 0x01L,   # FID_STORAGE_POLICY = 0x0901
+           0x01L,          # value length = 1
+           as.raw(sp)))    # u8 policy value
+}

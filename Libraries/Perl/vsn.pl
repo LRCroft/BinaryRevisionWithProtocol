@@ -33,8 +33,21 @@ sub parse {
     return undef if length($data) < 8 || substr($data,0,4) ne $MAGIC;
     my $cfv = (ord(substr($data,4,1)) << 8) | ord(substr($data,5,1));
     my $ev  = (ord(substr($data,6,1)) << 8) | ord(substr($data,7,1));
+    my $sp  = $STORAGE_POLICY_VERTICAL;
+    my $i = 8;
+    while ($i + 6 <= length($data)) {
+        my $rt  = (ord(substr($data,$i,1)) << 8) | ord(substr($data,$i+1,1));
+        my $fid = (ord(substr($data,$i+3,1)) << 8) | ord(substr($data,$i+4,1));
+        if ($rt == $REC_STORAGE_POLICY && $fid == $FID_STORAGE_POLICY) {
+            $sp = ord(substr($data,$i+6,1));
+            last;
+        }
+        my $plen = ord(substr($data,$i+2,1));
+        $i += ($plen >= 1) ? (3 + $plen) : 3;
+    }
+    $sp = 2 unless ($sp >= 1 && $sp <= 4);
     return { cfv => $cfv, ev => $ev, records => [], objects => [],
-             mode => $MODE_MODERN, byte_length => length($data) };
+             mode => $MODE_MODERN, storage_policy => $sp, byte_length => length($data) };
 }
 
 sub encode { my ($mode, $gen, $sp) = @_; my $rec; $sp = 2 unless defined $sp; $rec = pack("nCnCC", 0x0009, 4, 0x0901, 1, ($sp >= 1 && $sp <= 4 ? $sp : 2)); return $MAGIC . pack("nn", $CFV, $EV) . $rec; }
@@ -323,4 +336,31 @@ sub get_object_info {
     my ($s, $serial) = @_;
     return undef unless exists $s->{objects}{$serial};
     return { size => length($s->{objects}{$serial}), serial => $serial };
+}
+
+# --- Canonical API completeness (identical across all 31 languages) ---
+
+# Create a store with an explicit storage policy (S2).
+sub create_with_policy {
+    my ($policy) = @_;
+    my $s = new_store();
+    $s->{storage_policy} = ($policy >= 1 && $policy <= 4) ? $policy : 2;
+    return $s;
+}
+
+# Serialize without bumping the generation (S7).
+sub to_bytes { return export_bytes($_[0]); }
+
+# Reopen a store from canonical bytes without losing its identity (S6).
+sub reopen_store {
+    my ($s, $data) = @_;
+    die "bad magic\n" unless integrity_verify_raw($data);
+    $s->{generation} = 0;
+    return $s;
+}
+
+# List all files with their FileId and path (F6).
+sub list_files {
+    my ($s) = @_;
+    return [ map { { file_id => $_, %{ $s->{files}{$_} } } } sort keys %{ $s->{files} } ];
 }

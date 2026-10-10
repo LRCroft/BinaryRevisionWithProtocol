@@ -1,4 +1,9 @@
-export function hasConflicts(result) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.hasConflicts = hasConflicts;
+exports.threeWayMerge = threeWayMerge;
+exports.resolveConflict = resolveConflict;
+function hasConflicts(result) {
     return result.conflicts.length > 0;
 }
 function filesByPath(store) {
@@ -18,7 +23,7 @@ function readOrNull(store, fileId) {
  * Non-conflicting changes auto-merge; conflicting changes are reported and
  * never silently dropped (no silent data loss).
  */
-export function threeWayMerge(base, ours, theirs) {
+function threeWayMerge(base, ours, theirs) {
     const baseFiles = filesByPath(base);
     const oursFiles = filesByPath(ours);
     const theirsFiles = filesByPath(theirs);
@@ -56,7 +61,7 @@ export function threeWayMerge(base, ours, theirs) {
     return result;
 }
 /** Resolve a conflict explicitly by supplying the final content. */
-export function resolveConflict(result, path, content) {
+function resolveConflict(result, path, content) {
     result.conflicts = result.conflicts.filter((c) => c.path !== path);
     result.mergedFiles.set(path, content);
 }

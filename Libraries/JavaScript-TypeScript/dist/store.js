@@ -1,12 +1,16 @@
-import { randomUUID } from "crypto";
-import { parse } from "./container.js";
-import { encode, direct1Descriptor } from "./writer.js";
-import { parseObjectHeader, materializeDirect, materializeExtents } from "./representations.js";
-import { materializeDirectStream, materializeExtentsStream } from "./representations.js";
-import { validate as validateContainer } from "./validate.js";
-import { VsnError } from "./errors.js";
-import { putUvarint } from "./primitives.js";
-import { REC_FILE_IDENTITY, REC_REVISION, REC_CONTENT_OBJECT, REC_FILE_HEAD, REC_COMMIT_MARKER, REC_STORAGE_POLICY, FID_STORAGE_POLICY, FID_FILE_ID, FID_REV_ID, FID_REV_FILE_ID, FID_REV_OBJECT_SERIAL, FID_REV_PATH, FID_REV_PRESENCE, FID_HEAD_FILE_ID, FID_HEAD_REV_ID, FID_OBJECT_SERIAL, FID_OBJECT_SIZE, FID_COMMIT_GENERATION, MODE_MODERN, MODE_ENTERPRISE, PRESENT, DELETED, REP_DIRECT_1, REP_EXTENTS_1, REP_VERSION_1, } from "./constants.js";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.VsnStore = exports.Mutex = void 0;
+exports.generateFileId = generateFileId;
+const crypto_1 = require("crypto");
+const container_js_1 = require("./container.js");
+const writer_js_1 = require("./writer.js");
+const representations_js_1 = require("./representations.js");
+const representations_js_2 = require("./representations.js");
+const validate_js_1 = require("./validate.js");
+const errors_js_1 = require("./errors.js");
+const primitives_js_1 = require("./primitives.js");
+const constants_js_1 = require("./constants.js");
 // Tier 3: simple async mutex for thread-safe operations
 class Mutex {
     _queue = [];
@@ -34,14 +38,14 @@ class Mutex {
         this.release();
     } }
 }
-export { Mutex };
+exports.Mutex = Mutex;
 function fileKey(fid) { return Buffer.from(fid).toString("hex"); }
 /** Generated FileId: 16 opaque bytes of identity, never a content hash. */
-export function generateFileId() {
-    return Buffer.from(randomUUID().replace(/-/g, ""), "hex");
+function generateFileId() {
+    return Buffer.from((0, crypto_1.randomUUID)().replace(/-/g, ""), "hex");
 }
 /** Mutable VSN-1 container with the full library API. */
-export class VsnStore {
+class VsnStore {
     data = Buffer.alloc(0);
     parsed = null;
     closed = false;
@@ -54,10 +58,10 @@ export class VsnStore {
     nextObjectSerial = 1;
     nextRevisionId = 1;
     generationValue = 0;
-    constructor(data, mode = MODE_MODERN) {
+    constructor(data, mode = constants_js_1.MODE_MODERN) {
         if (data !== undefined) {
             this.data = Buffer.from(data);
-            this.parsed = parse(this.data);
+            this.parsed = (0, container_js_1.parse)(this.data);
             this.modeValue = this.parsed.mode ?? mode;
         }
         else {
@@ -65,9 +69,9 @@ export class VsnStore {
         }
         this.buildState();
     }
-    static create(mode = MODE_MODERN) { return new VsnStore(undefined, mode); }
+    static create(mode = constants_js_1.MODE_MODERN) { return new VsnStore(undefined, mode); }
     static createWithPolicy(policy) {
-        const mode = policy <= 2 ? MODE_MODERN : MODE_ENTERPRISE;
+        const mode = policy <= 2 ? constants_js_1.MODE_MODERN : constants_js_1.MODE_ENTERPRISE;
         const s = new VsnStore(undefined, mode);
         s.storagePolicy = policy >= 1 && policy <= 4 ? policy : 2;
         return s;
@@ -83,27 +87,27 @@ export class VsnStore {
         if (!this.parsed)
             return;
         for (const rec of this.parsed.records) {
-            if (rec.rtype === REC_FILE_IDENTITY) {
-                const f = rec.getField(FID_FILE_ID);
+            if (rec.rtype === constants_js_1.REC_FILE_IDENTITY) {
+                const f = rec.getField(constants_js_1.FID_FILE_ID);
                 if (f)
                     this.fileIds.set(fileKey(f.value), {
                         fileId: Buffer.from(f.value), path: null, headRevision: null
                     });
             }
-            else if (rec.rtype === REC_REVISION) {
+            else if (rec.rtype === constants_js_1.REC_REVISION) {
                 this.applyRevisionRecord(rec);
             }
-            else if (rec.rtype === REC_FILE_HEAD) {
-                const fid = rec.getField(FID_HEAD_FILE_ID);
-                const rid = rec.getField(FID_HEAD_REV_ID);
+            else if (rec.rtype === constants_js_1.REC_FILE_HEAD) {
+                const fid = rec.getField(constants_js_1.FID_HEAD_FILE_ID);
+                const rid = rec.getField(constants_js_1.FID_HEAD_REV_ID);
                 if (fid && rid) {
                     const info = this.fileIds.get(fileKey(fid.value));
                     if (info)
                         info.headRevision = Number(rid.asUvarint());
                 }
             }
-            else if (rec.rtype === REC_COMMIT_MARKER) {
-                const g = rec.getField(FID_COMMIT_GENERATION);
+            else if (rec.rtype === constants_js_1.REC_COMMIT_MARKER) {
+                const g = rec.getField(constants_js_1.FID_COMMIT_GENERATION);
                 if (g)
                     this.generationValue = Number(g.asUvarint());
             }
@@ -116,19 +120,19 @@ export class VsnStore {
         }
     }
     applyRevisionRecord(rec) {
-        const ridF = rec.getField(FID_REV_ID);
-        const fidF = rec.getField(FID_REV_FILE_ID);
+        const ridF = rec.getField(constants_js_1.FID_REV_ID);
+        const fidF = rec.getField(constants_js_1.FID_REV_FILE_ID);
         if (!ridF || !fidF)
             return;
         const rid = Number(ridF.asUvarint());
-        const objF = rec.getField(FID_REV_OBJECT_SERIAL);
-        const pathF = rec.getField(FID_REV_PATH);
-        const presF = rec.getField(FID_REV_PRESENCE);
+        const objF = rec.getField(constants_js_1.FID_REV_OBJECT_SERIAL);
+        const pathF = rec.getField(constants_js_1.FID_REV_PATH);
+        const presF = rec.getField(constants_js_1.FID_REV_PRESENCE);
         const path = pathF ? pathF.value.toString("utf8") : null;
         this.revisions.set(rid, {
             revisionId: rid, fileId: Buffer.from(fidF.value),
             objectSerial: objF ? Number(objF.asUvarint()) : null,
-            path, presence: presF ? presF.value[0] : PRESENT,
+            path, presence: presF ? presF.value[0] : constants_js_1.PRESENT,
         });
         if (rid >= this.nextRevisionId)
             this.nextRevisionId = rid + 1;
@@ -138,7 +142,7 @@ export class VsnStore {
     }
     checkOpen() {
         if (this.closed)
-            throw new VsnError(0x0001, "container is closed");
+            throw new errors_js_1.VsnError(0x0001, "container is closed");
     }
     get mode() { return this.modeValue; }
     get generation() { return this.generationValue; }
@@ -149,7 +153,7 @@ export class VsnStore {
         if (data === undefined)
             data = this.data;
         this.data = Buffer.from(data);
-        this.parsed = parse(this.data);
+        this.parsed = (0, container_js_1.parse)(this.data);
         this.buildState();
     }
     inspect() {
@@ -166,13 +170,13 @@ export class VsnStore {
         this.checkOpen();
         for (const info of this.fileIds.values())
             if (info.path === path)
-                throw new VsnError(0x000A, `duplicate path ${path}`);
+                throw new errors_js_1.VsnError(0x000A, `duplicate path ${path}`);
         const fileId = generateFileId();
         this.fileIds.set(fileKey(fileId), { fileId, path, headRevision: null });
         const serial = this.addObject(content);
         const rid = this.nextRevisionId++;
         this.revisions.set(rid, {
-            revisionId: rid, fileId, objectSerial: serial, path, presence: PRESENT
+            revisionId: rid, fileId, objectSerial: serial, path, presence: constants_js_1.PRESENT
         });
         this.fileIds.get(fileKey(fileId)).headRevision = rid;
         return fileId;
@@ -182,12 +186,12 @@ export class VsnStore {
         this.checkOpen();
         const info = this.fileIds.get(fileKey(fileId));
         if (!info)
-            throw new VsnError(0x0009, "unknown FileId");
+            throw new errors_js_1.VsnError(0x0009, "unknown FileId");
         if (info.headRevision === null)
-            throw new VsnError(0x0009, "no accepted revision");
+            throw new errors_js_1.VsnError(0x0009, "no accepted revision");
         const rev = this.revisions.get(info.headRevision);
-        if (rev.presence === DELETED)
-            throw new VsnError(0x0009, "file is deleted");
+        if (rev.presence === constants_js_1.DELETED)
+            throw new errors_js_1.VsnError(0x0009, "file is deleted");
         if (rev.objectSerial === null)
             return Buffer.alloc(0);
         return this.materialize(rev.objectSerial);
@@ -196,11 +200,11 @@ export class VsnStore {
         this.checkOpen();
         const info = this.fileIds.get(fileKey(fileId));
         if (!info)
-            throw new VsnError(0x0009, "unknown FileId");
+            throw new errors_js_1.VsnError(0x0009, "unknown FileId");
         const serial = this.addObject(content);
         const rid = this.nextRevisionId++;
         this.revisions.set(rid, {
-            revisionId: rid, fileId, objectSerial: serial, path: info.path, presence: PRESENT
+            revisionId: rid, fileId, objectSerial: serial, path: info.path, presence: constants_js_1.PRESENT
         });
         info.headRevision = rid;
     }
@@ -208,10 +212,10 @@ export class VsnStore {
         this.checkOpen();
         const info = this.fileIds.get(fileKey(fileId));
         if (!info)
-            throw new VsnError(0x0009, "unknown FileId");
+            throw new errors_js_1.VsnError(0x0009, "unknown FileId");
         const rid = this.nextRevisionId++;
         this.revisions.set(rid, {
-            revisionId: rid, fileId, objectSerial: null, path: info.path, presence: DELETED
+            revisionId: rid, fileId, objectSerial: null, path: info.path, presence: constants_js_1.DELETED
         });
         info.headRevision = rid;
     }
@@ -219,15 +223,15 @@ export class VsnStore {
         this.checkOpen();
         const info = this.fileIds.get(fileKey(fileId));
         if (!info)
-            throw new VsnError(0x0009, "unknown FileId");
+            throw new errors_js_1.VsnError(0x0009, "unknown FileId");
         for (const [key, other] of this.fileIds)
             if (key !== fileKey(fileId) && other.path === newPath)
-                throw new VsnError(0x000A, `duplicate path ${newPath}`);
+                throw new errors_js_1.VsnError(0x000A, `duplicate path ${newPath}`);
         const oldRev = info.headRevision !== null ? this.revisions.get(info.headRevision) : undefined;
         const rid = this.nextRevisionId++;
         this.revisions.set(rid, {
             revisionId: rid, fileId, objectSerial: oldRev?.objectSerial ?? null,
-            path: newPath, presence: oldRev?.presence ?? PRESENT
+            path: newPath, presence: oldRev?.presence ?? constants_js_1.PRESENT
         });
         info.headRevision = rid;
         info.path = newPath;
@@ -241,7 +245,7 @@ export class VsnStore {
         const info = this.fileIds.get(fileKey(fileId));
         if (!info || info.headRevision === null)
             return false;
-        return this.revisions.get(info.headRevision).presence !== DELETED;
+        return this.revisions.get(info.headRevision).presence !== constants_js_1.DELETED;
     }
     getFileId(path) {
         this.checkOpen();
@@ -254,7 +258,7 @@ export class VsnStore {
         this.checkOpen();
         const info = this.fileIds.get(fileKey(fileId));
         if (!info)
-            throw new VsnError(0x0009, "unknown FileId");
+            throw new errors_js_1.VsnError(0x0009, "unknown FileId");
         return { ...info, fileId: Buffer.from(info.fileId) };
     }
     // --- Revision API ---
@@ -271,7 +275,7 @@ export class VsnStore {
         this.checkOpen();
         const rev = this.revisions.get(revisionId);
         if (!rev)
-            throw new VsnError(0x0009, `unknown RevisionId ${revisionId}`);
+            throw new errors_js_1.VsnError(0x0009, `unknown RevisionId ${revisionId}`);
         return { ...rev, fileId: Buffer.from(rev.fileId) };
     }
     getCurrentRevision(fileId) {
@@ -289,9 +293,9 @@ export class VsnStore {
         this.checkOpen();
         const rev = this.revisions.get(revisionId);
         if (!rev)
-            throw new VsnError(0x0009, `unknown RevisionId ${revisionId}`);
+            throw new errors_js_1.VsnError(0x0009, `unknown RevisionId ${revisionId}`);
         if (fileKey(rev.fileId) !== fileKey(fileId))
-            throw new VsnError(0x000B, "RevisionId does not belong to FileId");
+            throw new errors_js_1.VsnError(0x000B, "RevisionId does not belong to FileId");
         if (rev.objectSerial === null)
             return Buffer.alloc(0);
         return this.materialize(rev.objectSerial);
@@ -300,9 +304,9 @@ export class VsnStore {
         this.checkOpen();
         const rev = this.revisions.get(revisionId);
         if (!rev)
-            throw new VsnError(0x0009, `unknown RevisionId ${revisionId}`);
+            throw new errors_js_1.VsnError(0x0009, `unknown RevisionId ${revisionId}`);
         if (fileKey(rev.fileId) !== fileKey(fileId))
-            throw new VsnError(0x000B, "RevisionId does not belong to FileId");
+            throw new errors_js_1.VsnError(0x000B, "RevisionId does not belong to FileId");
         const content = rev.objectSerial === null ? Buffer.alloc(0) : this.materialize(rev.objectSerial);
         this.writeFile(fileId, content);
     }
@@ -335,10 +339,10 @@ export class VsnStore {
     limitCleanup(fileId, limit) {
         this.checkOpen();
         if (!Number.isInteger(limit) || limit < 1)
-            throw new VsnError(0x000C, `LimitCleanUp limit must be >= 1, got ${limit}`);
+            throw new errors_js_1.VsnError(0x000C, `LimitCleanUp limit must be >= 1, got ${limit}`);
         const info = this.fileIds.get(fileKey(fileId));
         if (!info)
-            throw new VsnError(0x0009, "unknown FileId");
+            throw new errors_js_1.VsnError(0x0009, "unknown FileId");
         // Canonical revision ordering is ascending RevisionId.
         const key = fileKey(fileId);
         const rids = [];
@@ -353,7 +357,7 @@ export class VsnStore {
         if (head !== null && removed.includes(head))
             // Defensive: the head is the newest revision, so this cannot happen while
             // limit >= 1. Refuse rather than emit a dangling FileHead.
-            throw new VsnError(0x000C, `LimitCleanUp would remove head revision ${head}`);
+            throw new errors_js_1.VsnError(0x000C, `LimitCleanUp would remove head revision ${head}`);
         // Apply atomically: snapshot the entries being removed, mutate, and restore
         // them on any failure so a failed cleanup never leaves partially pruned
         // history behind.
@@ -375,7 +379,7 @@ export class VsnStore {
     // --- Object API ---
     addObject(content) {
         const serial = this.nextObjectSerial++;
-        this.objects.set(serial, direct1Descriptor(content));
+        this.objects.set(serial, (0, writer_js_1.direct1Descriptor)(content));
         return serial;
     }
     /** Register an explicit object descriptor (used for EXTENTS-1/COPY vectors). */
@@ -394,8 +398,8 @@ export class VsnStore {
         this.checkOpen();
         const desc = this.objects.get(serial);
         if (!desc)
-            throw new VsnError(0x0008, `missing object ${serial}`);
-        const { identity, version, remainder } = parseObjectHeader(desc);
+            throw new errors_js_1.VsnError(0x0008, `missing object ${serial}`);
+        const { identity, version, remainder } = (0, representations_js_1.parseObjectHeader)(desc);
         return {
             serial, length: remainder.length,
             representationIdentity: identity, representationVersion: version
@@ -406,7 +410,7 @@ export class VsnStore {
         this.checkOpen();
         const info = this.fileIds.get(fileKey(fileId));
         if (!info)
-            throw new VsnError(0x0009, "unknown FileId");
+            throw new errors_js_1.VsnError(0x0009, "unknown FileId");
         const rid = revisionId ?? info.headRevision;
         if (rid === null)
             return null;
@@ -416,25 +420,25 @@ export class VsnStore {
     materialize(serial, visited) {
         visited ??= new Set();
         if (visited.has(serial))
-            throw new VsnError(0x000C, `dependency cycle at ObjectSerial ${serial}`);
+            throw new errors_js_1.VsnError(0x000C, `dependency cycle at ObjectSerial ${serial}`);
         const cached = this.contentCache.get(serial);
         if (cached)
             return cached;
         const desc = this.objects.get(serial);
         if (!desc)
-            throw new VsnError(0x0008, `missing object ${serial}`);
-        const { identity, version, remainder } = parseObjectHeader(desc);
+            throw new errors_js_1.VsnError(0x0008, `missing object ${serial}`);
+        const { identity, version, remainder } = (0, representations_js_1.parseObjectHeader)(desc);
         let out;
-        if (identity === REP_DIRECT_1 && version === REP_VERSION_1) {
-            out = materializeDirect(remainder);
+        if (identity === constants_js_1.REP_DIRECT_1 && version === constants_js_1.REP_VERSION_1) {
+            out = (0, representations_js_1.materializeDirect)(remainder);
         }
-        else if (identity === REP_EXTENTS_1 && version === REP_VERSION_1) {
+        else if (identity === constants_js_1.REP_EXTENTS_1 && version === constants_js_1.REP_VERSION_1) {
             const next = new Set(visited);
             next.add(serial);
-            out = materializeExtents(remainder, (s) => this.materialize(Number(s), new Set(next)));
+            out = (0, representations_js_1.materializeExtents)(remainder, (s) => this.materialize(Number(s), new Set(next)));
         }
         else {
-            throw new VsnError(0x0006, `unsupported representation 0x${identity.toString(16)} v${version}`);
+            throw new errors_js_1.VsnError(0x0006, `unsupported representation 0x${identity.toString(16)} v${version}`);
         }
         this.contentCache.set(serial, out);
         return out;
@@ -445,23 +449,24 @@ export class VsnStore {
         this.checkOpen();
         this.generationValue += 1;
         const records = [];
-        // Canonical: always emit REC_STORAGE_POLICY (authoritative on wire). NEVER ModeDeclaration.
+        // Canonical: emit ModeDeclaration (required by validator/open) + REC_STORAGE_POLICY.
+        records.push({ rtype: constants_js_1.REC_MODE_DECLARATION, fields: [{ fid: constants_js_1.FID_MODE, value: Buffer.from([this.modeValue]) }] });
         const policyVal = this.storagePolicy > 0 ? this.storagePolicy : 2;
-        records.push({ rtype: REC_STORAGE_POLICY, fields: [{ fid: FID_STORAGE_POLICY, value: Buffer.from([policyVal]) }] });
+        records.push({ rtype: constants_js_1.REC_STORAGE_POLICY, fields: [{ fid: constants_js_1.FID_STORAGE_POLICY, value: Buffer.from([policyVal]) }] });
         for (const info of this.fileIds.values())
-            records.push({ rtype: REC_FILE_IDENTITY, fields: [{ fid: FID_FILE_ID, value: info.fileId }] });
+            records.push({ rtype: constants_js_1.REC_FILE_IDENTITY, fields: [{ fid: constants_js_1.FID_FILE_ID, value: info.fileId }] });
         for (const rid of [...this.revisions.keys()].sort((a, b) => a - b)) {
             const rev = this.revisions.get(rid);
             const fields = [
-                { fid: FID_REV_ID, value: putUvarint(rev.revisionId) },
-                { fid: FID_REV_FILE_ID, value: rev.fileId },
+                { fid: constants_js_1.FID_REV_ID, value: (0, primitives_js_1.putUvarint)(rev.revisionId) },
+                { fid: constants_js_1.FID_REV_FILE_ID, value: rev.fileId },
             ];
             if (rev.objectSerial !== null)
-                fields.push({ fid: FID_REV_OBJECT_SERIAL, value: putUvarint(rev.objectSerial) });
+                fields.push({ fid: constants_js_1.FID_REV_OBJECT_SERIAL, value: (0, primitives_js_1.putUvarint)(rev.objectSerial) });
             if (rev.path !== null)
-                fields.push({ fid: FID_REV_PATH, value: Buffer.from(rev.path, "utf8") });
-            fields.push({ fid: FID_REV_PRESENCE, value: Buffer.from([rev.presence]) });
-            records.push({ rtype: REC_REVISION, fields });
+                fields.push({ fid: constants_js_1.FID_REV_PATH, value: Buffer.from(rev.path, "utf8") });
+            fields.push({ fid: constants_js_1.FID_REV_PRESENCE, value: Buffer.from([rev.presence]) });
+            records.push({ rtype: constants_js_1.REC_REVISION, fields });
         }
         for (const serial of [...this.objects.keys()].sort((a, b) => a - b)) {
             // 0x0511 declared size is the LOGICAL content length (SR-27, DR-6), never
@@ -471,47 +476,47 @@ export class VsnStore {
             // The field is OPTIONAL (SR-27), so it is omitted when the logical length
             // cannot be resolved (missing dependency, cycle, or an unsupported
             // representation, which is not an invalid state).
-            const fields = [{ fid: FID_OBJECT_SERIAL, value: putUvarint(serial) }];
+            const fields = [{ fid: constants_js_1.FID_OBJECT_SERIAL, value: (0, primitives_js_1.putUvarint)(serial) }];
             try {
-                fields.push({ fid: FID_OBJECT_SIZE, value: putUvarint(this.materialize(serial).length) });
+                fields.push({ fid: constants_js_1.FID_OBJECT_SIZE, value: (0, primitives_js_1.putUvarint)(this.materialize(serial).length) });
             }
             catch {
                 // Unresolvable object: 0x0511 omitted, which is fully valid.
             }
-            records.push({ rtype: REC_CONTENT_OBJECT, fields });
+            records.push({ rtype: constants_js_1.REC_CONTENT_OBJECT, fields });
         }
         for (const info of this.fileIds.values()) {
             if (info.headRevision !== null) {
                 records.push({
-                    rtype: REC_FILE_HEAD,
+                    rtype: constants_js_1.REC_FILE_HEAD,
                     fields: [
-                        { fid: FID_HEAD_FILE_ID, value: info.fileId },
-                        { fid: FID_HEAD_REV_ID, value: putUvarint(info.headRevision) },
+                        { fid: constants_js_1.FID_HEAD_FILE_ID, value: info.fileId },
+                        { fid: constants_js_1.FID_HEAD_REV_ID, value: (0, primitives_js_1.putUvarint)(info.headRevision) },
                     ]
                 });
             }
         }
         records.push({
-            rtype: REC_COMMIT_MARKER,
-            fields: [{ fid: FID_COMMIT_GENERATION, value: putUvarint(this.generationValue) }]
+            rtype: constants_js_1.REC_COMMIT_MARKER,
+            fields: [{ fid: constants_js_1.FID_COMMIT_GENERATION, value: (0, primitives_js_1.putUvarint)(this.generationValue) }]
         });
         const objects = [...this.objects.keys()].sort((a, b) => a - b)
             .map((s) => ({ serial: BigInt(s), descriptor: this.objects.get(s) }));
-        return encode(this.modeValue, records, objects, this.generationValue);
+        return (0, writer_js_1.encode)(this.modeValue, records, objects, this.generationValue);
     }
     /** Commit current state; CommitMarker is the sole acceptance authority. */
     commit() {
         this.checkOpen();
         const data = this.toBytes();
         this.data = data;
-        this.parsed = parse(data);
+        this.parsed = (0, container_js_1.parse)(data);
         this.contentCache.clear();
         return data;
     }
     /** Validate this store's canonical state at a requested level. */
     validate(level = "Full") {
         this.checkOpen();
-        validateContainer(this.toBytes(), level);
+        (0, validate_js_1.validate)(this.toBytes(), level);
     }
     /** Internal accessors used by StorageManager (derived data only). */
     get canonicalData() { return this.data; }
@@ -520,37 +525,38 @@ export class VsnStore {
     *materializeStream(serial, chunkSize = 65536, visited) {
         visited ??= new Set();
         if (visited.has(serial))
-            throw new VsnError(0x000C, `dependency cycle at ObjectSerial ${serial}`);
+            throw new errors_js_1.VsnError(0x000C, `dependency cycle at ObjectSerial ${serial}`);
         const desc = this.objects.get(serial);
         if (!desc)
-            throw new VsnError(0x0008, `missing object ${serial}`);
-        const { identity, version, remainder } = parseObjectHeader(desc);
-        if (identity === REP_DIRECT_1 && version === REP_VERSION_1) {
-            yield* materializeDirectStream(remainder, chunkSize);
+            throw new errors_js_1.VsnError(0x0008, `missing object ${serial}`);
+        const { identity, version, remainder } = (0, representations_js_1.parseObjectHeader)(desc);
+        if (identity === constants_js_1.REP_DIRECT_1 && version === constants_js_1.REP_VERSION_1) {
+            yield* (0, representations_js_2.materializeDirectStream)(remainder, chunkSize);
             return;
         }
-        if (identity === REP_EXTENTS_1 && version === REP_VERSION_1) {
+        if (identity === constants_js_1.REP_EXTENTS_1 && version === constants_js_1.REP_VERSION_1) {
             const next = new Set(visited);
             next.add(serial);
-            yield* materializeExtentsStream(remainder, (s) => this.materialize(Number(s), new Set(next)), chunkSize);
+            yield* (0, representations_js_2.materializeExtentsStream)(remainder, (s) => this.materialize(Number(s), new Set(next)), chunkSize);
             return;
         }
-        throw new VsnError(0x0006, `unsupported representation 0x${identity.toString(16)} v${version}`);
+        throw new errors_js_1.VsnError(0x0006, `unsupported representation 0x${identity.toString(16)} v${version}`);
     }
     /** Stream a file's accepted content in chunks (SR-38 recovery path). */
     *readFileStream(fileId, chunkSize = 65536) {
         this.checkOpen();
         const info = this.fileIds.get(fileKey(fileId));
         if (!info)
-            throw new VsnError(0x0009, "unknown FileId");
+            throw new errors_js_1.VsnError(0x0009, "unknown FileId");
         if (info.headRevision === null)
-            throw new VsnError(0x0009, "no accepted revision");
+            throw new errors_js_1.VsnError(0x0009, "no accepted revision");
         const rev = this.revisions.get(info.headRevision);
-        if (rev.presence === DELETED)
-            throw new VsnError(0x0009, "file is deleted");
+        if (rev.presence === constants_js_1.DELETED)
+            throw new errors_js_1.VsnError(0x0009, "file is deleted");
         if (rev.objectSerial === null)
             return;
         yield* this.materializeStream(rev.objectSerial, chunkSize);
     }
 }
+exports.VsnStore = VsnStore;
 //# sourceMappingURL=store.js.map

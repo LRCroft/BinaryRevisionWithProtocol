@@ -1,72 +1,76 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FID_REP_VERSION = exports.FID_REP_IDENTITY = exports.FID_COMMIT_HASH = exports.FID_OBJECT_HASH = exports.FID_HEAD_GENERATION = exports.FID_RSET_DIGEST = exports.FID_RSET_STATE = exports.FID_RSET_MEMBERS = exports.FID_RSET_ID = exports.MAGIC = exports.OP_NESTED = exports.OP_NUMERIC = exports.OP_OBJECT_SOURCE = exports.OP_LITERAL_BYTES = exports.DIRECTORY = exports.DELETED = exports.PRESENT = exports.REP_VERSION_1 = exports.REP_EXTENTS_1 = exports.REP_DIRECT_1 = exports.STORAGE_HIGHLY_HORIZONTAL = exports.STORAGE_HORIZONTAL = exports.STORAGE_VERTICAL = exports.STORAGE_HIGHLY_VERTICAL = exports.MODE_ENTERPRISE = exports.MODE_MODERN = exports.FID_STORAGE_POLICY = exports.FID_MODE = exports.FID_COMMIT_GENERATION = exports.FID_OBJECT_SIZE = exports.FID_OBJECT_SERIAL = exports.FID_HEAD_REV_ID = exports.FID_HEAD_FILE_ID = exports.FID_REV_PRESENCE = exports.FID_REV_PATH = exports.FID_REV_OBJECT_SERIAL = exports.FID_REV_FILE_ID = exports.FID_REV_ID = exports.FID_FILE_ID = exports.FID_RECORDS_END = exports.REC_REPRESENTATION_DESCRIPTOR = exports.REC_STORAGE_POLICY = exports.REC_MODE_DECLARATION = exports.REC_COMMIT_MARKER = exports.REC_CONTENT_OBJECT = exports.REC_FILE_HEAD = exports.REC_REVISION_SET = exports.REC_REVISION = exports.REC_FILE_IDENTITY = exports.REC_END_OF_RECORDS = void 0;
+exports.StoragePolicy = exports.HASH_BLAKE3 = exports.HASH_SHA256 = exports.HASH_NONE = exports.REC_RESERVED = exports.REC_EXTENSION_MAX = exports.REC_EXTENSION_MIN = exports.FID_REP_METADATA = void 0;
 // VSN-1 frozen constants (GR-28, GR-17, VR-*)
-export const REC_END_OF_RECORDS = 0x0000;
-export const REC_FILE_IDENTITY = 0x0001;
-export const REC_REVISION = 0x0002;
-export const REC_REVISION_SET = 0x0003;
-export const REC_FILE_HEAD = 0x0004;
-export const REC_CONTENT_OBJECT = 0x0005;
-export const REC_COMMIT_MARKER = 0x0006;
-export const REC_MODE_DECLARATION = 0x0007; // OBSOLETE: deprecated, kept for reader compatibility  // OBSOLETE: kept for reader compatibility only
-export const REC_STORAGE_POLICY = 0x0009; // New: authoritative storage classification
-export const REC_REPRESENTATION_DESCRIPTOR = 0x0008;
-export const FID_RECORDS_END = 0x0000;
-export const FID_FILE_ID = 0x0101;
-export const FID_REV_ID = 0x0201;
-export const FID_REV_FILE_ID = 0x0202;
-export const FID_REV_OBJECT_SERIAL = 0x0203;
-export const FID_REV_PATH = 0x0210;
-export const FID_REV_PRESENCE = 0x0211;
-export const FID_HEAD_FILE_ID = 0x0401;
-export const FID_HEAD_REV_ID = 0x0402;
-export const FID_OBJECT_SERIAL = 0x0501;
-export const FID_OBJECT_SIZE = 0x0511;
-export const FID_COMMIT_GENERATION = 0x0601;
-export const FID_MODE = 0x0701; // OBSOLETE: ModeDeclaration field (deprecated)
-export const FID_STORAGE_POLICY = 0x0901; // StoragePolicy.field_id (new)
+exports.REC_END_OF_RECORDS = 0x0000;
+exports.REC_FILE_IDENTITY = 0x0001;
+exports.REC_REVISION = 0x0002;
+exports.REC_REVISION_SET = 0x0003;
+exports.REC_FILE_HEAD = 0x0004;
+exports.REC_CONTENT_OBJECT = 0x0005;
+exports.REC_COMMIT_MARKER = 0x0006;
+exports.REC_MODE_DECLARATION = 0x0007; // OBSOLETE: deprecated, kept for reader compatibility  // OBSOLETE: kept for reader compatibility only
+exports.REC_STORAGE_POLICY = 0x0009; // New: authoritative storage classification
+exports.REC_REPRESENTATION_DESCRIPTOR = 0x0008;
+exports.FID_RECORDS_END = 0x0000;
+exports.FID_FILE_ID = 0x0101;
+exports.FID_REV_ID = 0x0201;
+exports.FID_REV_FILE_ID = 0x0202;
+exports.FID_REV_OBJECT_SERIAL = 0x0203;
+exports.FID_REV_PATH = 0x0210;
+exports.FID_REV_PRESENCE = 0x0211;
+exports.FID_HEAD_FILE_ID = 0x0401;
+exports.FID_HEAD_REV_ID = 0x0402;
+exports.FID_OBJECT_SERIAL = 0x0501;
+exports.FID_OBJECT_SIZE = 0x0511;
+exports.FID_COMMIT_GENERATION = 0x0601;
+exports.FID_MODE = 0x0701; // OBSOLETE: ModeDeclaration field (deprecated)
+exports.FID_STORAGE_POLICY = 0x0901; // StoragePolicy.field_id (new)
 // Modes -- OBSOLETE: deprecated, kept for reader compatibility only
-export const MODE_MODERN = 0x01; // OBSOLETE: was MODERN wire mode
-export const MODE_ENTERPRISE = 0x02; // OBSOLETE: was ENTERPRISE wire mode
+exports.MODE_MODERN = 0x01; // OBSOLETE: was MODERN wire mode
+exports.MODE_ENTERPRISE = 0x02; // OBSOLETE: was ENTERPRISE wire mode
 // Storage Policy values -- authoritative classification (directly on wire)
-export const STORAGE_HIGHLY_VERTICAL = 1; // maximum optimization effort
-export const STORAGE_VERTICAL = 2; // bounded optimization effort
-export const STORAGE_HORIZONTAL = 3; // low optimization effort
-export const STORAGE_HIGHLY_HORIZONTAL = 4; // minimal optimization effort
-export const REP_DIRECT_1 = 0x0001;
-export const REP_EXTENTS_1 = 0x0002;
-export const REP_VERSION_1 = 1;
-export const PRESENT = 1;
-export const DELETED = 2;
-export const DIRECTORY = 3;
-export const OP_LITERAL_BYTES = 0;
-export const OP_OBJECT_SOURCE = 1;
-export const OP_NUMERIC = 2;
-export const OP_NESTED = 3;
-export const MAGIC = Buffer.from("VSN-", "ascii");
+exports.STORAGE_HIGHLY_VERTICAL = 1; // maximum optimization effort
+exports.STORAGE_VERTICAL = 2; // bounded optimization effort
+exports.STORAGE_HORIZONTAL = 3; // low optimization effort
+exports.STORAGE_HIGHLY_HORIZONTAL = 4; // minimal optimization effort
+exports.REP_DIRECT_1 = 0x0001;
+exports.REP_EXTENTS_1 = 0x0002;
+exports.REP_VERSION_1 = 1;
+exports.PRESENT = 1;
+exports.DELETED = 2;
+exports.DIRECTORY = 3;
+exports.OP_LITERAL_BYTES = 0;
+exports.OP_OBJECT_SOURCE = 1;
+exports.OP_NUMERIC = 2;
+exports.OP_NESTED = 3;
+exports.MAGIC = Buffer.from("VSN-", "ascii");
 // Remaining frozen field IDs (GR-17)
-export const FID_RSET_ID = 0x0301;
-export const FID_RSET_MEMBERS = 0x0302;
-export const FID_RSET_STATE = 0x0303;
-export const FID_RSET_DIGEST = 0x0310;
-export const FID_HEAD_GENERATION = 0x0410;
-export const FID_OBJECT_HASH = 0x0510;
-export const FID_COMMIT_HASH = 0x0610;
-export const FID_REP_IDENTITY = 0x0801;
-export const FID_REP_VERSION = 0x0802;
-export const FID_REP_METADATA = 0x0810;
+exports.FID_RSET_ID = 0x0301;
+exports.FID_RSET_MEMBERS = 0x0302;
+exports.FID_RSET_STATE = 0x0303;
+exports.FID_RSET_DIGEST = 0x0310;
+exports.FID_HEAD_GENERATION = 0x0410;
+exports.FID_OBJECT_HASH = 0x0510;
+exports.FID_COMMIT_HASH = 0x0610;
+exports.FID_REP_IDENTITY = 0x0801;
+exports.FID_REP_VERSION = 0x0802;
+exports.FID_REP_METADATA = 0x0810;
 // Record type registry bounds (GR-28)
-export const REC_EXTENSION_MIN = 0x8000;
-export const REC_EXTENSION_MAX = 0xfffe;
-export const REC_RESERVED = 0xffff;
+exports.REC_EXTENSION_MIN = 0x8000;
+exports.REC_EXTENSION_MAX = 0xfffe;
+exports.REC_RESERVED = 0xffff;
 // Hash algorithm identifiers (VR-17) - verification only, never identity
-export const HASH_NONE = 0x00;
-export const HASH_SHA256 = 0x01;
-export const HASH_BLAKE3 = 0x02;
+exports.HASH_NONE = 0x00;
+exports.HASH_SHA256 = 0x01;
+exports.HASH_BLAKE3 = 0x02;
 // ---- Writer Storage Policy (informative, NOT on wire) ----
-export var StoragePolicy;
+var StoragePolicy;
 (function (StoragePolicy) {
     StoragePolicy[StoragePolicy["HIGHLY_VERTICAL"] = 1] = "HIGHLY_VERTICAL";
     StoragePolicy[StoragePolicy["VERTICAL"] = 2] = "VERTICAL";
     StoragePolicy[StoragePolicy["HORIZONTAL"] = 3] = "HORIZONTAL";
     StoragePolicy[StoragePolicy["HIGHLY_HORIZONTAL"] = 4] = "HIGHLY_HORIZONTAL";
-})(StoragePolicy || (StoragePolicy = {}));
+})(StoragePolicy || (exports.StoragePolicy = StoragePolicy = {}));
 //# sourceMappingURL=constants.js.map

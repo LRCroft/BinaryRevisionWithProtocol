@@ -14,6 +14,7 @@
 -export([new_builder/1, check_magic_bytes/1]).
 -export([get_file_id/2, diagnostics/2, stats/1]).
 -export([create_with_policy/1]).
+-export([to_bytes/1, list_files/1]).
 -define(MAGIC, "VSN-").
 -define(CFV, 1).
 -define(EV, 1).
@@ -68,8 +69,7 @@ parse(Data) when is_binary(Data), byte_size(Data) >= 8 ->
 parse(_) -> throw(bad_magic).
 
 %% Internal: try to read REC_STORAGE_POLICY from data starting after header
-parse_sp_record(<<?REC_STORAGE_POLICY:16, Plen:8, Rest/binary>>) when byte_size(Rest) >= 1 ->
-    <<_FID:16, ValLen:8, Val:8, _/binary>> = <<Plen:8, Rest/binary>>,
+parse_sp_record(<<16#0009:16, _Plen:8, 16#0901:16, ValLen:8, Val:8, _/binary>>) ->
     case ValLen of
         1 -> Val;
         _ -> undefined
@@ -355,6 +355,13 @@ write_large_object(S, _Path, _Content) -> S.
 integrity_verify(S) ->
     Mode = maps:get(mode, S),
     Mode =:= ?MODE_MODERN orelse Mode =:= ?MODE_ENTERPRISE.
+
+%% --- Canonical API completeness (identical across all 31 languages) ---
+
+to_bytes(S) -> export_bytes(S).
+
+list_files(S) ->
+    [{Fid, maps:get(path, F)} || {Fid, F} <- maps:to_list(maps:get(files, S))].
 
 integrity_verify_raw(Data) when is_binary(Data), byte_size(Data) >= 8 ->
     case Data of

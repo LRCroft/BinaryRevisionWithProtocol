@@ -1,7 +1,11 @@
+"use strict";
 // VSN-1 frozen error registry (VR-28, VR-29) and error model.
 // Identifiers are protocol-assigned and immutable; the library maps them to
 // idiomatic mechanisms without adding new protocol error IDs.
-export const ERRORS = {
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ResourceRefusal = exports.VsnError = exports.ERRORS = void 0;
+exports.errorName = errorName;
+exports.ERRORS = {
     0x0000: "OK",
     0x0001: "MALFORMED_CONTAINER",
     0x0002: "TRUNCATED",
@@ -25,11 +29,11 @@ export const ERRORS = {
     0x0014: "ACCESS_OR_DECRYPTION_FAILURE",
 };
 /** Frozen error name for a protocol error identifier. */
-export function errorName(code) {
-    return ERRORS[code] ?? "UNKNOWN";
+function errorName(code) {
+    return exports.ERRORS[code] ?? "UNKNOWN";
 }
 /** Base for all VSN library errors, carrying a frozen error identifier. */
-export class VsnError extends Error {
+class VsnError extends Error {
     code;
     byteOffset;
     constructor(code, message, byteOffset) {
@@ -39,11 +43,13 @@ export class VsnError extends Error {
         this.byteOffset = byteOffset;
     }
 }
+exports.VsnError = VsnError;
 /** Resource refusal is NOT a protocol error (RC-29); it is a reader decision. */
-export class ResourceRefusal extends Error {
+class ResourceRefusal extends Error {
     constructor(message) {
         super(message);
         this.name = "RESOURCE_REFUSAL";
     }
 }
+exports.ResourceRefusal = ResourceRefusal;
 //# sourceMappingURL=errors.js.map

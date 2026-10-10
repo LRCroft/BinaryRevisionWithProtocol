@@ -1,11 +1,27 @@
 {
   "name": "vsn-typescript",
   "version": "1.0.0",
-  "description": "VSN-1 TypeScript reference library",
-  "main": "dist/index.js",
-  "type": "module",
+  "description": "VSN-1 binary revision protocol library (CommonJS, ESM-interop ready)",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
   "scripts": {
-    "build": "tsc",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build && npm test",
     "test": "npm run test:protocol && npm run test:library && npm run test:interop",
     "test:protocol": "tsx tests/test_vsn.ts",
     "test:library": "tsx tests/test_library.ts",
@@ -23,5 +39,11 @@
     "@types/node": "^26.6.4",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
+  },
+  "optionalDependencies": {
+    "@esbuild/linux-x64": "0.28.2",
+    "@esbuild/win32-x64": "0.28.2",
+    "@esbuild/darwin-x64": "0.28.2",
+    "@esbuild/darwin-arm64": "0.28.2"
   }
 }

@@ -8,6 +8,7 @@ Static specification site and documentation generator for the **Binary Revision 
 - `docs.html` — generated specification output (do not edit by hand; regenerate from the generator).
 - `index.html`, `style.css`, `script.js` — static site shell. `index.html` and the top of `docs.html` present VSN Mode (MODERN / Vertical and ENTERPRISE / Horizontal) as a first-class architectural concept; both link to the normative Section 11.
 - `Libraries/` — VSN Library implementations across 31 language targets. All 31 have genuine capability tests (Tier 2) and thread-safe stores (Tier 3). **31/31 fully verified** via conformance runner (2026-10-06 full suite: 31/31 VERIFIED, 0 NOT_VERIFIED) with all 19 capabilities passing. COBOL is the exception: no native threading, so Tier 2 is sequential and Tier 3 is documented as a limitation.
+- `Libraries/Consumer/` — independent public-API consumers (7 languages: C, C#, Go, Java, JS-TS, Python, Rust) plus the ALL-31 deliverables: `ALL_31_STORAGE_POLICY_AUDIT.md`, `ALL_31_PUBLIC_API_MATRIX.md`, `ALL_31_CONSUMER_TEST_RESULTS.md`, `ALL_31_PACKAGE_EXPORT_STATUS.md`, `ALL_31_LANGUAGE_CONFORMANCE_MANIFEST.json`, `ALL_31_SOURCE_FIXES.md`, `ALL_31_CONSUMER_QUICKSTART.md`.
 
 ## Canonical Library Layout Rule (HARD RULE — READ THIS FIRST)
 

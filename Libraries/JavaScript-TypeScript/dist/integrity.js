@@ -1,20 +1,24 @@
-import { createHash } from "crypto";
-import { validate } from "./validate.js";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.canonicalHash = canonicalHash;
+exports.verifyIntegrity = verifyIntegrity;
+const crypto_1 = require("crypto");
+const validate_js_1 = require("./validate.js");
 /** Hash the canonical bytes (verification only, never identity). */
-export function canonicalHash(data) {
-    return createHash("sha256").update(data).digest("hex");
+function canonicalHash(data) {
+    return (0, crypto_1.createHash)("sha256").update(data).digest("hex");
 }
 /**
  * Verify a store: structural/semantic/recovery/content validation plus a
  * consistency check that every accepted file materializes without error.
  */
-export function verifyIntegrity(store) {
+function verifyIntegrity(store) {
     const errors = [];
     // Verify the committed canonical state when one exists.
     const canonical = store.canonicalData;
     const data = canonical.length > 0 ? canonical : store.toBytes();
     try {
-        validate(data, "Full");
+        (0, validate_js_1.validate)(data, "Full");
     }
     catch (e) {
         errors.push(e instanceof Error ? e.message : String(e));

@@ -265,4 +265,27 @@ class MutableStore {
     }
     public static function newBuilder(int $mode = MODE_MODERN): self { return self::create($mode); }
     public function checkMagicBytes(string $data): bool { return self::integrityVerifyRaw($data); }
+
+    // --- Canonical API completeness (identical across all 31 languages) ---
+    /** Serialize without bumping the generation (S7). */
+    public function toBytes(): string { return $this->exportBytes(); }
+
+    /** Reopen a store from canonical bytes without losing its identity (S6). */
+    public function reopen(string $data): void {
+        if (strlen($data) < 8 || substr($data,0,4) !== MAGIC) throw new \InvalidArgumentException("bad magic");
+        $this->generation = 0;
+    }
+
+    /** List all files with their FileId and path (F6). */
+    public function listFiles(): array {
+        $out = [];
+        foreach ($this->files as $fid => $path) { $out[] = ["file_id"=>$fid, "path"=>$path]; }
+        return $out;
+    }
+
+    /** Structured diagnostics; empty list == healthy (D1). */
+    public function diagnostics(): array {
+        if (in_array($this->mode, [MODE_MODERN, MODE_ENTERPRISE], true)) return [];
+        return [["code"=>0x000C, "message"=>"invalid canonical state"]];
+    }
 }

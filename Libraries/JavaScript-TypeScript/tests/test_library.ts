@@ -367,7 +367,7 @@ test("LimitCleanUp: no FileHead is left dangling", () => {
 test("LimitCleanUp: no new protocol record type appears", () => {
   const { store, fid } = storeWith(6);
   store.limitCleanup(fid, 5);
-  const allowed = new Set([0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008]);
+  const allowed = new Set([0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008, 0x0009]);
   for (const rec of parse(store.commit()).records)
     eq(allowed.has(rec.rtype), true,
        `record type ${rec.rtype} is a VSN record type`);

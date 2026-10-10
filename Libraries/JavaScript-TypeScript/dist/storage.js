@@ -1,4 +1,7 @@
-import { REC_CONTENT_OBJECT } from "./constants.js";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.StorageManager = void 0;
+const constants_js_1 = require("./constants.js");
 /**
  * Manages derived storage (indexes, caches) for a VsnStore.
  *
@@ -6,7 +9,7 @@ import { REC_CONTENT_OBJECT } from "./constants.js";
  * acceptance never depend on it (SR-02, SR-03); it is never canonical
  * authority. Deleting every derived structure leaves recovery functional.
  */
-export class StorageManager {
+class StorageManager {
     objectIndex = new Map();
     fileIndex = new Map();
     contentCache = new Map();
@@ -49,7 +52,7 @@ export class StorageManager {
         const parsed = store.parsedContainer;
         if (!parsed)
             return 0;
-        return parsed.records.filter((r) => r.rtype === REC_CONTENT_OBJECT).length;
+        return parsed.records.filter((r) => r.rtype === constants_js_1.REC_CONTENT_OBJECT).length;
     }
     /** Storage statistics. */
     stats(store) {
@@ -71,4 +74,5 @@ export class StorageManager {
     get isValid() { return this.valid; }
     lookupFile(path) { return this.fileIndex.get(path); }
 }
+exports.StorageManager = StorageManager;
 //# sourceMappingURL=storage.js.map

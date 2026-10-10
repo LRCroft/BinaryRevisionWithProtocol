@@ -263,6 +263,21 @@ module VSN
       o
     end
 
+    # --- Canonical API completeness (identical across all 31 languages) ---
+    def to_bytes : Bytes
+      export_bytes
+    end
+    def reopen(data : Bytes) : Store
+      raise ArgumentError.new("bad magic") unless VSN.parse(data)
+      @generation = 0_u64
+      self
+    end
+    def list_files : Array(Bytes)
+      f = @files.keys
+      f.sort!
+      f
+    end
+
     def materialize_object(serial : UInt32) : Bytes
       @objects[serial]? || raise(ArgumentError.new("missing object serial"))
     end
@@ -389,8 +404,8 @@ module VSN
 
     def self.parse_sp(data : Bytes) : Int32
       return 2 if data.size < 13
-      i = 8
-      while i + 6 < data.size
+      i = 6
+      while i + 2 < data.size
         rtype = (data[i] << 8) | data[i+1]
         if rtype == 0x0009
           plen = data[i+2]

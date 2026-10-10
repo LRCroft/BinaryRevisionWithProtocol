@@ -1,0 +1,11 @@
+[package]
+name = "vsn-rust-consumer"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "vsn-rust-consumer"
+path = "src/main.rs"
+
+[dependencies]
+vsn-rust = { path = "../../Rust" }

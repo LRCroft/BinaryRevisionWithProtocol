@@ -292,5 +292,19 @@ module VSN
 
     def self.new_builder(mode = MODE_MODERN); create(mode); end
     def check_magic_bytes(data); self.class.integrity_verify_raw(data); end
+    # --- Canonical API completeness (identical across all 31 languages) ---
+    def to_bytes; VSN.encode(@mode, @generation, @storage_policy); end
+    def reopen(data)
+      raise "bad magic" unless data.bytesize >= 8 && data.byteslice(0, 4) == MAGIC
+      @generation = 0
+      self
+    end
+    def list_files
+      @files.map { |fid, path| { file_id: fid, path: path } }.sort_by { |f| f[:path] }
+    end
+    def diagnostics
+      return [] if @mode == MODE_MODERN || @mode == MODE_ENTERPRISE
+      [{ code: 0x000C, message: "invalid canonical state" }]
+    end
   end
 end

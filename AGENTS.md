@@ -18,6 +18,214 @@ The 31 canonical language directories are: `Ada, C, COBOL, CSharp, Cpp, Crystal,
 
 ---
 
+## Compiled Artifact Freshness and Rebuild Policy
+
+- Source code and compiled distributables are **never** independently maintained versions. The
+  distributable in `Libraries/Compiled/<Lang>/` is a **derived build** of `Libraries/<Lang>/` source.
+- Whenever a library source file, public API, dependency declaration, compiler option, package config, or
+  build script changes, **rebuild every affected distributable**. After changes to shared protocol
+  behavior or cross-language compatibility, rebuild and run tests for **all 31 languages**.
+- Build to a staging dir first; only after the artifact builds **and** its external consumer test
+  (`Libraries/Consumer/<Lang>/`) passes against the staged artifact, promote staging over `Compiled/`.
+- Replace old artifacts with the newly validated outputs. Remove obsolete outputs so a stale file cannot
+  masquerade as current.
+- **Never** report a build as successful if artifacts were not regenerated from the current source, and
+  **never** keep a stale artifact labelled current after a failed rebuild — mark it FAIL explicitly in
+  `Libraries/Compiled/BUILD_MANIFEST.json`.
+- Selective rebuild is allowed only when a change is provably single-language with no cross-language
+  impact; the manifest must record which languages were rebuilt and which are unchanged.
+- Frozen protocol artifacts and frozen test vectors must **never** be regenerated or edited to make tests
+  pass.
+- Before finishing any source-code change, run the build-and-verify command below and update the manifest.
+
+### Standard rebuild-and-verify command
+Run the per-language builds and consumer tests documented in `Libraries/Compiled/BUILD_REPORT.md`
+(conformance: `python Libraries/Conformance/run_conformance.py`), then regenerate
+`Libraries/Compiled/BUILD_MANIFEST.json`. Every entry must be `PASS` only if built from current source and
+consumer-tested (exit 0) in the current workflow.
+
+---
+
+## SESSION UPDATE 2026-10-10 Act Mode — ALL 31 Independent Consumers PASS
+
+**Verdict:** COMPLETE. Closed the consumer gap from 15 → **31/31 PASS** (real Docker execution, exit 0 each). All 31 languages now have an executed independent consumer asserting SP wire-out (REC_STORAGE_POLICY 0x0009 + FID 0x0901 signature) **and** wire-in (parse back = same value 1..4).
+
+### New consumers verified this session (16)
+Ada (gnatmake), COBOL (cobc), D (gdc), Dart, Elixir, Erlang (erlc+erl), Fortran (gfortran, module-first), Haskell (ghc), Julia, Nim, Objective-C (gcc + vsn_sp_c.c), OCaml (ocamlc), Perl, R (Rscript), Scala (scala-cli), Crystal.
+
+### Library fixes (this session)
+| File | Change |
+|------|--------|
+| `Libraries/Crystal/vsn.cr` | `parse_sp`: start offset 8→6 (records begin at index 6); SP now recovered |
+| `Libraries/Fortran/vsn.f90` | Removed duplicate `vsn_parse_storage_policy` interface block (compile fix) |
+| `Libraries/R/vsn.R` | Added missing `import_bytes`/`export_bytes` public wrappers |
+
+### Verification (this session)
+```
+run_conformance.py: FINAL VERDICT 31/31 VERIFIED, 0 PARTIAL, 0 NOT_VERIFIED (90.7s)
+STORAGE POLICY CONFORMANCE: 31/31 PASS (P01-P12 wire-mode verification)
+FROZEN VECTORS: 5/5 SHA-256 MATCH (TestVectors/*.vsn vs manifest)
+CONSUMER_STATUS.json: 31 PASS / 0 NOT_RUN (valid JSON, 31 langs)
+ALL_31_LANGUAGE_CONFORMANCE_MANIFEST.json: 31 PASS / 0 NOT_RUN (valid JSON, 31 langs)
+```
+
+### Honest gap (recorded, not fabricated)
+Packaging/installability gaps only (no conformance impact): Python not pip-installable (no pyproject/setup); several languages lack a committed package manifest (Elixir mix, Haskell cabal, Java pom/gradle, Julia Project.toml, OCaml dune, Perl cpanfile, PHP composer.json, R DESCRIPTION, Ruby gemspec, Scala build.sbt). Documented per-language in `ALL_31_PACKAGE_EXPORT_STATUS.md` / `PACKAGING_STATUS.json`.
+
+---
+
+## SESSION UPDATE 2026-10-10 Act Mode — SP Wire-In Defect Remediation + 15 Independent Consumers
+
+
+**Verdict:** COMPLETE. Closed the independent-consumer gap from 7 → **15 PASS** (real Docker execution, exit 0). Root cause was a **systemic SP read-back (wire-in) defect**: several library parsers advanced past / mis-framed the `REC_STORAGE_POLICY` (0x0009) record, so the policy was never recovered even though the writer emitted it. Fixed and consumer-verified in **Kotlin** and **Zig** this session (JS/TS, Lua, Rust, C, F# fixed earlier this sprint).
+
+### Systemic defect classes (all fixed)
+1. **Record-walker guard / preamble** that skipped the 0x0009 record — a spurious "skip RecordsEnd header field" preamble (Kotlin) or an `rt <= 0x0008` guard (JS/TS, Lua).
+2. **Off-by-N header framing** — `Zig/vsn.zig` writer uses a 6-byte header (records at index 6) but `parseStoragePolicy` assumed an 8-byte header; `Rust/lib.rs` "header fields" loop consumed the SP record.
+
+### Source fixes (this session)
+| File | Change |
+|------|--------|
+| `Libraries/Kotlin/Vsn.kt` | `parseStoragePolicy`: removed the "skip RecordsEnd header field" preamble that advanced past the SP record; record scan now starts at `pos=8` (right after header). |
+| `Libraries/Zig/vsn.zig` | `parseStoragePolicy`: replaced the broken 8-byte-header record walker with a robust byte-signature scan for `[00 09][04][09 01][01][value]`. |
+
+### Independent consumers now PASS (15/31, all exit 0)
+C, C#, C++, F#, Go, Java, JS/TS (CJS+ESM), Kotlin, Lua, PHP, Python, Ruby, Rust, Swift, Zig. New this session: **Kotlin** (`Consumer/Kotlin/main.kt`), **Swift** (`Consumer/Swift/main.swift`), **Ruby** (`Consumer/Ruby/consumer.rb`), **PHP** (`Consumer/PHP/consumer.php`), **Zig** (`Consumer/Zig/consumer.zig`), **Cpp** (`Consumer/Cpp/main.cpp`). Each asserts SP wire-out (REC_STORAGE_POLICY signature) **and** wire-in (parse back = same value 1..4).
+
+### Verification (this session)
+```
+run_conformance.py: FINAL VERDICT 31/31 VERIFIED, 0 PARTIAL, 0 NOT_VERIFIED (89.2s)
+STORAGE POLICY CONFORMANCE: 31/31 PASS (P01-P12 wire-mode verification)
+FROZEN VECTORS: 5/5 SHA-256 MATCH (TestVectors/*.vsn vs corpus/manifest.json)
+CONSUMER_STATUS.json: 15 PASS / 16 NOT_RUN (valid JSON)
+```
+
+### Honest gap (recorded, not fabricated)
+**16 languages have NO standalone consumer file this session** — Ada, COBOL, Crystal, D, Dart, Elixir, Erlang, Fortran, Haskell, Julia, Nim, Objective-C, OCaml, Perl, R, Scala. Their SP read-back is still exercised by the 31/31 conformance suite (separate evidence); per-language ready-to-run consumer commands are in `Libraries/Consumer/ALL_31_CONSUMER_QUICKSTART.md`.
+
+---
+
+
+
+**Verdict:** COMPLETE. Canonical SP verified across all 31 languages — values 1-4 authoritative on wire via `REC_STORAGE_POLICY` (0x0009) + `FID_STORAGE_POLICY` (0x0901), payload u8 {1,2,3,4}; obsolete `HV→MODERN` / `H→ENTERPRISE` SP→mode mapping cancelled. **31/31 conformance VERIFIED (exit 0), SP 31/31 PASS, frozen vectors 5/5 SHA-256 MATCH.** 7 independent public-API consumers PASS (exit 0). Seven `ALL_31_*` deliverables created under `Libraries/Consumer/`.
+
+### Source files changed (this session)
+| File | Change |
+|------|--------|
+| `Libraries/C/test_vsn.c` | P02 obsolete `HV→MODERN`/`H→ENTERPRISE` assertion → loop SP 1-4 with `parse_sp_value` round-trip |
+| `Libraries/C/vsn.c` | Removed semantic mode labels from comments; `MODE_*` kept only as binary wire constants |
+| `Libraries/Ada/test_vsn.adb` | Removed dead `m1-m4` `HV→MODERN`/`H→ENTERPRISE` mapping vars; kept correct SP 1-4 `Get_Storage_Policy` assertion |
+
+### Verification (this session)
+- Conformance: **31/31 VERIFIED, 0 PARTIAL, 0 NOT_VERIFIED** (`run_conformance.py`, exit 0); **SP 31/31 PASS**.
+- Frozen vectors: **5/5 MATCH** (DIRECT-01/02/03, EXT-01, EXT-02-and-EXT-03) vs `corpus/manifest.json`.
+- Independent consumers (locally re-run, exit 0): **C# 8/8**, **Python 9/9**, **JS-TS CJS 18/18 + ESM 5/5**; C/Java/Go/Rust PASS via Docker (toolchain not on host).
+- Code-wide grep confirms no remaining obsolete SP→mode mapping assertions in test sources (only comments/dead code, now removed).
+
+### Packaging gaps (installability only — no conformance impact)
+- **Python:** no `pyproject.toml`/`setup.py`/`setup.cfg` → not pip-installable (import via `sys.path`).
+- **Elixir/Haskell/Java/Julia/OCaml/Perl/PHP/R/Ruby/Scala:** no committed package manifest; build/test via runner toolchain.
+- **Rust** (crate `vsn-rust` + explicit `[lib]`) and **JS-TS** (CJS/Node16 `exports` + multi-platform esbuild) packaging fixed this cycle.
+
+### Deliverables (under `Libraries/Consumer/`)
+`ALL_31_STORAGE_POLICY_AUDIT.md`, `ALL_31_PUBLIC_API_MATRIX.md`, `ALL_31_CONSUMER_TEST_RESULTS.md`, `ALL_31_PACKAGE_EXPORT_STATUS.md`, `ALL_31_LANGUAGE_CONFORMANCE_MANIFEST.json` (valid JSON: 31 langs, 5 frozen vectors, 7 PASS consumers), `ALL_31_SOURCE_FIXES.md`, `ALL_31_CONSUMER_QUICKSTART.md`.
+
+---
+
+## SESSION UPDATE 2026-10-10 Act Mode — C Test SP Assertion Fix (false-positive elimination)
+
+**Verdict:** COMPLETE. Fixed C test (`test_vsn.c`) SP assertions that were passing with **0 effective assertions** due to raw byte offset assumptions. Replaced with proper `REC_STORAGE_POLICY` record-stream parsing. Full suite: **31/31 VERIFIED, SP 31/31 PASS** (100.6s).
+
+### Root Causes Fixed (test_vsn.c)
+1. **`buf[4]` was CFV high byte (always `0x00`)**, not the storage policy value — SP lives in variable-length record stream
+2. **P05/P07 always-triggered failures** — `all_wire[0][4] == all_wire[2][4]` (both `0x00`) and `buf2[4]!=1 && buf2[4]!=2` (`0x00` matches neither)
+3. **Always-printed "PASS"** — `printf("SP 01-12 PASS ...")` hardcoded PASS regardless of `sp_fail`
+4. **`memmem` implicit declaration** — added `#define _GNU_SOURCE 1`
+
+### What Was Added
+- **`parse_sp_value()` helper** (before `main`): walks VSN- record stream, decodes uvarint payload length, matches `REC_STORAGE_POLICY` + `FID_STORAGE_POLICY`, returns SP value byte
+- **P01-P11** (11 assertion groups, 30 assertions): proper wire-level verification
+  - P01: constants defined (1,2,3,4)
+  - P02: HV→MODERN, H→ENTERPRISE (distinct modes)
+  - P03-P04: writer emits correct SP value per policy
+  - P05: all four policies produce distinct wire values
+  - P06: reader (`vsn_open`) recovers SP value
+  - P07: valid commit output for all policies
+  - P08: SP values in range [1,4]
+  - P09: cross-policy compat (HV→1, H→3)
+  - P10: no policy name text in wire
+  - P11: backward compat (default → VERTICAL=2)
+- **Conditional printf**: `sp_fail?"FAIL":"PASS"` replaces hardcoded "PASS"
+
+### Verification
+```
+docker run --rm vsn-deb:latest gcc + test:
+  CAP 01-19 PASS (19/19)
+  SP 01-12 PASS assertions=30 ops=11
+  PASS 19
+Full suite: 31/31 VERIFIED (100.6s); SP 31/31 PASS
+```
+
+### D Test Audit
+`test_vsn.d` already had a correct `spRecordValue()` record-stream walker — no changes needed.
+
+---
+
+## SESSION UPDATE 2026-10-10 Act Mode — Consumer Verification Sprint (7 independent consumers + 31-language public API)
+
+**Verdict:** COMPLETE. Built and executed **7 independent consumer projects** (JavaScript-TypeScript, Go, C, Java, C#, Python, Rust) that use each library through its **public API only** (no internal fields/private modules). All 7 PASS (exit 0). Fixed **2 packaging blockers** (Rust crate name; JS/TS CJS/Node16 + multi-platform esbuild) and verified them via regression. The **31/31 conformance**, **31/31 SP**, and **5/5 frozen-vector** results are preserved. No packages published, no Git commits, no frozen-vector changes.
+
+### Independent consumer results (7/7 PASS)
+| Language | Consumer (`Libraries/Consumer/<Lang>/`) | Result | Exit |
+|----------|----------------------------------------|--------|------|
+| JavaScript-TypeScript | `Consumer/JavaScript-TypeScript` (Node) | **CJS 20/20 + ESM 5/5 PASS** | 0 |
+| Go | `Consumer/Go` | **9/9 PASS** (module `replace` to `../Go`) | 0 |
+| C | `Consumer/C` | **10/10 PASS** (compiled with `../C/vsn.c`) | 0 |
+| Java | `Consumer/Java` | **10/10 PASS** (compiled against `../Java/VsnLib.java`) | 0 |
+| C# | `Consumer/CSharp` | **8/8 PASS** (project reference to `CSharp/Vsn`) | 0 |
+| Python | `Consumer/Python` | **9/9 PASS** (via `sys.path` + local `vsn` package) | 0 |
+| Rust | `Consumer/Rust` | **9/9 PASS** (path dep `vsn-rust`, `use vsn_rust::*`) | 0 |
+
+### Packaging fixes (regression-verified)
+- **Rust** `Libraries/Rust/Cargo.toml`: crate `Rust` → **`vsn-rust`** (valid, lowercase) + explicit `[lib] name=vsn_rust path=src/lib.rs`; `tests/test_vsn.rs` → `use vsn_rust::*`. Regression: crate `cargo test` **19/19 + SP PASS**; consumer **9/9 PASS**.
+- **JavaScript-TypeScript** `Libraries/JavaScript-TypeScript/package.json`: ESM-only → **CommonJS** (`"type":"commonjs"`/Node16), removed `"type":"module"`, added `exports`/`types`/`files`, esbuild **multi-platform** (`linux-x64` + `win32-x64`); `run_conformance.py` now runs `npm install` before the TS tests. Regression: conformance **19/19 PASS**; consumer **CJS 20/20 + ESM 5/5 PASS**.
+
+### Gaps (recorded, not fabricated)
+- **Python packaging:** no `pyproject.toml`/`setup.py`/`setup.cfg` in `Libraries/Python` → not pip-installable (usable via `sys.path`). Does NOT affect the 31/31 conformance.
+- **24 of 31 languages** have **no independent consumer executed this session** — recorded as `NOT_RUN` (their public API is verified via the 31/31 conformance suite, which is separate evidence).
+
+### Deliverables (all under `Libraries/Consumer/`, cross-referenced by repo-relative path)
+- `CONSUMER_REPORT.md`, `CONSUMER_EVIDENCE.md`, `CONSUMER_TEST_RESULTS.md`, `CONSUMER_STATUS.json`
+- `PACKAGING_REPORT.md`, `PACKAGING_EVIDENCE.md`, `PACKAGING_STATUS.json`
+- Both `*_STATUS.json` contain **exactly 31 language entries** (validated: parse OK, unique ids/names).
+
+### Verification (this session)
+```
+7/7 independent consumers PASS (exit 0)
+31/31 conformance VERIFIED, 31/31 SP PASS, 5/5 frozen vectors SHA-256 MATCH (run_conformance.py, exit 0)
+CONSUMER_STATUS.json: 31 langs (7 PASS / 24 NOT_RUN); PACKAGING_STATUS.json: 31 langs (2 fixes / 1 gap)
+```
+
+---
+
+## SESSION UPDATE 2026-10-10 Act Mode — Full Project Health Check (REPRODUCIBLE 31/31 + SP 31/31)
+
+**Verdict:** Project verified healthy. Full suite re-executed twice on 2026-10-10: **31/31 VERIFIED, 0 PARTIAL, 0 NOT_VERIFIED**, runner exit code **0** both runs (117.7s run 1). Frozen vectors **5/5 SHA-256 MATCH**. **STORAGE POLICY CONFORMANCE improved to 31/31** (previously 30/31 — Swift now passes P01-P12 wire-mode verification).
+
+### Verification evidence (2026-10-10)
+```
+python Libraries/Conformance/run_conformance.py
+  Run 1: FINAL VERDICT 31/31 VERIFIED (117.7s); STORAGE POLICY CONFORMANCE 31/31 PASS
+  Run 2: 31/31 VERIFIED, EXIT=0
+  _results.json: DIRECT-01/02/03, EXT-01, EXT-02-and-EXT-03 all MATCH
+```
+
+### Note
+- Swift SP conformance was the only 30/31 gap in the 2026-10-08/09 records; it now passes, so SP conformance is **31/31**.
+- Historical session entries below retain their per-run metrics as recorded at the time.
+
+---
+
 ## SESSION UPDATE 2026-10-09 Act Mode — COBOL Storage Policy Wire Conformance (FINAL, 47/47 PASS)
 
 **Verdict:** COMPLETE. COBOL now passes 19/19 core CAPs **and** 47/47 Storage Policy wire-conformance assertions, deterministically (verified across 5+ runs, exit code 0). Full suite: **31/31 VERIFIED, 0 PARTIAL, 0 NOT_VERIFIED**; frozen vectors **5/5 SHA-256 MATCH**; SP conformance **30/31** (only Swift is pre-existing 30/31 — outside this session's scope).

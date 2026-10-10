@@ -1,5 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.diffObjects = diffObjects;
+exports.diffFiles = diffFiles;
+exports.diffRevisions = diffRevisions;
+exports.contentEqual = contentEqual;
 /** Diff two object-serial sets. */
-export function diffObjects(left, right) {
+function diffObjects(left, right) {
     const l = new Set(left), r = new Set(right);
     const shared = [...l].filter((s) => r.has(s)).sort((a, b) => a - b);
     const added = [...r].filter((s) => !l.has(s)).sort((a, b) => a - b);
@@ -7,7 +13,7 @@ export function diffObjects(left, right) {
     return { shared, added, removed };
 }
 /** Diff files between two stores by path and logical content. */
-export function diffFiles(left, right) {
+function diffFiles(left, right) {
     const leftFiles = new Map();
     for (const i of left.listFiles())
         if (i.path)
@@ -37,7 +43,7 @@ export function diffFiles(left, right) {
     return result;
 }
 /** Diff logical content between two revisions of one file. */
-export function diffRevisions(store, fileId, revA, revB) {
+function diffRevisions(store, fileId, revA, revB) {
     const contentA = store.checkoutRevision(fileId, revA);
     const contentB = store.checkoutRevision(fileId, revB);
     const changed = !contentA.equals(contentB);
@@ -46,5 +52,5 @@ export function diffRevisions(store, fileId, revA, revB) {
         changed, addedBytes: changed ? contentB.length - contentA.length : 0,
     };
 }
-export function contentEqual(a, b) { return a.equals(b); }
+function contentEqual(a, b) { return a.equals(b); }
 //# sourceMappingURL=diff.js.map

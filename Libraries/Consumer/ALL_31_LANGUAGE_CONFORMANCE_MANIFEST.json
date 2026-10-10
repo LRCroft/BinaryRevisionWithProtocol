@@ -1,0 +1,48 @@
+{
+  "report": "ALL_31_LANGUAGE_CONFORMANCE_MANIFEST",
+  "generated": "2026-10-10",
+  "protocol": { "storage_policy_values": [1,2,3,4], "rec_storage_policy": "0x0009", "fid_storage_policy": "0x0901", "obsolete_sp_to_mode": "cancelled", "wire_modes": { "0x01": "MODERN", "0x02": "ENTERPRISE" } },
+  "summary": { "languages_total": 31, "conformance_verified": "31/31 (run_conformance.py exit 0)", "storage_policy_conformance": "31/31 PASS", "independent_consumers_pass": 31, "independent_consumers_not_run": 0, "frozen_vectors": "5/5 SHA-256 MATCH" },
+  "frozen_vectors": [
+    { "name": "DIRECT-01.vsn", "sha256": "d4c31c910973577359bbba7f06c71e086bbcae310bef0709667a22deba5f4426", "status": "MATCH" },
+    { "name": "DIRECT-02.vsn", "sha256": "1af182c3271b9b40c318c5f9928f23c21684df88e627813460ba98c2a2d08324", "status": "MATCH" },
+    { "name": "DIRECT-03.vsn", "sha256": "25f9874796dc04079374f561abf1951d692b0779ecd261a22107f73cea7b66a4", "status": "MATCH" },
+    { "name": "EXT-01.vsn", "sha256": "486fdff3dc19872ff2a0c708f51466ac470d053cbceabb9e36d5f00241cab9c6", "status": "MATCH" },
+    { "name": "EXT-02-and-EXT-03.vsn", "sha256": "d1baabce8123f3984c3e7fded6cbc3a386ad9df77ca85e9dd642362a7857be90", "status": "MATCH" }
+  ],
+  "languages": [
+    { "id": 1, "name": "Ada", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Ada", "packaging": "source_build", "gap": null },
+    { "id": 2, "name": "C", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/C", "packaging": "source_build", "gap": null },
+    { "id": 3, "name": "COBOL", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/COBOL", "packaging": "source_build", "gap": null },
+    { "id": 4, "name": "CSharp", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/CSharp", "packaging": "dotnet", "gap": null },
+    { "id": 5, "name": "Cpp", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Cpp", "packaging": "source_build", "gap": null },
+    { "id": 6, "name": "Crystal", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Crystal", "packaging": "shards", "gap": null },
+    { "id": 7, "name": "D", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/D", "packaging": "dub", "gap": null },
+    { "id": 8, "name": "Dart", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Dart", "packaging": "pub", "gap": null },
+    { "id": 9, "name": "Elixir", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Elixir", "packaging": "mix", "gap": "mix file not committed" },
+    { "id": 10, "name": "Erlang", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Erlang", "packaging": "rebar3", "gap": null },
+    { "id": 11, "name": "FSharp", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/FSharp", "packaging": "dotnet", "gap": null },
+    { "id": 12, "name": "Fortran", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Fortran", "packaging": "make", "gap": null },
+    { "id": 13, "name": "Go", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Go", "packaging": "go_module", "gap": null },
+    { "id": 14, "name": "Haskell", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Haskell", "packaging": "ghc", "gap": "no cabal/packaged file" },
+    { "id": 15, "name": "Java", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Java", "packaging": "javac", "gap": "no pom/gradle committed" },
+    { "id": 16, "name": "JavaScript-TypeScript", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/JavaScript-TypeScript", "packaging": "npm_fixed", "gap": null },
+    { "id": 17, "name": "Julia", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Julia", "packaging": "julia", "gap": "no Project.toml" },
+    { "id": 18, "name": "Kotlin", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Kotlin", "packaging": "gradle", "gap": null },
+    { "id": 19, "name": "Lua", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Lua", "packaging": "source", "gap": null },
+    { "id": 20, "name": "Nim", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Nim", "packaging": "source", "gap": null },
+    { "id": 21, "name": "Objective-C", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Objective-C", "packaging": "source_build", "gap": null },
+    { "id": 22, "name": "OCaml", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/OCaml", "packaging": "dune", "gap": "no dune file" },
+    { "id": 23, "name": "Perl", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Perl", "packaging": "source", "gap": "no cpanfile" },
+    { "id": 24, "name": "PHP", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/PHP", "packaging": "composer", "gap": "no composer.json" },
+    { "id": 25, "name": "Python", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Python", "packaging": "source_syspath", "gap": "not pip-installable (no pyproject/setup)" },
+    { "id": 26, "name": "R", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/R", "packaging": "R", "gap": "no DESCRIPTION" },
+    { "id": 27, "name": "Ruby", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Ruby", "packaging": "gem_source", "gap": "no gemspec" },
+    { "id": 28, "name": "Rust", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Rust", "packaging": "cargo_fixed", "gap": null },
+    { "id": 29, "name": "Scala", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Scala", "packaging": "scala_cli", "gap": "no build.sbt" },
+    { "id": 30, "name": "Swift", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Swift", "packaging": "swiftpm", "gap": null },
+    { "id": 31, "name": "Zig", "conformance": "VERIFIED_19_of_19", "storage_policy": "PASS_12_of_12", "independent_consumer": "PASS", "consumer_path": "Libraries/Consumer/Zig", "packaging": "zig_build", "gap": null }
+  ],
+  "cross_references": [ "ALL_31_STORAGE_POLICY_AUDIT.md", "ALL_31_PUBLIC_API_MATRIX.md", "ALL_31_CONSUMER_TEST_RESULTS.md", "ALL_31_PACKAGE_EXPORT_STATUS.md", "ALL_31_SOURCE_FIXES.md", "ALL_31_CONSUMER_QUICKSTART.md" ]
+}
+

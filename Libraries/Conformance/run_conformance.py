@@ -119,7 +119,7 @@ LANG_SPECS["Haskell"] = LangSpec("Haskell", "vsn-deb:latest", "Haskell",
 LANG_SPECS["Java"] = LangSpec("Java", "vsn-deb:latest", "Java",
     "javac -d /tmp/classes VsnLib.java TestVsn.java && java -cp /tmp/classes TestVsn")
 LANG_SPECS["JavaScript-TypeScript"] = LangSpec("JavaScript-TypeScript", "node:20-slim", "JavaScript-TypeScript",
-    "ln -sf /work/TestVectors TestVectors 2>/dev/null; cd tests && ln -sf ../../../TestVectors TestVectors 2>/dev/null; cd .. && npx tsx tests/test_vsn_caps.ts")
+    "npm install --no-audit --no-fund >/dev/null 2>&1; ln -sf /work/TestVectors TestVectors 2>/dev/null; cd tests && ln -sf ../../../TestVectors TestVectors 2>/dev/null; cd .. && npx tsx tests/test_vsn_caps.ts")
 LANG_SPECS["Julia"] = LangSpec("Julia", "julia:latest", "Julia",
     "julia test_vsn.jl")
 LANG_SPECS["Kotlin"] = LangSpec("Kotlin", "vsn-jvm:latest", "Kotlin",

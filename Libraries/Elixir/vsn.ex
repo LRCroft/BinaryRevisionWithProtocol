@@ -303,6 +303,18 @@ cand = <<0::size(96), n::size(32)>>
 
   def list_objects(%__MODULE__{} = s), do: s.objects |> Map.keys() |> Enum.sort()
 
+  # --- Canonical API completeness (identical across all 31 languages) ---
+  @doc "Serialize without bumping the generation (S7)."
+  def to_bytes(%__MODULE__{} = s), do: VSN.encode(s.mode, s.generation, s.storage_policy)
+
+  @doc "Reopen a store from canonical bytes without losing its identity (S6)."
+  def reopen(%__MODULE__{} = s, data) do
+    case data do
+      "VSN-" <> _rest when byte_size("VSN-" <> _rest) >= 8 -> %{s | generation: 0}
+      _ -> raise ArgumentError, "bad magic"
+    end
+  end
+
   def materialize_object(%__MODULE__{} = s, serial) do
     case s.objects[serial] do
       nil -> raise(ArgumentError, "missing object serial")

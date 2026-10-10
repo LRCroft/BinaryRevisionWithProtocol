@@ -1,4 +1,4 @@
-use Rust::*;
+use vsn_rust::*;
 
 #[test]
 fn all_capabilities() {

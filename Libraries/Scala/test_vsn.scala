@@ -78,14 +78,14 @@ object TestVSN {
       s.createFile("sp.txt", Array[Byte]())
       val data = s.exportBytes()
       allWire += data
-      if (data.length < 13 || data(0).toInt != 86) {
+      if (data.length < 15 || data(0).toInt != 86) {
         println(s"P03/P04 $name failed (bad magic/length)"); spFail = true
-      } else if ((data(12) & 0xFF) != sp) {
-        println(s"P03/P04 $name failed sp=${data(12) & 0xFF} expected=$sp"); spFail = true
+      } else if ((data(14) & 0xFF) != sp) {
+        println(s"P03/P04 $name failed sp=${data(14) & 0xFF} expected=$sp"); spFail = true
       }
     }
     // P05: HV(1) vs HOR(3) wire bytes must differ (SP record carries the value)
-    if (allWire.length >= 3 && (allWire(0)(12) & 0xFF) == (allWire(2)(12) & 0xFF)) {
+    if (allWire.length >= 3 && (allWire(0)(14) & 0xFF) == (allWire(2)(14) & 0xFF)) {
       println("P05 HV vs HOR identical wire"); spFail = true
     }
 

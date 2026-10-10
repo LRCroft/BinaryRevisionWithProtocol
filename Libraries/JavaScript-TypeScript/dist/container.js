@@ -1,9 +1,12 @@
-import { MAGIC, FID_RECORDS_END, FID_MODE, REC_END_OF_RECORDS, REC_MODE_DECLARATION, REC_STORAGE_POLICY, FID_STORAGE_POLICY } from "./constants.js";
-import { VsnError, readUvarint, readU16 } from "./primitives.js";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.parse = parse;
+const constants_js_1 = require("./constants.js");
+const primitives_js_1 = require("./primitives.js");
 /** Bounds-checked slice: physical end mid-unit is truncation (GR-47). */
 function sliceChecked(data, off, len, what) {
     if (len < 0 || off.value + len > data.length) {
-        throw new VsnError(0x0002, `truncated ${what}`, off.value);
+        throw new primitives_js_1.VsnError(0x0002, `truncated ${what}`, off.value);
     }
     const out = data.subarray(off.value, off.value + len);
     off.value += len;
@@ -15,7 +18,7 @@ function makeField(fid, value) {
         value,
         asUvarint() {
             const off = { value: 0 };
-            return readUvarint(this.value, off);
+            return (0, primitives_js_1.readUvarint)(this.value, off);
         },
     };
 }
@@ -35,33 +38,33 @@ function parseFields(payload, rec) {
     let last = -1;
     while (off.value < payload.length) {
         const start = off.value;
-        const fid = readU16(payload, off);
+        const fid = (0, primitives_js_1.readU16)(payload, off);
         if (last >= 0 && fid <= last)
-            throw new VsnError(0x0011, `FieldId ${fid} not ascending`, start);
+            throw new primitives_js_1.VsnError(0x0011, `FieldId ${fid} not ascending`, start);
         last = fid;
-        const ln = readUvarint(payload, off);
+        const ln = (0, primitives_js_1.readUvarint)(payload, off);
         const val = sliceChecked(payload, off, Number(ln), "field value");
         rec.fields.push(makeField(fid, val));
     }
 }
-export function parse(data) {
+function parse(data) {
     const off = { value: 0 };
-    if (data.length < 4 || !data.subarray(0, 4).equals(MAGIC))
-        throw new VsnError(0x0001, "bad magic", 0);
+    if (data.length < 4 || !data.subarray(0, 4).equals(constants_js_1.MAGIC))
+        throw new primitives_js_1.VsnError(0x0001, "bad magic", 0);
     off.value = 4;
-    const cfv = readU16(data, off);
+    const cfv = (0, primitives_js_1.readU16)(data, off);
     if (cfv !== 1)
-        throw new VsnError(0x0003, `unsupported CFV ${cfv}`);
-    const ev = readU16(data, off);
+        throw new primitives_js_1.VsnError(0x0003, `unsupported CFV ${cfv}`);
+    const ev = (0, primitives_js_1.readU16)(data, off);
     if (ev !== 1)
-        throw new VsnError(0x0004, `unsupported EV ${ev}`);
+        throw new primitives_js_1.VsnError(0x0004, `unsupported EV ${ev}`);
     // Header fields
     while (true) {
-        const fid = readU16(data, off);
-        const ln = readUvarint(data, off);
-        if (fid === FID_RECORDS_END) {
+        const fid = (0, primitives_js_1.readU16)(data, off);
+        const ln = (0, primitives_js_1.readUvarint)(data, off);
+        if (fid === constants_js_1.FID_RECORDS_END) {
             if (ln !== BigInt(0))
-                throw new VsnError(0x0001, "RecordsEnd length != 0");
+                throw new primitives_js_1.VsnError(0x0001, "RecordsEnd length != 0");
             break;
         }
         sliceChecked(data, off, Number(ln), "header field");
@@ -69,38 +72,40 @@ export function parse(data) {
     const records = [];
     while (true) {
         const start = off.value;
-        const rt = readU16(data, off);
-        if (rt === REC_END_OF_RECORDS)
+        const rt = (0, primitives_js_1.readU16)(data, off);
+        if (rt === constants_js_1.REC_END_OF_RECORDS)
             break;
-        const rl = readUvarint(data, off);
+        const rl = (0, primitives_js_1.readUvarint)(data, off);
         const payload = sliceChecked(data, off, Number(rl), "record payload");
         const rec = makeRecord(rt, payload, start);
-        if (rt <= 0x0008)
+        // REC_STORAGE_POLICY (0x0009) is a canonical field-bearing record; it MUST be
+        // included in field parsing or the writer's storage policy is lost on read-back.
+        if (rt <= constants_js_1.REC_STORAGE_POLICY)
             parseFields(payload, rec);
         records.push(rec);
     }
     const objects = [];
     while (true) {
         const start = off.value;
-        const serial = readUvarint(data, off);
+        const serial = (0, primitives_js_1.readUvarint)(data, off);
         if (serial === BigInt(0))
             break;
-        const ol = readUvarint(data, off);
+        const ol = (0, primitives_js_1.readUvarint)(data, off);
         const desc = sliceChecked(data, off, Number(ol), "object descriptor");
         objects.push({ serial, length: Number(ol), descriptor: desc, byteOffset: start });
     }
-    const rc = readUvarint(data, off);
-    const gen = readUvarint(data, off);
+    const rc = (0, primitives_js_1.readUvarint)(data, off);
+    const gen = (0, primitives_js_1.readUvarint)(data, off);
     let mode = null;
     let storagePolicy = null;
     for (const rec of records) {
-        if (rec.rtype === REC_MODE_DECLARATION) {
-            const m = rec.getField(FID_MODE);
+        if (rec.rtype === constants_js_1.REC_MODE_DECLARATION) {
+            const m = rec.getField(constants_js_1.FID_MODE);
             if (m && m.value.length > 0)
                 mode = m.value[0];
         }
-        if (rec.rtype === REC_STORAGE_POLICY) {
-            const sp = rec.getField(FID_STORAGE_POLICY);
+        if (rec.rtype === constants_js_1.REC_STORAGE_POLICY) {
+            const sp = rec.getField(constants_js_1.FID_STORAGE_POLICY);
             if (sp && sp.value.length > 0)
                 storagePolicy = sp.value[0];
         }

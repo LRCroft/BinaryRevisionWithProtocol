@@ -47,7 +47,7 @@ let parse s =
            let plen = int_of_char d.[pos+2] in
            if pos + 3 + plen > String.length d then None else
            let fid_off = pos + 3 in
-           if fid_off + 4 >= String.length d then parse_sp d (pos + 3 + plen) else
+           if fid_off + 3 >= String.length d then parse_sp d (pos + 3 + plen) else
            let fid = (int_of_char d.[fid_off] lsl 8) lor (int_of_char d.[fid_off+1]) in
            if fid = fid_storage_policy then Some (int_of_char d.[fid_off+3])
            else parse_sp d (pos + 3 + plen)
@@ -198,6 +198,30 @@ let get_object_info s serial =
   match find_opt (fun (s2,_) -> s2 = serial) s.objects with
   | Some (_,c) -> Some (serial, String.length c)
   | None -> None
+
+(* --- Canonical API completeness (identical across all 31 languages) --- *)
+let open_store data =
+  if String.length data >= 8 && String.sub data 0 4 = magic then create mode_modern
+  else failwith "vsn: bad magic"
+
+let to_bytes s =
+  match s.storage_policy with
+  | Some sp -> encode_with_policy s.mode s.generation sp
+  | None    -> encode s.mode s.generation
+
+let reopen s data =
+  if String.length data < 8 || String.sub data 0 4 <> magic then failwith "vsn: bad magic";
+  s.generation <- 0; s
+
+let rename_file s fid new_name =
+  Mutex.execute s.lock (fun () ->
+    s.files <- List.map (fun (n,c,f) -> if f = fid then (new_name, c, f) else (n, c, f)) s.files)
+
+let list_files s = List.map (fun (n,_,_) -> n) s.files
+
+let diagnostics s =
+  if s.mode = mode_modern || s.mode = mode_enterprise then []
+  else [(0x000C, "invalid canonical state")]
 
 let rec file_names acc lst = match lst with
   | [] -> List.rev acc

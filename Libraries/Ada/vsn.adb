@@ -107,39 +107,20 @@ package body VSN is
       return True;
    end Merge_Ok;
    function Import_Bytes (s : in out Store; data : String) return Boolean is
-      pos    : Natural := 8;
-      sp_val : Positive := STORAGE_POLICY_VERTICAL;
    begin
       if data'Length < 8 then return False; end if;
       if data (1..4) /= "VSN-" then return False; end if;
-      -- Scan for REC_STORAGE_POLICY record with FID 0x0901
-      while pos + 6 <= data'Length loop
-         declare rec_type : Positive := Character'Pos(data(pos)) * 256 + Character'Pos(data(pos+1));
-            plen_len : Natural := Character'Pos(data(pos+2));
-            pstart   : Natural := pos + 3;
-         begin
-            if pstart + plen_len > data'Length then exit; end if;
-            if rec_type = REC_STORAGE_POLICY and plen_len >= 3 then
-               declare fid_pos : Natural := pstart;
-               begin
-                  while fid_pos + 3 <= pstart + plen_len loop
-                     if Character'Pos(data(fid_pos)) = 9 and
-                        Character'Pos(data(fid_pos+1)) = 1 then
-                        declare vlen : Natural := Character'Pos(data(fid_pos+2));
-                        begin
-                           if vlen = 1 and fid_pos + 3 <= pstart + plen_len then
-                              sp_val := Character'Pos(data(fid_pos+3));
-                              exit;
-                           end if;
-                        end;
-                     end if;
-                     fid_pos := fid_pos + 1;
-                  end loop;
-               end;
-               s.storage_policy := sp_val;
-            end if;
-            pos := pstart + plen_len;
-         end;
+      -- Scan for the REC_STORAGE_POLICY record signature:
+      --   0x0009 (rec type) | plen | 0x0901 (FID) | 1 (vlen) | value
+      for pos in 1 .. data'Length - 6 loop
+         if data(pos) = Character'Val(0) and data(pos + 1) = Character'Val(9)
+            and data(pos + 3) = Character'Val(9) and data(pos + 4) = Character'Val(1)
+         then
+            declare v : Natural := Character'Pos(data(pos + 6));
+            begin
+               if v in 1 .. 4 then s.storage_policy := v; end if;
+            end;
+         end if;
       end loop;
       return True;
    end Import_Bytes;
@@ -152,7 +133,8 @@ package body VSN is
       begin if p <= result'Last then result(p) := c; p := p + 1; end if; end W;
    begin
       W('V'); W('S'); W('N'); W('-');
-      W(Character'Val(0)); W(Character'Val(1)); -- CFV=1, EV=1
+      W(Character'Val(0)); W(Character'Val(1)); -- CFV = 0x0001
+      W(Character'Val(0)); W(Character'Val(1)); -- EV = 0x0001
       W(Character'Val(0)); W(Character'Val(9)); -- REC_STORAGE_POLICY=0x0009
       W(Character'Val(4)); -- payload length = 4
       W(Character'Val(9)); W(Character'Val(1)); -- FID_STORAGE_POLICY=0x0901

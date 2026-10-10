@@ -29,7 +29,7 @@ object VsnApi {
     val payloadLen = Array[Byte](4.toByte)                     // payload length = 4
     val fieldId = Array[Byte](0x09.toByte, 0x01.toByte)      // FID_STORAGE_POLICY = 0x0901
     val valLen = Array[Byte](1.toByte)                         // value length = 1
-    "VSN-".getBytes ++ Array[Byte](0, 1) ++ recType ++ payloadLen ++ fieldId ++ valLen ++ Array[Byte](recVal.toByte)
+    "VSN-".getBytes ++ Array[Byte](0, 1) ++ Array[Byte](0, 1) ++ recType ++ payloadLen ++ fieldId ++ valLen ++ Array[Byte](recVal.toByte)
   }
   
   def parseSP(data: Array[Byte]): Int = {

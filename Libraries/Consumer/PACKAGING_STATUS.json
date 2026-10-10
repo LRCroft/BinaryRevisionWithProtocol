@@ -1,0 +1,70 @@
+{
+  "report": "PACKAGING_STATUS",
+  "generated": "2026-10-10",
+  "scope": "packaging/manifest analysis for all 31 language libraries",
+  "evidence": "Libraries/Consumer/PACKAGING_EVIDENCE.md",
+  "summary": {
+    "languages_total": 31,
+    "packaging_fixed": 2,
+    "packaging_gaps": 1,
+    "source_tree_usable": "31/31 (all have a usable build recipe in run_conformance.py)"
+  },
+  "fixes": [
+    {
+      "language": "Rust",
+      "problem": "crate name 'Rust' invalid for external consumers; no [lib] target",
+      "fix": "renamed to vsn-rust + explicit [lib] name=vsn_rust path=src/lib.rs; tests -> use vsn_rust::*",
+      "regression": "cargo test 19/19 + SP PASS; consumer 9/9 PASS exit=0"
+    },
+    {
+      "language": "JavaScript-TypeScript",
+      "problem": "ESM-only ('type':'module') + CJS main/exports at non-existent build; esbuild emitted Linux .node",
+      "fix": "type=commonjs, added exports/types/files, esbuild multi-platform (linux-x64 + win32-x64), runner npm install step",
+      "regression": "conformance 19/19 PASS; consumer CJS 20/20 + ESM 5/5 exit=0"
+    }
+  ],
+  "gaps": [
+    { "language": "Python", "gap": "no pyproject.toml/setup.py/setup.cfg in Libraries/Python", "impact": "not pip-installable; import via sys.path only", "affects_conformance": false }
+  ],
+  "languages": [
+    { "id": 1, "name": "Ada", "manifest": "gnatmake (no package manifest)", "public_entry": "GNAT package Vsn", "packaging_status": "source_tree", "gap": null },
+    { "id": 2, "name": "C", "manifest": "header library (none)", "public_entry": "vsn.h C API", "packaging_status": "source_tree", "gap": null },
+    { "id": 3, "name": "COBOL", "manifest": "none", "public_entry": "VSN-LIBRARY", "packaging_status": "source_tree", "gap": null },
+    { "id": 4, "name": "CSharp", "manifest": "Vsn.csproj, Vsn.slnx", "public_entry": "VsnStore", "packaging_status": "dotnet_project", "gap": null },
+    { "id": 5, "name": "Cpp", "manifest": "none", "public_entry": "vsn.hpp", "packaging_status": "source_tree", "gap": null },
+    { "id": 6, "name": "Crystal", "manifest": "shard.yml", "public_entry": "Vsn module", "packaging_status": "source_tree", "gap": null },
+    { "id": 7, "name": "D", "manifest": "dub.json", "public_entry": "Vsn module", "packaging_status": "source_tree", "gap": null },
+    { "id": 8, "name": "Dart", "manifest": "pubspec.yaml", "public_entry": "Vsn class", "packaging_status": "source_tree", "gap": null },
+    { "id": 9, "name": "Elixir", "manifest": "(mix; none committed)", "public_entry": "Vsn module", "packaging_status": "source_tree", "gap": null },
+    { "id": 10, "name": "Erlang", "manifest": "rebar.config", "public_entry": "Vsn module", "packaging_status": "source_tree", "gap": null },
+    { "id": 11, "name": "FSharp", "manifest": "Vsn.fsproj", "public_entry": "F# module Vsn", "packaging_status": "dotnet_project", "gap": null },
+    { "id": 12, "name": "Fortran", "manifest": "Makefile", "public_entry": "Vsn module", "packaging_status": "source_tree", "gap": null },
+    { "id": 13, "name": "Go", "manifest": "go.mod (module github.com/vsn/vsn)", "public_entry": "Create, VsnStore, StoragePolicy", "packaging_status": "go_module", "gap": null },
+    { "id": 14, "name": "Haskell", "manifest": "none (ghc)", "public_entry": "Vsn module", "packaging_status": "source_tree", "gap": null },
+    { "id": 15, "name": "Java", "manifest": "none (single class)", "public_entry": "VsnLib class", "packaging_status": "source_tree", "gap": null },
+    { "id": 16, "name": "JavaScript-TypeScript", "manifest": "package.json (vsn-typescript, CJS/Node16)", "public_entry": "vsn-typescript (dist)", "packaging_status": "fixed_consumer_ready", "gap": null },
+    { "id": 17, "name": "Julia", "manifest": "none", "public_entry": "Vsn module", "packaging_status": "source_tree", "gap": null },
+    { "id": 18, "name": "Kotlin", "manifest": "build.gradle.kts", "public_entry": "VsnApi / Vsn", "packaging_status": "source_tree", "gap": null },
+    { "id": 19, "name": "Lua", "manifest": "none", "public_entry": "Vsn table", "packaging_status": "source_tree", "gap": null },
+    { "id": 20, "name": "Nim", "manifest": "none", "public_entry": "Vsn module", "packaging_status": "source_tree", "gap": null },
+    { "id": 21, "name": "Objective-C", "manifest": "Dockerfile", "public_entry": "VSN C API", "packaging_status": "source_tree", "gap": null },
+    { "id": 22, "name": "OCaml", "manifest": "none", "public_entry": "Vsn module", "packaging_status": "source_tree", "gap": null },
+    { "id": 23, "name": "Perl", "manifest": "none", "public_entry": "Vsn package", "packaging_status": "source_tree", "gap": null },
+    { "id": 24, "name": "PHP", "manifest": "none", "public_entry": "Vsn class", "packaging_status": "source_tree", "gap": null },
+    { "id": 25, "name": "Python", "manifest": "NONE (no pyproject/setup/setup.cfg)", "public_entry": "vsn package (VsnStore)", "packaging_status": "gap_not_installable", "gap": "no packaging metadata; pip-install not possible; import via sys.path only" },
+    { "id": 26, "name": "R", "manifest": "none", "public_entry": "vsn functions", "packaging_status": "source_tree", "gap": null },
+    { "id": 27, "name": "Ruby", "manifest": "none", "public_entry": "Vsn module", "packaging_status": "source_tree", "gap": null },
+    { "id": 28, "name": "Rust", "manifest": "Cargo.toml (crate vsn-rust)", "public_entry": "crate vsn_rust (Store, MutableStore, encode, ...)", "packaging_status": "fixed_consumer_ready", "gap": null },
+    { "id": 29, "name": "Scala", "manifest": "none (scala-cli)", "public_entry": "Vsn object", "packaging_status": "source_tree", "gap": null },
+    { "id": 30, "name": "Swift", "manifest": "Package.swift", "public_entry": "Vsn package", "packaging_status": "swiftpm_package", "gap": null },
+    { "id": 31, "name": "Zig", "manifest": "build.zig", "public_entry": "Vsn package", "packaging_status": "source_tree", "gap": null }
+  ],
+  "cross_references": [
+    "Libraries/Consumer/PACKAGING_REPORT.md",
+    "Libraries/Consumer/PACKAGING_EVIDENCE.md",
+    "Libraries/Consumer/CONSUMER_REPORT.md",
+    "Libraries/Consumer/CONSUMER_EVIDENCE.md",
+    "Libraries/Consumer/CONSUMER_TEST_RESULTS.md",
+    "Libraries/Consumer/CONSUMER_STATUS.json"
+  ]
+}

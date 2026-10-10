@@ -1,6 +1,9 @@
-import { parse } from "./container.js";
-import { REC_COMMIT_MARKER, FID_COMMIT_GENERATION } from "./constants.js";
-import { VsnError } from "./errors.js";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.recover = recover;
+const container_js_1 = require("./container.js");
+const constants_js_1 = require("./constants.js");
+const errors_js_1 = require("./errors.js");
 /**
  * Locate the effective CommitMarker and return the accepted generation.
  *
@@ -9,17 +12,17 @@ import { VsnError } from "./errors.js";
  * malformed data is reported MALFORMED. No index, cache, checkpoint, or
  * private database participates (SR-02, SR-03).
  */
-export function recover(data) {
+function recover(data) {
     let parsed;
     try {
-        parsed = parse(data);
+        parsed = (0, container_js_1.parse)(data);
     }
     catch (e) {
-        if (e instanceof VsnError && e.code === 0x0002) {
+        if (e instanceof errors_js_1.VsnError && e.code === 0x0002) {
             return { acceptedGeneration: 0, recovered: false, tailPresent: true,
                 status: "TRUNCATED", message: "physical end reached mid-unit" };
         }
-        if (e instanceof VsnError) {
+        if (e instanceof errors_js_1.VsnError) {
             return { acceptedGeneration: 0, recovered: false, tailPresent: false,
                 status: "MALFORMED", message: e.message };
         }
@@ -27,8 +30,8 @@ export function recover(data) {
     }
     const markers = [];
     for (const rec of parsed.records) {
-        if (rec.rtype === REC_COMMIT_MARKER) {
-            const g = rec.getField(FID_COMMIT_GENERATION);
+        if (rec.rtype === constants_js_1.REC_COMMIT_MARKER) {
+            const g = rec.getField(constants_js_1.FID_COMMIT_GENERATION);
             if (g)
                 markers.push(Number(g.asUvarint()));
         }

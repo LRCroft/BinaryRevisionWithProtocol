@@ -61,10 +61,17 @@ contains
   subroutine vsn_encode(buf, blen)
     character(len=*), intent(out) :: buf
     integer, intent(in) :: blen
-    ! Emit VSN header as raw bytes
+    ! Emit VSN header + canonical REC_STORAGE_POLICY record (0x0009/0x0901/u8)
     if (blen >= 8) then
       buf(1:4) = 'VSN-'
-      buf(5:8) = char(0)//char(1)//char(0)//char(1)
+      buf(5:8) = char(0)//char(1)//char(0)//char(1)   ! CFV=1, EV=1
+    end if
+    if (blen >= 15) then
+      buf(9:10)  = char(0)//char(9)          ! REC_STORAGE_POLICY = 0x0009
+      buf(11:11) = char(4)                   ! payload length = 4
+      buf(12:13) = char(9)//char(1)          ! FID_STORAGE_POLICY = 0x0901
+      buf(14:14) = char(1)                   ! value length = 1
+      buf(15:15) = char(vsn_storage_policy)  ! u8 policy value (1..4)
     end if
   end subroutine
 
@@ -209,27 +216,17 @@ contains
   function vsn_import(data) result(ok)
     character(len=*), intent(in) :: data
     logical :: ok
-    if (len_trim(data) < 8 .or. data(1:4) /= 'VSN-') then
-      ok = .false.
-    else
-      call vsn_parse_storage_policy(data, vsn_storage_policy)
-      if (vsn_storage_policy < 1 .or. vsn_storage_policy > 4) vsn_storage_policy = 2
-      ok = .true.
-    end if
+    ok = (len_trim(data) >= 8 .and. data(1:4) == 'VSN-')
   end function
 
-  subroutine vsn_parse_storage_policy(data, sp)
+  function vsn_parse_storage_policy(data) result(sp)
     character(len=*), intent(in) :: data
-    integer, intent(out) :: sp
-    ! Parse REC_STORAGE_POLICY from VSN data by checking for magic header
-    ! The policy value is stored at byte positions within the encoded blob.
-    ! Simple: if valid VSN header exists, default to VERTICAL (2).
-    if (len_trim(data) >= 8 .and. data(1:4) == 'VSN-') then
-      sp = 2  ! default VERTICAL when no explicit SP record
-    else
-      sp = -1  ! invalid data
-    end if
-  end subroutine
+    integer :: sp
+    ! Canonical value position: "VSN-"(4) + CFV(2) + EV(2) + REC_SP(2)
+    ! + plen(1) + FID(2) + vlen(1) => value is the 15th byte.
+    sp = -1
+    if (len(data) >= 15) sp = ichar(data(15:15))
+  end function
 
   function vsn_export_len() result(l)
     integer :: l

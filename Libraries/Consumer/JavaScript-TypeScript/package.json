@@ -1,0 +1,12 @@
+{
+  "name": "vsn-ts-consumer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Independent external consumer of the built vsn-typescript package",
+  "scripts": {
+    "test": "node consumer.cjs && node consumer.mjs"
+  },
+  "dependencies": {
+    "vsn-typescript": "file:../../JavaScript-TypeScript"
+  }
+}

@@ -328,9 +328,9 @@ VsnContainer *vsn_create(int mode) {
 }
 
 VsnContainer *vsn_create_with_policy(int storage_policy) {
-    // Canonical writer: maps policy to wire mode; stores policy directly for encoder.
-    int mode = MODE_MODERN;  // HIGHLY_VERTICAL(1), VERTICAL(2) → MODERN
-    if (storage_policy >= 3)       // HORIZONTAL(3), HIGHLY_HORIZONTAL(4) → ENTERPRISE
+    // Canonical writer: assigns wire mode; stores SP value directly for encoder.
+    int mode = MODE_MODERN;
+    if (storage_policy >= 3)
         mode = MODE_ENTERPRISE;
     VsnContainer *c = vsn_create(mode);
     c->storage_policy = (uint8_t)(storage_policy > 0 ? storage_policy : STORAGE_HIGHLY_VERTICAL);

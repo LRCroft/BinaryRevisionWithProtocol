@@ -55,15 +55,9 @@ object VsnApi {
 
     fun parseStoragePolicy(data: ByteArray): Int? {
         if (data.size < 8 || String(data,0,4) != "VSN-") return null
+        // Scan records starting right after the 8-byte header. The writer emits
+        // REC_STORAGE_POLICY immediately (there is no RecordsEnd header section).
         var pos = 8
-        // Skip RecordsEnd header field
-        val fidLenOffset = pos
-        if (fidLenOffset + 2 > data.size) return null
-        pos += 2  // skip fid of RecordsEnd (0x0000)
-        val fl = data[pos].toInt() and 0xFF; pos++
-        if (fl < 0 || pos + fl > data.size) return null
-        pos += fl  // skip RecordsEnd payload (empty)
-        // Now scan for REC_STORAGE_POLICY records
         while (pos + 2 <= data.size) {
             val rt = ((data[pos].toInt() and 0xFF) shl 8) or (data[pos+1].toInt() and 0xFF)
             if (rt == 0x0000) return null // end of records

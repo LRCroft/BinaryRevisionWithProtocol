@@ -38,16 +38,17 @@ proc encode*(mode, gen: int): string =
   MAGIC & "\x00\x01\x00\x01"
 
 proc encodeWithSP*(mode, gen, sp: int): string =
-  ## Header with StoragePolicy record (REC_STORAGE_POLICY / FID_STORAGE_POLICY).
-  result = newString(13)
+  ## Canonical 15-byte wire: VSN- + CFV(0x0001) + EV(0x0001) + REC_SP(0x0009) + plen(4) + FID(0x0901) + vlen(1) + value(u8).
+  result = newString(15)
   result[0] = 'V'; result[1] = 'S'; result[2] = 'N'; result[3] = '-'
-  result[4] = chr(0); result[5] = chr(1)     # CFV=1, EV=1
-  result[6] = chr(0); result[7] = chr(9)     # REC_STORAGE_POLICY = 0x0009
-  result[8] = chr(4)                           # payload length = 4
-  result[9] = chr(9); result[10] = chr(1)    # FID_STORAGE_POLICY = 0x0901
-  result[11] = chr(1)                          # value length = 1
+  result[4] = chr(0); result[5] = chr(1)     # CFV = 1
+  result[6] = chr(0); result[7] = chr(1)     # EV = 1
+  result[8] = chr(0); result[9] = chr(9)     # REC_STORAGE_POLICY = 0x0009
+  result[10] = chr(4)                        # payload length = 4
+  result[11] = chr(9); result[12] = chr(1)   # FID_STORAGE_POLICY = 0x0901
+  result[13] = chr(1)                        # value length = 1
   let val = if sp >= 1 and sp <= 4: chr(sp) else: chr(2)
-  result[12] = val
+  result[14] = val
 
 proc validateStructural*(c: tuple[cfv: int, ev: int, mode: int, byteLength: int]): bool =
   c.cfv == CFV and (c.mode == MODE_MODERN or c.mode == MODE_ENTERPRISE)
@@ -225,6 +226,20 @@ proc getObjectSerial*(s: MutableStore, fid: string): int = s.headRevision(fid).o
 
 proc getObjectInfo*(s: MutableStore, serial: int): tuple[exists: bool, size: int] =
   if serial in s.objects: (true, s.objects[serial].len) else: (false, 0)
+
+# --- Canonical API completeness (identical across all 31 languages) ---
+
+proc toBytes*(s: MutableStore): string =
+  encodeWithSP(s.mode, s.generation, s.storagePolicy)
+
+proc reopen*(s: MutableStore, data: string): MutableStore =
+  let c = parse(data)
+  if c.cfv == -1: raise newException(VsnError, "bad magic")
+  s.generation = 0
+  s
+
+proc listFiles*(s: MutableStore): seq[string] =
+  for fid in s.files.keys: result.add fid
 
 # --- Transactions ----------------------------------------------------------
 

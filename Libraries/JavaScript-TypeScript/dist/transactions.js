@@ -1,4 +1,7 @@
-import { VsnError } from "./errors.js";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Transaction = void 0;
+const errors_js_1 = require("./errors.js");
 /**
  * Transaction with staging, precondition, and commit.
  *
@@ -6,7 +9,7 @@ import { VsnError } from "./errors.js";
  * canonical state (RC-01). The CommitMarker remains the sole acceptance
  * authority: a transaction commits by producing canonical bytes.
  */
-export class Transaction {
+class Transaction {
     expectedRevisionId;
     staged = [];
     committed = false;
@@ -35,13 +38,13 @@ export class Transaction {
     /** Apply staged changes and commit; returns canonical bytes. */
     commit(store) {
         if (this.committed)
-            throw new VsnError(0x000C, "transaction already committed");
+            throw new errors_js_1.VsnError(0x000C, "transaction already committed");
         if (this.expectedRevisionId !== null) {
             for (const change of this.staged) {
                 if (change.fileId !== undefined) {
                     const current = store.getCurrentRevision(change.fileId);
                     if (current !== this.expectedRevisionId)
-                        throw new VsnError(0x000D, `ExpectedRevisionId mismatch: expected ${this.expectedRevisionId}, got ${current}`);
+                        throw new errors_js_1.VsnError(0x000D, `ExpectedRevisionId mismatch: expected ${this.expectedRevisionId}, got ${current}`);
                     break;
                 }
             }
@@ -60,4 +63,5 @@ export class Transaction {
         return store.commit();
     }
 }
+exports.Transaction = Transaction;
 //# sourceMappingURL=transactions.js.map
