@@ -2,7 +2,7 @@
 
 **VSN — Binary Revision Protocol**
 
-File history, built into a binary format.
+File history that works with any binary format.
 
 VSN defines a standardized binary container for storing file revisions. Instead of reinventing revision history in every application, VSN provides a shared foundation that works across 31 programming languages. Choose your storage strategy—from maximum efficiency to straightforward self-contained content—and let VSN handle the binary format details.
 
