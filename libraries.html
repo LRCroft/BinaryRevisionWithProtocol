@@ -394,7 +394,7 @@ RepresentationDescriptor
             <li>Reconstruction dependencies forbidden; each object contains complete logical content</li>
             <li>Exact whole-object reuse MAY still be used where identity semantics allow</li>
           </ul>
-          <p class="note">Storage-policy profiles do not appear in the container binary. A container has exactly one ModeDeclaration (GR-38); changing writer policy does not change the ModeDeclaration.</p>          <p><a href="#top">Back to top</a></p>
+          <p class="note">Storage policies (values 1-4) are stored directly in the container as <code>REC_STORAGE_POLICY</code> records. The <code>ModeDeclaration</code> record is deprecated and kept only for backward compatibility.</p>          <p><a href="#top">Back to top</a></p>
         </div>
       </section>
       <section class="section" id="lib-storage-optimization" aria-labelledby="lib-storage-optimization-title">
