@@ -46,6 +46,10 @@ consumer-tested (exit 0) in the current workflow.
 
 ---
 
+## SESSION UPDATE 2026-10-10 Act Mode — README tagline update and terminology cleanup
+
+**Verdict:** COMPLETE. Updated README tagline to reflect VSN works with any binary format. Completed repository-wide terminology cleanup replacing all project-facing instances of "VSN-1" with "VSN". No changes to protocol artifacts, frozen test vectors, or manifest.
+
 ## SESSION UPDATE 2026-10-10 Act Mode — ALL 31 Independent Consumers PASS
 
 **Verdict:** COMPLETE. Closed the consumer gap from 15 → **31/31 PASS** (real Docker execution, exit 0 each). All 31 languages now have an executed independent consumer asserting SP wire-out (REC_STORAGE_POLICY 0x0009 + FID 0x0901 signature) **and** wire-in (parse back = same value 1..4).
